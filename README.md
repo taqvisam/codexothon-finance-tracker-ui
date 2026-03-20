@@ -32,7 +32,6 @@ Frontend web app for Personal Finance Tracker.
 - Playwright e2e tests: `npm run test:e2e`
 
 ## Demo Credentials
-- demo@finance.com / Demo@123
 - test@amiti.in / Test@123
 
 ## QA Note
