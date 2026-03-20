@@ -1145,23 +1145,20 @@ body.dark-theme .settings-switch-row span {
   }
 
   .topbar-inner {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 10px;
   }
 
   .topbar-tools {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
 
   .topbar-filter {
-    flex: 1 1 220px;
-    min-width: 0;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 4px;
   }
 
@@ -1171,12 +1168,13 @@ body.dark-theme .settings-switch-row span {
   }
 
   .topbar-add-btn {
-    flex: 1 1 100%;
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .topbar-user {
-    margin-left: 0;
-    align-self: flex-start;
+    margin-left: auto;
+    justify-self: end;
   }
 
   .two-col {
@@ -1267,16 +1265,7 @@ body.dark-theme .settings-switch-row span {
 
   .sidebar-nav {
     padding: 8px;
-    gap: 4px;
-  }
-
-  .nav-link {
-    padding: 8px;
-    min-width: auto;
-  }
-
-  .nav-link > span:last-child {
-    display: none;
+    gap: 6px;
   }
 
   .topbar {
@@ -1284,15 +1273,12 @@ body.dark-theme .settings-switch-row span {
   }
 
   .topbar-tools {
+    grid-template-columns: 1fr;
     gap: 6px;
   }
 
-  .topbar-filter {
-    flex: 1 1 100%;
-  }
-
   .topbar-user {
-    align-self: stretch;
+    justify-self: stretch;
   }
 
   .user-chip {
