@@ -12,10 +12,10 @@ import {
   XAxis,
   YAxis
 } from "recharts";
+import { useState } from "react";
 import { ChartCard } from "../../components/ChartCard";
 import { apiClient } from "../../services/apiClient";
 import { useUiStore } from "../../store/uiStore";
-import { useState } from "react";
 import { Dropdown } from "../../components/Dropdown";
 
 interface AccountItem {
@@ -39,9 +39,7 @@ function colorForCategory(name: string) {
 }
 
 export function ReportsPage() {
-  const { dateFrom, dateTo, setDateRange } = useUiStore();
-  const [from, setFrom] = useState(dateFrom);
-  const [to, setTo] = useState(dateTo);
+  const { dateFrom: from, dateTo: to, setDateRange } = useUiStore();
   const [accountId, setAccountId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [type, setType] = useState("");
@@ -110,11 +108,11 @@ export function ReportsPage() {
         <div className="form-grid">
           <label style={{ display: "block" }}>
             <span className="muted" style={{ display: "block", marginBottom: 4 }}>From Date</span>
-            <input className="input" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setDateRange(e.target.value, to); }} />
+            <input className="input" type="date" value={from} onChange={(e) => setDateRange(e.target.value, to)} />
           </label>
           <label style={{ display: "block" }}>
             <span className="muted" style={{ display: "block", marginBottom: 4 }}>To Date</span>
-            <input className="input" type="date" value={to} onChange={(e) => { setTo(e.target.value); setDateRange(from, e.target.value); }} />
+            <input className="input" type="date" value={to} onChange={(e) => setDateRange(from, e.target.value)} />
           </label>
           <Dropdown
             label="Account"

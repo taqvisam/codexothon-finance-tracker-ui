@@ -57,10 +57,11 @@ type Input = z.infer<typeof schema>;
 export function TransactionsPage() {
   const queryClient = useQueryClient();
   const currency = useCurrency();
-  const { globalSearch, dateFrom, dateTo, notify, setGlobalSearch } = useUiStore();
+  const { dateFrom, dateTo, notify } = useUiStore();
   const todayIso = new Date().toISOString().slice(0, 10);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
+  const [search, setSearch] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [selectedAccount, setSelectedAccount] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -88,14 +89,14 @@ export function TransactionsPage() {
   });
 
   const transactionsQuery = useQuery({
-    queryKey: ["transactions", globalSearch, dateFrom, dateTo, page, pageSize, selectedType, selectedAccount, selectedCategory],
+    queryKey: ["transactions", search, dateFrom, dateTo, page, pageSize, selectedType, selectedAccount, selectedCategory],
     queryFn: async () =>
       (
         await apiClient.get<TransactionItem[]>("/transactions", {
           params: {
             from: dateFrom,
             to: dateTo,
-            search: globalSearch,
+            search: search || undefined,
             page,
             pageSize,
             type: selectedType || undefined,
@@ -138,9 +139,7 @@ export function TransactionsPage() {
       setSelectedType("");
       setSelectedAccount("");
       setSelectedCategory("");
-      if (globalSearch) {
-        setGlobalSearch("");
-      }
+      setSearch("");
       reset({ type: "Expense", date: todayIso } as Input);
     }
   });
@@ -212,13 +211,18 @@ export function TransactionsPage() {
             onChange={(e) => setValue("type", e.target.value as Input["type"])}
             label="Type"
           />
-          <Dropdown
-            options={[{ value: "", label: "Select Category" }, ...filteredCategories.map((c) => ({ value: c.id, label: c.name }))]}
-            value={watch("categoryId") ?? ""}
-            onChange={(e) => setValue("categoryId", e.target.value || undefined)}
-            label="Category"
-            disabled={typeValue === "Transfer"}
-          />
+          {typeValue !== "Transfer" ? (
+            <Dropdown
+              options={[{ value: "", label: "Select Category" }, ...filteredCategories.map((c) => ({ value: c.id, label: c.name }))]}
+              value={watch("categoryId") ?? ""}
+              onChange={(e) => setValue("categoryId", e.target.value || undefined)}
+              label="Category"
+            />
+          ) : (
+            <div style={{ alignSelf: "end" }}>
+              <span className="muted">Category not required for transfer.</span>
+            </div>
+          )}
           {typeValue === "Transfer" ? (
             <Dropdown
               options={[{ value: "", label: "Select destination account" }, ...transferDestinationOptions.map((a) => ({ value: a.id, label: a.name }))]}
@@ -252,6 +256,15 @@ export function TransactionsPage() {
       </form>
 
       <div className="form-grid" style={{ marginTop: 16 }}>
+        <TextInput
+          label="Search"
+          placeholder="Merchant or note"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
         <Dropdown
           label="Filter Type"
           options={[

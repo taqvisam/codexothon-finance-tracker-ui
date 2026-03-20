@@ -7,12 +7,10 @@ export interface AppNotification {
 }
 
 interface UiState {
-  globalSearch: string;
   selectedPeriod: string;
   dateFrom: string;
   dateTo: string;
   notifications: AppNotification[];
-  setGlobalSearch: (value: string) => void;
   setSelectedPeriod: (period: string) => void;
   setDateRange: (from: string, to: string) => void;
   notify: (message: string, type?: AppNotification["type"]) => void;
@@ -21,6 +19,14 @@ interface UiState {
 
 function toIsoDate(date: Date) {
   return date.toISOString().slice(0, 10);
+}
+
+function parseIsoDate(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return parsed;
 }
 
 function toPeriod(date: Date) {
@@ -42,18 +48,32 @@ const defaultPeriod = toPeriod(today);
 const defaultWindow = periodWindow(defaultPeriod);
 
 export const useUiStore = create<UiState>((set) => ({
-  globalSearch: "",
   selectedPeriod: defaultPeriod,
   dateFrom: defaultWindow.from,
   dateTo: defaultWindow.to,
   notifications: [],
-  setGlobalSearch: (value) => set({ globalSearch: value }),
   setSelectedPeriod: (period) =>
     set(() => {
       const window = periodWindow(period);
       return { selectedPeriod: period, dateFrom: window.from, dateTo: window.to };
     }),
-  setDateRange: (from, to) => set({ dateFrom: from, dateTo: to }),
+  setDateRange: (from, to) =>
+    set((state) => {
+      const fromDate = parseIsoDate(from);
+      const toDate = parseIsoDate(to);
+      if (!fromDate || !toDate) {
+        return state;
+      }
+
+      const start = fromDate <= toDate ? fromDate : toDate;
+      const end = fromDate <= toDate ? toDate : fromDate;
+
+      return {
+        dateFrom: toIsoDate(start),
+        dateTo: toIsoDate(end),
+        selectedPeriod: toPeriod(start)
+      };
+    }),
   notify: (message, type = "success") =>
     set((state) => ({
       notifications: [

@@ -220,24 +220,7 @@ export function SettingsPage() {
         <aside className="settings-side-stack">
           <article className="card settings-card">
             <h3>Notification Settings</h3>
-            <div className="settings-switch-list">
-              <div className="settings-switch-row">
-                <span>Email Notifications</span>
-                <ToggleSwitch checked={prefs.emailNotifications} onChange={(v) => setPref("emailNotifications", v)} label="Email Notifications" />
-              </div>
-              <div className="settings-switch-row">
-                <span>Push Notifications</span>
-                <ToggleSwitch checked={prefs.pushNotifications} onChange={(v) => setPref("pushNotifications", v)} label="Push Notifications" />
-              </div>
-              <div className="settings-switch-row">
-                <span>Monthly Summary</span>
-                <ToggleSwitch checked={prefs.monthlySummary} onChange={(v) => setPref("monthlySummary", v)} label="Monthly Summary" />
-              </div>
-              <div className="settings-switch-row">
-                <span>Budget Alerts</span>
-                <ToggleSwitch checked={prefs.budgetAlerts} onChange={(v) => setPref("budgetAlerts", v)} label="Budget Alerts" />
-              </div>
-            </div>
+            <p className="muted">Comming soon...</p>
           </article>
 
           <article className="card settings-toggle-card">

@@ -258,9 +258,15 @@ body.dark-theme .settings-switch-row span {
 .topbar-right {
   display: flex;
   align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.topbar-tools {
+  display: flex;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  justify-content: flex-end;
 }
 
 .topbar-filter {
@@ -270,22 +276,8 @@ body.dark-theme .settings-switch-row span {
   white-space: nowrap;
 }
 
-.topbar-period {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  white-space: nowrap;
-}
-
-.topbar-period-select {
-  padding: 7px 10px;
-  border-radius: 8px;
-  min-width: 190px;
-}
-
-.topbar-search {
-  min-width: 180px;
+.topbar-user {
+  margin-left: auto;
 }
 
 .topbar-date {
