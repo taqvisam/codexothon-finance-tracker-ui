@@ -15,8 +15,10 @@ interface RecurringItem {
   categoryId?: string;
   accountId?: string;
   frequency: string;
-  startDate?: string;
+  startDate: string;
+  endDate?: string | null;
   nextRunDate: string;
+  autoCreateTransaction: boolean;
   isPaused?: boolean;
 }
 
@@ -111,6 +113,27 @@ export function RecurringPage() {
     }
   });
 
+  const pauseMutation = useMutation({
+    mutationFn: async (item: RecurringItem) =>
+      apiClient.put(`/recurring/${item.id}`, {
+        title: item.title,
+        type: item.type,
+        amount: item.amount,
+        categoryId: item.categoryId,
+        accountId: item.accountId,
+        frequency: item.frequency,
+        startDate: item.startDate,
+        endDate: item.endDate,
+        nextRunDate: item.nextRunDate,
+        autoCreateTransaction: item.autoCreateTransaction,
+        isPaused: !item.isPaused
+      }),
+    onSuccess: () => {
+      notify("Recurring item updated");
+      queryClient.invalidateQueries({ queryKey: ["recurring"] });
+    }
+  });
+
   const selectedType = watch("type");
   const filteredCategories = categoriesQuery.data.filter((c) => c.type === selectedType);
   const monthRecurring = recurringQuery.data.filter((item) => item.nextRunDate >= dateFrom && item.nextRunDate <= dateTo);
@@ -191,6 +214,7 @@ export function RecurringPage() {
                 <th>Amount</th>
                 <th>Frequency</th>
                 <th>Next Run</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -201,8 +225,16 @@ export function RecurringPage() {
                   <td>{r.amount}</td>
                   <td>{r.frequency}</td>
                   <td>{r.nextRunDate}</td>
+                  <td>{r.isPaused ? "Paused" : "Active"}</td>
                   <td>
                     <div className="action-icon-row">
+                      <button
+                        className="btn ghost"
+                        type="button"
+                        onClick={() => pauseMutation.mutate(r)}
+                      >
+                        {r.isPaused ? "Resume" : "Pause"}
+                      </button>
                       <ActionIconButton
                         icon="edit"
                         label="Edit recurring item"

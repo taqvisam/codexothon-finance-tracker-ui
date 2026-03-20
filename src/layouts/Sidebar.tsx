@@ -11,6 +11,7 @@ function NavIcon({ path }: { path: string }) {
 const items = [
   ["M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3v-10.5Z", "Dashboard", "/"],
   ["M3 6h18M3 12h18M3 18h18", "Transactions", "/transactions"],
+  ["M5 6h14M5 12h14M5 18h14M3 6h.01M3 12h.01M3 18h.01", "Categories", "/categories"],
   ["M4 7h16v12H4z M4 11h16", "Accounts", "/accounts"],
   ["M7 4v4M17 4v4M4 9h16M5 7h14a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z", "Budgets", "/budgets"],
   ["M12 21s7-4.3 7-10V5l-7-2-7 2v6c0 5.7 7 10 7 10Z", "Goals", "/goals"],

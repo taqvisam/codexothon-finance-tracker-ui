@@ -27,11 +27,29 @@ interface CategoryItem {
 const schema = z.object({
   accountId: z.string().uuid(),
   categoryId: z.string().uuid().optional(),
+  transferAccountId: z.string().uuid().optional(),
   type: z.enum(["Income", "Expense", "Transfer"]),
   amount: z.number().positive(),
   date: z.string(),
   merchant: z.string().optional(),
-  note: z.string().optional()
+  note: z.string().optional(),
+  paymentMethod: z.string().optional(),
+  tags: z.string().optional()
+}).superRefine((value, ctx) => {
+  if (value.type === "Transfer" && !value.transferAccountId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Transfer requires destination account.",
+      path: ["transferAccountId"]
+    });
+  }
+  if (value.type !== "Transfer" && !value.categoryId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Category is required except transfer.",
+      path: ["categoryId"]
+    });
+  }
 });
 
 type Input = z.infer<typeof schema>;
@@ -91,10 +109,26 @@ export function TransactionsPage() {
 
   const upsertMutation = useMutation({
     mutationFn: async (data: Input) => {
+      const payload = {
+        accountId: data.accountId,
+        categoryId: data.type === "Transfer" ? undefined : data.categoryId,
+        transferAccountId: data.type === "Transfer" ? data.transferAccountId : undefined,
+        type: data.type,
+        amount: data.amount,
+        date: data.date,
+        merchant: data.merchant,
+        note: data.note,
+        paymentMethod: data.paymentMethod,
+        tags: (data.tags ?? "")
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean)
+      };
+
       if (editId) {
-        return apiClient.put(`/transactions/${editId}`, data);
+        return apiClient.put(`/transactions/${editId}`, payload);
       }
-      return apiClient.post("/transactions", data);
+      return apiClient.post("/transactions", payload);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["transactions"] });
@@ -124,6 +158,11 @@ export function TransactionsPage() {
     [categoriesQuery.data, typeValue]
   );
 
+  const transferDestinationOptions = useMemo(
+    () => accountsQuery.data.filter((x) => x.id !== accountIdValue),
+    [accountIdValue, accountsQuery.data]
+  );
+
   useEffect(() => {
     if (!accountIdValue && accountsQuery.data.length > 0) {
       setValue("accountId", accountsQuery.data[0].id, { shouldValidate: true });
@@ -135,13 +174,17 @@ export function TransactionsPage() {
       if (categoryIdValue) {
         setValue("categoryId", undefined, { shouldValidate: true });
       }
+      const transferValue = watch("transferAccountId");
+      if (!transferValue && transferDestinationOptions.length > 0) {
+        setValue("transferAccountId", transferDestinationOptions[0].id, { shouldValidate: true });
+      }
       return;
     }
 
     if (!categoryIdValue && filteredCategories.length > 0) {
       setValue("categoryId", filteredCategories[0].id, { shouldValidate: true });
     }
-  }, [categoryIdValue, filteredCategories, setValue, typeValue]);
+  }, [categoryIdValue, filteredCategories, setValue, transferDestinationOptions, typeValue, watch]);
 
   return (
     <section className="card">
@@ -174,10 +217,21 @@ export function TransactionsPage() {
             value={watch("categoryId") ?? ""}
             onChange={(e) => setValue("categoryId", e.target.value || undefined)}
             label="Category"
+            disabled={typeValue === "Transfer"}
           />
+          {typeValue === "Transfer" ? (
+            <Dropdown
+              options={[{ value: "", label: "Select destination account" }, ...transferDestinationOptions.map((a) => ({ value: a.id, label: a.name }))]}
+              value={watch("transferAccountId") ?? ""}
+              onChange={(e) => setValue("transferAccountId", e.target.value || undefined)}
+              label="Destination Account"
+            />
+          ) : null}
           <TextInput label="Amount" type="number" step="0.01" {...register("amount", { valueAsNumber: true })} />
           <TextInput label="Date" type="date" {...register("date")} />
           <TextInput label="Merchant" {...register("merchant")} />
+          <TextInput label="Payment Method" placeholder="Card / Cash / UPI" {...register("paymentMethod")} />
+          <TextInput label="Tags" placeholder="family, groceries" {...register("tags")} />
           <TextInput label="Note" {...register("note")} />
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -253,6 +307,9 @@ export function TransactionsPage() {
                           setValue("amount", r.amount);
                           setValue("date", r.date);
                           setValue("merchant", r.merchant);
+                          setValue("paymentMethod", r.paymentMethod);
+                          setValue("tags", r.tags?.join(", "));
+                          setValue("transferAccountId", r.transferAccountId);
                           setValue("note", r.note);
                         }}
                       />

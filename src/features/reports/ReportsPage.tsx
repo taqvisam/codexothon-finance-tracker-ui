@@ -16,6 +16,17 @@ import { ChartCard } from "../../components/ChartCard";
 import { apiClient } from "../../services/apiClient";
 import { useUiStore } from "../../store/uiStore";
 import { useState } from "react";
+import { Dropdown } from "../../components/Dropdown";
+
+interface AccountItem {
+  id: string;
+  name: string;
+}
+
+interface CategoryItem {
+  id: string;
+  name: string;
+}
 
 const piePalette = ["#2f6fbe", "#36a269", "#ee9a2f", "#dd5757", "#7a5fd3", "#31a4c8", "#8a6b56", "#d46d9f"];
 
@@ -28,10 +39,22 @@ function colorForCategory(name: string) {
 }
 
 export function ReportsPage() {
-  const { dateFrom: from, dateTo: to } = useUiStore();
+  const { dateFrom, dateTo, setDateRange } = useUiStore();
+  const [from, setFrom] = useState(dateFrom);
+  const [to, setTo] = useState(dateTo);
   const [accountId, setAccountId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [type, setType] = useState("");
+  const accountsQuery = useQuery({
+    queryKey: ["report-accounts"],
+    queryFn: async () => (await apiClient.get<AccountItem[]>("/accounts")).data,
+    initialData: []
+  });
+  const categoriesQuery = useQuery({
+    queryKey: ["report-categories"],
+    queryFn: async () => (await apiClient.get<CategoryItem[]>("/categories")).data,
+    initialData: []
+  });
   const categorySpendQuery = useQuery({
     queryKey: ["report-category", from, to, accountId, categoryId, type],
     queryFn: async () =>
@@ -85,14 +108,37 @@ export function ReportsPage() {
     <section>
       <div className="card" style={{ marginBottom: 12 }}>
         <div className="form-grid">
-          <input className="input" placeholder="Account ID" value={accountId} onChange={(e) => setAccountId(e.target.value)} />
-          <input className="input" placeholder="Category ID" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} />
-          <select className="select" value={type} onChange={(e) => setType(e.target.value)}>
-            <option value="">All Types</option>
-            <option value="Income">Income</option>
-            <option value="Expense">Expense</option>
-            <option value="Transfer">Transfer</option>
-          </select>
+          <label style={{ display: "block" }}>
+            <span className="muted" style={{ display: "block", marginBottom: 4 }}>From Date</span>
+            <input className="input" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setDateRange(e.target.value, to); }} />
+          </label>
+          <label style={{ display: "block" }}>
+            <span className="muted" style={{ display: "block", marginBottom: 4 }}>To Date</span>
+            <input className="input" type="date" value={to} onChange={(e) => { setTo(e.target.value); setDateRange(from, e.target.value); }} />
+          </label>
+          <Dropdown
+            label="Account"
+            options={[{ value: "", label: "All Accounts" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+          />
+          <Dropdown
+            label="Category"
+            options={[{ value: "", label: "All Categories" }, ...categoriesQuery.data.map((c) => ({ value: c.id, label: c.name }))]}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+          />
+          <Dropdown
+            label="Type"
+            options={[
+              { value: "", label: "All Types" },
+              { value: "Income", label: "Income" },
+              { value: "Expense", label: "Expense" },
+              { value: "Transfer", label: "Transfer" }
+            ]}
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+          />
           <button className="btn" onClick={exportCsv}>Export CSV</button>
         </div>
       </div>

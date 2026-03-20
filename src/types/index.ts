@@ -11,11 +11,14 @@ export interface TransactionItem {
   id: string;
   accountId: string;
   categoryId?: string;
+  transferAccountId?: string;
   type: TransactionType;
   amount: number;
   date: string;
   merchant?: string;
   note?: string;
+  paymentMethod?: string;
+  tags?: string[];
 }
 
 export interface BudgetItem {
@@ -32,6 +35,10 @@ export interface GoalItem {
   name: string;
   targetAmount: number;
   currentAmount: number;
+  targetDate?: string | null;
+  linkedAccountId?: string | null;
+  icon?: string | null;
+  color?: string | null;
   progressPercent: number;
   status?: string;
 }

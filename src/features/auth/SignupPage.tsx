@@ -32,7 +32,7 @@ export function SignupPage() {
     mutationFn: async (data: Input) => (await apiClient.post("/auth/register", data)).data,
     onSuccess: (data) => {
       setAuth(data);
-      navigate("/");
+      navigate("/onboarding");
     }
   });
 

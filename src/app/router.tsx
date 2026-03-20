@@ -5,10 +5,12 @@ import { LoginPage } from "../features/auth/LoginPage";
 import { SignupPage } from "../features/auth/SignupPage";
 import { ForgotPasswordPage } from "../features/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "../features/auth/ResetPasswordPage";
+import { OnboardingPage } from "../features/auth/OnboardingPage";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute";
 import { SettingsPage } from "../features/auth/SettingsPage";
 import { DashboardPage } from "../features/reports/DashboardPage";
 import { TransactionsPage } from "../features/transactions/TransactionsPage";
+import { CategoriesPage } from "../features/categories/CategoriesPage";
 import { BudgetsPage } from "../features/budgets/BudgetsPage";
 import { GoalsPage } from "../features/goals/GoalsPage";
 import { ReportsPage } from "../features/reports/ReportsPage";
@@ -33,7 +35,9 @@ export const router = createBrowserRouter([
             element: <AppShell />,
             children: [
               { index: true, element: <DashboardPage /> },
+              { path: "onboarding", element: <OnboardingPage /> },
               { path: "transactions", element: <TransactionsPage /> },
+              { path: "categories", element: <CategoriesPage /> },
               { path: "budgets", element: <BudgetsPage /> },
               { path: "goals", element: <GoalsPage /> },
               { path: "reports", element: <ReportsPage /> },

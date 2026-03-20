@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import {
   Bar,
   BarChart,
@@ -18,6 +19,7 @@ import { apiClient } from "../../services/apiClient";
 import type { BudgetItem, GoalItem, SummaryMetrics, TransactionItem } from "../../types";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
+import { AlertBanner } from "../../components/AlertBanner";
 
 interface AccountItem {
   id: string;
@@ -39,6 +41,7 @@ interface TrendItem {
 const chartColors = ["#2f6fbe", "#ee9a2f", "#36a269", "#dd5757", "#697b96", "#2f97d8"];
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const currency = useCurrency();
   const { dateFrom, dateTo, selectedPeriod } = useUiStore();
   const [selectedYear, selectedMonth] = selectedPeriod.split("-").map(Number);
@@ -131,8 +134,50 @@ export function DashboardPage() {
     color: chartColors[idx % chartColors.length]
   }));
 
+  const alerts = useMemo(() => {
+    const nextThreeDays = new Date();
+    nextThreeDays.setDate(nextThreeDays.getDate() + 3);
+    const end = nextThreeDays.toISOString().slice(0, 10);
+
+    const budgetAlerts = budgetCards
+      .filter((b) => b.percent >= 80)
+      .map((b) => {
+        const severity = b.percent >= 120 ? "danger" : b.percent >= 100 ? "warning" : "info";
+        return {
+          type: severity as "info" | "warning" | "danger",
+          message: `${b.categoryId}: ${Math.round(b.percent)}% of budget used`
+        };
+      });
+
+    const recurringAlerts = recurringQuery.data
+      .filter((r) => r.nextRunDate >= dateFrom && r.nextRunDate <= end)
+      .slice(0, 3)
+      .map((r) => ({
+        type: "warning" as const,
+        message: `Upcoming recurring payment in next 3 days: ${r.title} (${currency(r.amount)}) on ${r.nextRunDate}`
+      }));
+
+    return [...budgetAlerts, ...recurringAlerts];
+  }, [budgetCards, currency, dateFrom, recurringQuery.data]);
+
   return (
     <>
+      <section className="card" style={{ marginTop: 12 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button className="btn" type="button" onClick={() => navigate("/transactions")}>Add Transaction</button>
+          <button className="btn ghost" type="button" onClick={() => navigate("/budgets")}>Create Budget</button>
+          <button className="btn ghost" type="button" onClick={() => navigate("/recurring")}>Add Recurring Bill</button>
+          <button className="btn ghost" type="button" onClick={() => navigate("/goals")}>Update Goal Contribution</button>
+        </div>
+        {alerts.length > 0 ? (
+          <div className="alert-stack">
+            {alerts.map((alert, idx) => (
+              <AlertBanner key={`${idx}-${alert.message}`} type={alert.type} message={alert.message} />
+            ))}
+          </div>
+        ) : null}
+      </section>
+
       <section className="card-grid">
         <SummaryCard title="Balance" value={summary.balance} />
         <SummaryCard title="Current Month Income" value={summary.income} />

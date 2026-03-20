@@ -7,10 +7,21 @@ import type { GoalItem } from "../../types";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
 import { ActionIconButton } from "../../components/ActionIconButton";
+import { Dropdown } from "../../components/Dropdown";
+import { TextInput } from "../../components/TextInput";
 
 interface GoalInput {
   name: string;
   targetAmount: number;
+  targetDate?: string;
+  linkedAccountId?: string;
+  icon?: string;
+  color?: string;
+}
+
+interface AccountItem {
+  id: string;
+  name: string;
 }
 
 type GoalActionType = "contribute" | "withdraw";
@@ -60,7 +71,7 @@ export function GoalsPage() {
   const currency = useCurrency();
   const { notify } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
-  const { register, handleSubmit, reset, setValue } = useForm<GoalInput>();
+  const { register, handleSubmit, reset, setValue, watch } = useForm<GoalInput>();
   const [actionState, setActionState] = useState<GoalActionState | null>(null);
   const [actionAmount, setActionAmount] = useState("");
 
@@ -70,19 +81,26 @@ export function GoalsPage() {
     initialData: []
   });
 
+  const accountsQuery = useQuery({
+    queryKey: ["goal-accounts"],
+    queryFn: async () => (await apiClient.get<AccountItem[]>("/accounts")).data,
+    initialData: []
+  });
+
   const createMutation = useMutation({
     mutationFn: async (payload: GoalInput) => {
+      const body = {
+        name: payload.name,
+        targetAmount: payload.targetAmount,
+        targetDate: payload.targetDate || null,
+        linkedAccountId: payload.linkedAccountId || null,
+        icon: payload.icon || null,
+        color: payload.color || null
+      };
       if (editId) {
-        return apiClient.put(`/goals/${editId}`, {
-          name: payload.name,
-          targetAmount: payload.targetAmount,
-          targetDate: null,
-          linkedAccountId: null,
-          icon: null,
-          color: null
-        });
+        return apiClient.put(`/goals/${editId}`, body);
       }
-      return apiClient.post("/goals", payload);
+      return apiClient.post("/goals", body);
     },
     onSuccess: () => {
       notify(editId ? "Goal updated" : "Goal created");
@@ -186,8 +204,17 @@ export function GoalsPage() {
       <h3>Savings Goals</h3>
       <form onSubmit={handleSubmit((d) => createMutation.mutate(d))}>
         <div className="form-grid">
-          <input className="input" placeholder="Goal Name" {...register("name")} />
-          <input className="input" type="number" placeholder="Target Amount" {...register("targetAmount", { valueAsNumber: true })} />
+          <TextInput label="Goal Name" placeholder="Goal Name" {...register("name")} />
+          <TextInput label="Target Amount" type="number" placeholder="Target Amount" {...register("targetAmount", { valueAsNumber: true })} />
+          <TextInput label="Target Date" type="date" {...register("targetDate")} />
+          <Dropdown
+            label="Linked Account"
+            options={[{ value: "", label: "None" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
+            value={watch("linkedAccountId") ?? ""}
+            onChange={(e) => setValue("linkedAccountId", e.target.value)}
+          />
+          <TextInput label="Icon" placeholder="target" {...register("icon")} />
+          <TextInput label="Color" placeholder="#2f6fbe" {...register("color")} />
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn" type="submit">{editId ? "Update Goal" : "Add Goal"}</button>
@@ -225,6 +252,10 @@ export function GoalsPage() {
                     setEditId(goal.id);
                     setValue("name", goal.name);
                     setValue("targetAmount", goal.targetAmount);
+                    setValue("targetDate", goal.targetDate ? goal.targetDate.slice(0, 10) : "");
+                    setValue("linkedAccountId", goal.linkedAccountId ?? "");
+                    setValue("icon", goal.icon ?? "");
+                    setValue("color", goal.color ?? "");
                   }}
                 />
                 {!isAchieved ? (

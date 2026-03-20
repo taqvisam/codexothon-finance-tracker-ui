@@ -6,6 +6,7 @@ import { ActionIconButton } from "../../components/ActionIconButton";
 import { apiClient } from "../../services/apiClient";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
+import { Dropdown } from "../../components/Dropdown";
 
 interface Account {
   id: string;
@@ -127,8 +128,23 @@ export function AccountsPage() {
       <h4 style={{ marginTop: 18 }}>Transfer Funds</h4>
       <form onSubmit={transferForm.handleSubmit((d) => transferMutation.mutate(d))}>
         <div className="form-grid">
-          <input className="input" placeholder="From Account ID" {...transferForm.register("fromAccountId")} />
-          <input className="input" placeholder="To Account ID" {...transferForm.register("toAccountId")} />
+          <Dropdown
+            label="From Account"
+            options={[{ value: "", label: "Select source account" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
+            value={transferForm.watch("fromAccountId")}
+            onChange={(e) => transferForm.setValue("fromAccountId", e.target.value)}
+          />
+          <Dropdown
+            label="To Account"
+            options={[
+              { value: "", label: "Select destination account" },
+              ...accountsQuery.data
+                .filter((a) => a.id !== transferForm.watch("fromAccountId"))
+                .map((a) => ({ value: a.id, label: a.name }))
+            ]}
+            value={transferForm.watch("toAccountId")}
+            onChange={(e) => transferForm.setValue("toAccountId", e.target.value)}
+          />
           <input className="input" type="number" placeholder="Amount" {...transferForm.register("amount", { valueAsNumber: true })} />
           <input className="input" type="date" {...transferForm.register("date")} />
         </div>

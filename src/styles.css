@@ -259,17 +259,68 @@ body.dark-theme .settings-switch-row span {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.topbar-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .topbar-period {
-  display: grid;
-  gap: 4px;
-  min-width: 190px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .topbar-period-select {
   padding: 7px 10px;
   border-radius: 8px;
+  min-width: 190px;
+}
+
+.topbar-search {
+  min-width: 180px;
+}
+
+.topbar-date {
+  width: 150px;
+}
+
+.topbar-add-btn {
+  white-space: nowrap;
+}
+
+.alert-stack {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.alert-banner {
+  border-radius: 8px;
+  border: 1px solid #d7e1ef;
+  background: #f5f8fd;
+  color: #214168;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.alert-warning {
+  border-color: #f0ce94;
+  background: #fff8eb;
+  color: #7a5715;
+}
+
+.alert-danger {
+  border-color: #f0b3b9;
+  background: #fff1f3;
+  color: #8c2e38;
 }
 
 .card-grid {
