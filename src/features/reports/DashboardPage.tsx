@@ -254,6 +254,36 @@ export function DashboardPage() {
               </ResponsiveContainer>
             )}
           </div>
+          {trendQuery.data.length > 0 ? (
+            <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 999,
+                    background: "#2f6fbe",
+                    border: "1px solid rgba(0,0,0,0.08)"
+                  }}
+                />
+                <span className="muted">Income</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 999,
+                    background: "#dd5757",
+                    border: "1px solid rgba(0,0,0,0.08)"
+                  }}
+                />
+                <span className="muted">Expense</span>
+              </div>
+            </div>
+          ) : null}
         </ChartCard>
       </section>
 
@@ -263,14 +293,21 @@ export function DashboardPage() {
           {transactionsQuery.data.length === 0 ? (
             <p className="muted">No transactions yet. Add your first transaction.</p>
           ) : (
-            <DataTable
-              rows={transactionsQuery.data}
-              columns={[
-                { key: "merchant", title: "Description", render: (r) => r.merchant ?? "-" },
-                { key: "date", title: "Date", render: (r) => r.date },
-                { key: "amount", title: "Amount", render: (r) => currency(r.amount) }
-              ]}
-            />
+            <>
+              <DataTable
+                rows={transactionsQuery.data.slice(0, 5)}
+                columns={[
+                  { key: "merchant", title: "Description", render: (r) => r.merchant ?? "-" },
+                  { key: "date", title: "Date", render: (r) => r.date },
+                  { key: "amount", title: "Amount", render: (r) => currency(r.amount) }
+                ]}
+              />
+              <div style={{ marginTop: 8 }}>
+                <button className="btn ghost" type="button" onClick={() => navigate("/transactions")}>
+                  View more
+                </button>
+              </div>
+            </>
           )}
         </article>
         <article className="card">

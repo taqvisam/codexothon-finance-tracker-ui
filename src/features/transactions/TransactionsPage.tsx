@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DataTable } from "../../components/DataTable";
@@ -25,12 +25,12 @@ interface CategoryItem {
 }
 
 const schema = z.object({
-  accountId: z.string().uuid(),
-  categoryId: z.string().uuid().optional(),
-  transferAccountId: z.string().uuid().optional(),
+  accountId: z.string().uuid("Account is required."),
+  categoryId: z.string().uuid("Category is required.").optional(),
+  transferAccountId: z.string().uuid("Destination account is required for transfer.").optional(),
   type: z.enum(["Income", "Expense", "Transfer"]),
   amount: z.number().positive(),
-  date: z.string(),
+  date: z.string().min(1, "Date is required."),
   merchant: z.string().optional(),
   note: z.string().optional(),
   paymentMethod: z.string().optional(),
@@ -177,15 +177,29 @@ export function TransactionsPage() {
     setValue("note", "");
   };
 
+  const notifyFirstValidationError = (errors: FieldErrors<Input>) => {
+    const firstError = Object.values(errors).find((error) => error?.message);
+    if (firstError?.message) {
+      notify(String(firstError.message), "error");
+      return;
+    }
+
+    notify("Please complete required transaction fields", "error");
+  };
+
   return (
     <section className="card">
       <h3>Transactions</h3>
       <form
         onSubmit={handleSubmit(
           (data) => upsertMutation.mutate(data),
-          () => notify("Please complete required transaction fields")
+          (errors) => notifyFirstValidationError(errors)
         )}
       >
+        <input type="hidden" {...register("accountId")} />
+        <input type="hidden" {...register("categoryId")} />
+        <input type="hidden" {...register("transferAccountId")} />
+        <input type="hidden" {...register("type")} />
         <div className="form-grid">
           <Dropdown
             options={[{ value: "", label: "Select Account" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
