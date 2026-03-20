@@ -1249,3 +1249,72 @@ body.dark-theme .settings-switch-row span {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 430px) {
+  .content {
+    padding: 0 8px 10px;
+  }
+
+  .brand-block {
+    height: 64px;
+    padding: 0 12px;
+  }
+
+  .brand-text {
+    font-size: 15px;
+    letter-spacing: 0.4px;
+  }
+
+  .sidebar-nav {
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .nav-link {
+    padding: 8px;
+    min-width: auto;
+  }
+
+  .nav-link > span:last-child {
+    display: none;
+  }
+
+  .topbar {
+    padding: 10px 8px;
+  }
+
+  .topbar-tools {
+    gap: 6px;
+  }
+
+  .topbar-filter {
+    flex: 1 1 100%;
+  }
+
+  .topbar-user {
+    align-self: stretch;
+  }
+
+  .user-chip {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .card,
+  .card-grid {
+    padding: 10px;
+  }
+
+  .btn {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  .big {
+    font-size: 24px;
+  }
+
+  .table {
+    min-width: 460px;
+  }
+}
