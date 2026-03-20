@@ -7,6 +7,7 @@ import { apiClient } from "../../services/apiClient";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
 import { Dropdown } from "../../components/Dropdown";
+import { TextInput } from "../../components/TextInput";
 import {
   CUSTOM_INSTITUTION_VALUE,
   INSTITUTION_OPTIONS,
@@ -119,11 +120,24 @@ export function AccountsPage() {
       <h3>Accounts</h3>
       <form onSubmit={handleSubmit((d) => createMutation.mutate(d))}>
         <div className="form-grid">
-          <input className="input" placeholder="Account Name" {...register("name")} />
-          <select className="select" {...register("type")}>
-            <option>Bank</option><option>CreditCard</option><option>CashWallet</option><option>Savings</option>
-          </select>
-          <input className="input" type="number" placeholder="Opening Balance" {...register("openingBalance", { valueAsNumber: true })} />
+          <TextInput label="Account Name" placeholder="Account Name" {...register("name")} />
+          <Dropdown
+            label="Account Type"
+            options={[
+              { value: "Bank", label: "Bank" },
+              { value: "CreditCard", label: "Credit Card" },
+              { value: "CashWallet", label: "Cash Wallet" },
+              { value: "Savings", label: "Savings" }
+            ]}
+            value={watch("type")}
+            onChange={(e) => setValue("type", e.target.value as Input["type"])}
+          />
+          <TextInput
+            label="Opening Balance"
+            type="number"
+            placeholder="Opening Balance"
+            {...register("openingBalance", { valueAsNumber: true })}
+          />
           <Dropdown
             label="Institution / Provider"
             options={[
@@ -135,11 +149,7 @@ export function AccountsPage() {
             onChange={(e) => setValue("institutionName", e.target.value)}
           />
           {(watch("institutionName") ?? "") === CUSTOM_INSTITUTION_VALUE ? (
-            <input
-              className="input"
-              placeholder="Enter custom institution"
-              {...register("customInstitution")}
-            />
+            <TextInput label="Custom Institution" placeholder="Enter custom institution" {...register("customInstitution")} />
           ) : null}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -178,8 +188,13 @@ export function AccountsPage() {
             value={transferForm.watch("toAccountId")}
             onChange={(e) => transferForm.setValue("toAccountId", e.target.value)}
           />
-          <input className="input" type="number" placeholder="Amount" {...transferForm.register("amount", { valueAsNumber: true })} />
-          <input className="input" type="date" {...transferForm.register("date")} />
+          <TextInput
+            label="Amount"
+            type="number"
+            placeholder="Amount"
+            {...transferForm.register("amount", { valueAsNumber: true })}
+          />
+          <TextInput label="Date" type="date" {...transferForm.register("date")} />
         </div>
         <button className="btn" type="submit">Transfer</button>
       </form>
