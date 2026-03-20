@@ -825,6 +825,70 @@ body.dark-theme .settings-switch-row span {
   font-size: 12px;
 }
 
+.forgot-shell {
+  background: linear-gradient(135deg, #d9e3f2, #bfcde3);
+}
+
+.forgot-frame {
+  min-height: min(620px, 88vh);
+}
+
+.forgot-visual {
+  padding: 58px 54px;
+  background: radial-gradient(circle at top right, rgba(47, 111, 190, 0.22), transparent 62%), #f3f6fb;
+  border-right: 1px solid #dbe4f1;
+}
+
+.forgot-hero {
+  margin-top: 72px;
+}
+
+.forgot-lock {
+  width: 66px;
+  height: 66px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  background: linear-gradient(135deg, #2f6fbe, #5d9bee);
+  box-shadow: 0 12px 24px rgba(47, 111, 190, 0.2);
+}
+
+.forgot-hero h2 {
+  margin: 18px 0 8px;
+  font-size: 44px;
+  line-height: 1.08;
+  letter-spacing: -0.8px;
+}
+
+.forgot-hero p {
+  max-width: 360px;
+}
+
+.forgot-form {
+  padding-top: 82px;
+}
+
+.forgot-success {
+  margin-top: 14px;
+  border-radius: 10px;
+  border: 1px solid #b8e6c8;
+  background: #edf9f1;
+  color: #1f7b45;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.forgot-links {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.forgot-links a {
+  color: #4778be;
+  font-weight: 600;
+}
+
 .auth-widget {
   width: 180px;
   border: 1px solid #dee5ef;
@@ -1280,6 +1344,14 @@ body.dark-theme .settings-switch-row span {
 
   .auth-form h2 {
     font-size: 34px;
+  }
+
+  .forgot-visual {
+    display: none;
+  }
+
+  .forgot-form {
+    padding-top: 28px;
   }
 
   .settings-tabs {

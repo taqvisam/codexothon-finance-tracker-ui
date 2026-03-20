@@ -22,22 +22,51 @@ export function ForgotPasswordPage() {
   });
 
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
-      <section className="card" style={{ width: 420 }}>
-        <h2>Forgot Password</h2>
-        <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>
-          <label>
-            Email
-            <input className="input" {...register("email")} />
-            {formState.errors.email && <div className="error">{formState.errors.email.message}</div>}
-          </label>
-          <div style={{ marginTop: 12 }}>
-            <button className="btn" type="submit">Send Reset Link</button>
+    <main className="auth-shell forgot-shell">
+      <div className="auth-frame forgot-frame">
+        <section className="forgot-visual">
+          <div className="auth-logo">
+            <span className="auth-logo-mark">◉</span>
+            <span>Personal Expense Tracker</span>
           </div>
-        </form>
-        {mutation.isSuccess && <p className="muted">If account exists, reset instructions were sent.</p>}
-        <p className="muted"><Link to="/reset-password">Have token? Reset now</Link></p>
-      </section>
+
+          <div className="forgot-hero">
+            <div className="forgot-lock">🔐</div>
+            <h2>Reset access quickly</h2>
+            <p className="muted">
+              Enter your account email. If it exists, we will send a password reset link instantly.
+            </p>
+          </div>
+        </section>
+
+        <section className="auth-form forgot-form">
+          <h2>Forgot Password</h2>
+          <p className="muted">No worries. We&apos;ll help you recover your account.</p>
+          <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>
+            <div className="form-grid auth-form-grid">
+              <label>
+                <span className="muted">Email address</span>
+                <input className="input" placeholder="you@example.com" {...register("email")} />
+                {formState.errors.email ? <span className="error">{formState.errors.email.message}</span> : null}
+              </label>
+            </div>
+            <button className="btn auth-login-btn" type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "Sending..." : "Send Reset Link"}
+            </button>
+          </form>
+
+          {mutation.isSuccess ? (
+            <p className="forgot-success">If an account exists, reset instructions were sent to your email.</p>
+          ) : null}
+
+          <p className="muted forgot-links">
+            <Link to="/reset-password">Have a token? Reset now</Link>
+          </p>
+          <p className="muted forgot-links">
+            <Link to="/login">Back to login</Link>
+          </p>
+        </section>
+      </div>
     </main>
   );
 }
