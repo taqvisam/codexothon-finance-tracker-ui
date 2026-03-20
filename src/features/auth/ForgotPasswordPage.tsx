@@ -12,12 +12,13 @@ const schema = z.object({
 type Input = z.infer<typeof schema>;
 
 export function ForgotPasswordPage() {
-  const { register, handleSubmit, formState } = useForm<Input>({
+  const { register, handleSubmit, formState, reset } = useForm<Input>({
     resolver: zodResolver(schema)
   });
 
   const mutation = useMutation({
-    mutationFn: async (data: Input) => apiClient.post("/auth/forgot-password", data)
+    mutationFn: async (data: Input) => apiClient.post("/auth/forgot-password", data),
+    onSuccess: () => reset({ email: "" })
   });
 
   return (

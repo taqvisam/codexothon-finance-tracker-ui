@@ -146,9 +146,13 @@ export function TransactionsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => apiClient.delete(`/transactions/${id}`),
-    onSuccess: async () => {
+    onSuccess: async (_, id) => {
       await queryClient.invalidateQueries({ queryKey: ["transactions"] });
       notify("Transaction deleted");
+      if (editId === id) {
+        setEditId(null);
+        reset({ type: "Expense", date: todayIso } as Input);
+      }
     }
   });
 

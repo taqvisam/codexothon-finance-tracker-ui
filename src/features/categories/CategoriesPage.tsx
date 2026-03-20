@@ -56,8 +56,12 @@ export function CategoriesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => apiClient.delete(`/categories/${id}`),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       notify("Category deleted");
+      if (editId === id) {
+        setEditId(null);
+        reset(defaults);
+      }
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     }
   });

@@ -71,7 +71,17 @@ export function GoalsPage() {
   const currency = useCurrency();
   const { notify } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
-  const { register, handleSubmit, reset, setValue, watch } = useForm<GoalInput>();
+  const goalDefaults: GoalInput = {
+    name: "",
+    targetAmount: 0,
+    targetDate: "",
+    linkedAccountId: "",
+    icon: "",
+    color: ""
+  };
+  const { register, handleSubmit, reset, setValue, watch } = useForm<GoalInput>({
+    defaultValues: goalDefaults
+  });
   const [actionState, setActionState] = useState<GoalActionState | null>(null);
   const [actionAmount, setActionAmount] = useState("");
 
@@ -104,7 +114,7 @@ export function GoalsPage() {
     },
     onSuccess: () => {
       notify(editId ? "Goal updated" : "Goal created");
-      reset();
+      reset(goalDefaults);
       setEditId(null);
       queryClient.invalidateQueries({ queryKey: ["goals"] });
     }
@@ -144,8 +154,12 @@ export function GoalsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => apiClient.delete(`/goals/${id}`),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       notify("Goal deleted");
+      if (editId === id) {
+        setEditId(null);
+        reset(goalDefaults);
+      }
       queryClient.invalidateQueries({ queryKey: ["goals"] });
     },
     onError: (error) => {
@@ -224,7 +238,7 @@ export function GoalsPage() {
               type="button"
               onClick={() => {
                 setEditId(null);
-                reset();
+                reset(goalDefaults);
               }}
             >
               Cancel

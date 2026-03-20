@@ -92,8 +92,12 @@ export function BudgetsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => apiClient.delete(`/budgets/${id}`),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       notify("Budget deleted");
+      if (editId === id) {
+        setEditId(null);
+        reset(budgetDefaults);
+      }
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
     }
   });

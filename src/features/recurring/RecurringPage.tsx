@@ -107,8 +107,12 @@ export function RecurringPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => apiClient.delete(`/recurring/${id}`),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       notify("Recurring item deleted");
+      if (editId === id) {
+        setEditId(null);
+        reset(recurringDefaults);
+      }
       queryClient.invalidateQueries({ queryKey: ["recurring"] });
     }
   });
