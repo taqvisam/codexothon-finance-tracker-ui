@@ -39,6 +39,17 @@ interface TransferInput {
   note?: string;
 }
 
+function formatAccountTypeLabel(type: string): string {
+  switch (type) {
+    case "CreditCard":
+      return "Credit Card";
+    case "CashWallet":
+      return "Cash Wallet";
+    default:
+      return type;
+  }
+}
+
 export function AccountsPage() {
   const currency = useCurrency();
   const queryClient = useQueryClient();
@@ -208,7 +219,15 @@ export function AccountsPage() {
             rows={accountsQuery.data}
             columns={[
               { key: "name", title: "Name", render: (r) => r.name },
-              { key: "type", title: "Type", render: (r) => r.type },
+              {
+                key: "institutionType",
+                title: "Institution/Type",
+                render: (r) => {
+                  const institution = (r.institutionName ?? "").trim();
+                  const typeLabel = formatAccountTypeLabel(r.type);
+                  return institution ? `${institution}/${typeLabel}` : typeLabel;
+                }
+              },
               { key: "bal", title: "Current Balance", render: (r) => currency(r.currentBalance) },
               {
                 key: "actions",
