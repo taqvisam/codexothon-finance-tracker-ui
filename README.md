@@ -37,3 +37,6 @@ Frontend web app for Personal Finance Tracker.
 ## QA Note
 - Login page includes a demo login shortcut for QA speed.
 
+## Deployed URL
+- UI: `https://lively-tree-0520a0f00.6.azurestaticapps.net/`
+
