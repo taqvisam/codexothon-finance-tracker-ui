@@ -1298,6 +1298,11 @@ body.dark-theme .settings-switch-row span {
 }
 
 @media (max-width: 430px) {
+  body,
+  .shell {
+    overflow-x: hidden;
+  }
+
   .content {
     padding: 0 8px 10px;
   }
@@ -1350,6 +1355,59 @@ body.dark-theme .settings-switch-row span {
   }
 
   .table {
-    min-width: 460px;
+    min-width: 0;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: grid;
+    gap: 8px;
+  }
+
+  .table tr {
+    display: block;
+    border: 1px solid #dbe2ec;
+    border-radius: 8px;
+    background: #fff;
+    padding: 6px 8px;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    padding: 6px 0;
+    white-space: normal;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    color: #6c7890;
+    font-weight: 600;
+    text-align: left;
+    flex: 0 0 auto;
+    margin-right: 8px;
+  }
+
+  .table td[data-label="Actions"] {
+    justify-content: flex-end;
+  }
+
+  .table td[data-label="Actions"]::before {
+    margin-right: auto;
+  }
+
+  .table td .action-icon-row {
+    justify-content: flex-end;
   }
 }
