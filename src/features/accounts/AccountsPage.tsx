@@ -163,7 +163,7 @@ export function AccountsPage() {
             <TextInput label="Custom Institution" placeholder="Enter custom institution" {...register("customInstitution")} />
           ) : null}
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="form-actions">
           <button className="btn" type="submit">{editId ? "Update Account" : "Create Account"}</button>
           {editId ? (
             <button

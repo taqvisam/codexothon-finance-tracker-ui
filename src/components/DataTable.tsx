@@ -13,23 +13,26 @@ interface Props<T> {
 
 export function DataTable<T>({ rows, columns }: Props<T>) {
   return (
-    <table className="table">
-      <thead>
-        <tr>
-          {columns.map((column) => (
-            <th key={column.key}>{column.title}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, idx) => (
-          <tr key={idx}>
+    <div className="table-wrap">
+      <table className="table">
+        <thead>
+          <tr>
             {columns.map((column) => (
-              <td key={column.key}>{column.render(row)}</td>
+              <th key={column.key}>{column.title}</th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((row, idx) => (
+            <tr key={idx}>
+              {columns.map((column) => (
+                <td key={column.key}>{column.render(row)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
+

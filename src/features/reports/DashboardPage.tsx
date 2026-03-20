@@ -180,7 +180,7 @@ export function DashboardPage() {
   return (
     <>
       <section className="card" style={{ marginTop: 12 }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="quick-actions">
           <button className="btn" type="button" onClick={() => navigate("/transactions")}>Add Transaction</button>
           <button className="btn ghost" type="button" onClick={() => navigate("/budgets")}>Create Budget</button>
           <button className="btn ghost" type="button" onClick={() => navigate("/recurring")}>Add Recurring Bill</button>
@@ -302,7 +302,7 @@ export function DashboardPage() {
                   { key: "amount", title: "Amount", render: (r) => currency(r.amount) }
                 ]}
               />
-              <div style={{ marginTop: 8, textAlign: "right" }}>
+              <div className="section-link-row">
                 <button
                   type="button"
                   onClick={() => navigate("/transactions")}

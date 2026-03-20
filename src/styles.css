@@ -255,7 +255,7 @@ body.dark-theme .settings-switch-row span {
   font-weight: 600;
 }
 
-.topbar-right {
+.topbar-inner {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -357,6 +357,11 @@ body.dark-theme .settings-switch-row span {
   font-size: 13px;
 }
 
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .table th, .table td {
   padding: 9px 8px;
   border-bottom: 1px solid #ebeff6;
@@ -403,6 +408,30 @@ body.dark-theme .settings-switch-row span {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
   margin-bottom: 10px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pagination-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.section-link-row {
+  margin-top: 8px;
+  text-align: right;
 }
 
 .progress {
@@ -824,6 +853,7 @@ body.dark-theme .settings-switch-row span {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .action-icon-btn,
@@ -1107,15 +1137,65 @@ body.dark-theme .settings-switch-row span {
   .topbar {
     margin-top: 0;
     border-radius: 0;
+    padding: 12px;
   }
 
-  .topbar-right {
-    flex-wrap: wrap;
-    justify-content: flex-end;
+  .content {
+    padding: 0 10px 12px;
+  }
+
+  .topbar-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .topbar-tools {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .topbar-filter {
+    justify-content: space-between;
+  }
+
+  .topbar-date {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .topbar-add-btn {
+    width: 100%;
+  }
+
+  .topbar-user {
+    margin-left: 0;
+    align-self: flex-end;
   }
 
   .two-col {
     grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions > * {
+    flex: 1 1 100%;
+  }
+
+  .pagination-actions {
+    justify-content: space-between;
+  }
+
+  .table {
+    min-width: 640px;
+  }
+
+  .section-link-row {
+    text-align: left;
   }
 
   .auth-frame {

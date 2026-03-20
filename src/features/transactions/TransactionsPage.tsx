@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { z } from "zod";
@@ -85,6 +85,13 @@ export function TransactionsPage() {
     resolver: zodResolver(schema),
     defaultValues: { type: "Expense", date: todayIso }
   });
+
+  useEffect(() => {
+    register("accountId");
+    register("categoryId");
+    register("transferAccountId");
+    register("type");
+  }, [register]);
 
   const typeValue = watch("type");
   const accountIdValue = watch("accountId");
@@ -212,10 +219,6 @@ export function TransactionsPage() {
           (errors) => notifyFirstValidationError(errors)
         )}
       >
-        <input type="hidden" {...register("accountId")} />
-        <input type="hidden" {...register("categoryId")} />
-        <input type="hidden" {...register("transferAccountId")} />
-        <input type="hidden" {...register("type")} />
         <div className="form-grid">
           <Dropdown
             options={[{ value: "", label: "Select Account" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
@@ -260,7 +263,7 @@ export function TransactionsPage() {
           <TextInput label="Tags" placeholder="family, groceries" {...register("tags")} />
           <TextInput label="Note" {...register("note")} />
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="form-actions">
           <Button type="submit">{editId ? "Update Transaction" : "+ Add Transaction"}</Button>
           {editId ? (
             <Button
@@ -358,7 +361,7 @@ export function TransactionsPage() {
                 }
               ]}
             />
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 10 }}>
+            <div className="pagination-actions">
               <Button type="button" variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
               <span className="muted" style={{ alignSelf: "center" }}>Page {page}</span>
               <Button type="button" variant="secondary" disabled={transactionsQuery.data.length < pageSize} onClick={() => setPage((p) => p + 1)}>Next</Button>

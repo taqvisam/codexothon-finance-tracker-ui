@@ -11,7 +11,7 @@ export function Topbar() {
 
   return (
     <header className="topbar">
-      <div className="topbar-right">
+      <div className="topbar-inner">
         <div className="topbar-tools">
           <label className="topbar-filter">
             <span className="muted">From:</span>
@@ -56,3 +56,4 @@ export function Topbar() {
     </header>
   );
 }
+
