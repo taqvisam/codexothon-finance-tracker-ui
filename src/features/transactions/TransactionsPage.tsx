@@ -54,6 +54,12 @@ const schema = z.object({
 
 type Input = z.infer<typeof schema>;
 
+function normalizeUuid(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 export function TransactionsPage() {
   const queryClient = useQueryClient();
   const currency = useCurrency();
@@ -109,10 +115,12 @@ export function TransactionsPage() {
 
   const upsertMutation = useMutation({
     mutationFn: async (data: Input) => {
+      const normalizedCategoryId = normalizeUuid(data.categoryId);
+      const normalizedTransferAccountId = normalizeUuid(data.transferAccountId);
       const payload = {
         accountId: data.accountId,
-        categoryId: data.type === "Transfer" ? undefined : data.categoryId,
-        transferAccountId: data.type === "Transfer" ? data.transferAccountId : undefined,
+        categoryId: data.type === "Transfer" ? undefined : normalizedCategoryId,
+        transferAccountId: data.type === "Transfer" ? normalizedTransferAccountId : undefined,
         type: data.type,
         amount: data.amount,
         date: data.date,
@@ -319,19 +327,19 @@ export function TransactionsPage() {
                         icon="edit"
                         label="Edit transaction"
                         onClick={() => {
-                          setEditId(r.id);
-                          setValue("accountId", r.accountId);
-                          setValue("categoryId", r.categoryId);
-                          setValue("type", r.type);
-                          setValue("amount", r.amount);
-                          setValue("date", r.date);
-                          setValue("merchant", r.merchant);
-                          setValue("paymentMethod", r.paymentMethod);
-                          setValue("tags", r.tags?.join(", "));
-                          setValue("transferAccountId", r.transferAccountId);
-                          setValue("note", r.note);
-                        }}
-                      />
+                        setEditId(r.id);
+                        setValue("accountId", r.accountId);
+                        setValue("categoryId", normalizeUuid(r.categoryId));
+                        setValue("type", r.type);
+                        setValue("amount", r.amount);
+                        setValue("date", r.date);
+                        setValue("merchant", r.merchant);
+                        setValue("paymentMethod", r.paymentMethod);
+                        setValue("tags", r.tags?.join(", "));
+                        setValue("transferAccountId", normalizeUuid(r.transferAccountId));
+                        setValue("note", r.note);
+                      }}
+                    />
                       <ActionIconButton
                         icon="delete"
                         label="Delete transaction"

@@ -302,8 +302,19 @@ export function DashboardPage() {
                   { key: "amount", title: "Amount", render: (r) => currency(r.amount) }
                 ]}
               />
-              <div style={{ marginTop: 8 }}>
-                <button className="btn ghost" type="button" onClick={() => navigate("/transactions")}>
+              <div style={{ marginTop: 8, textAlign: "right" }}>
+                <button
+                  type="button"
+                  onClick={() => navigate("/transactions")}
+                  style={{
+                    border: 0,
+                    background: "transparent",
+                    color: "#2f6fbe",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    padding: 0
+                  }}
+                >
                   View more
                 </button>
               </div>
