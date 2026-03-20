@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type ActionIcon = "edit" | "delete";
+type ActionIcon = "edit" | "archive" | "delete";
 
 interface ActionIconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   icon: ActionIcon;
@@ -27,8 +27,19 @@ function DeleteIcon() {
   );
 }
 
+function ArchiveIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7h16v4H4V7Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.5 11 6.5 20h11l1-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 15h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function ActionIconButton({ icon, label, className = "", type = "button", ...props }: ActionIconButtonProps) {
   const toneClass = icon === "delete" ? "danger" : "";
+  const iconNode = icon === "edit" ? <EditIcon /> : icon === "archive" ? <ArchiveIcon /> : <DeleteIcon />;
 
   return (
     <button
@@ -38,8 +49,7 @@ export function ActionIconButton({ icon, label, className = "", type = "button",
       className={`action-icon-btn ${toneClass} ${className}`.trim()}
       {...props}
     >
-      {icon === "edit" ? <EditIcon /> : <DeleteIcon />}
+      {iconNode}
     </button>
   );
 }
-

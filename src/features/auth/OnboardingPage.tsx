@@ -6,6 +6,11 @@ import { Dropdown } from "../../components/Dropdown";
 import { TextInput } from "../../components/TextInput";
 import { apiClient } from "../../services/apiClient";
 import { useUiStore } from "../../store/uiStore";
+import {
+  CUSTOM_INSTITUTION_VALUE,
+  INSTITUTION_OPTIONS,
+  resolveInstitutionName
+} from "../../constants/institutions";
 
 interface AccountItem {
   id: string;
@@ -23,6 +28,7 @@ interface OnboardingInput {
   accountType: "Bank" | "CreditCard" | "CashWallet" | "Savings";
   openingBalance: number;
   institutionName?: string;
+  customInstitution?: string;
   budgetCategoryId?: string;
   budgetAmount?: number;
 }
@@ -37,6 +43,7 @@ export function OnboardingPage() {
     defaultValues: {
       accountType: "Bank",
       openingBalance: 0,
+      customInstitution: "",
       budgetCategoryId: "",
       budgetAmount: 0
     }
@@ -56,11 +63,12 @@ export function OnboardingPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: OnboardingInput) => {
+      const institution = resolveInstitutionName(data.institutionName ?? "", data.customInstitution ?? "");
       await apiClient.post("/accounts", {
         name: data.accountName,
         type: data.accountType,
         openingBalance: data.openingBalance,
-        institutionName: data.institutionName
+        institutionName: institution || undefined
       });
 
       if (data.budgetCategoryId && (data.budgetAmount ?? 0) > 0) {
@@ -115,7 +123,19 @@ export function OnboardingPage() {
             onChange={(e) => setValue("accountType", e.target.value as OnboardingInput["accountType"])}
           />
           <TextInput label="Opening Balance" type="number" step="0.01" {...register("openingBalance", { valueAsNumber: true })} />
-          <TextInput label="Institution Name" {...register("institutionName")} />
+          <Dropdown
+            label="Institution / Provider"
+            options={[
+              { value: "", label: "Select institution (optional)" },
+              ...INSTITUTION_OPTIONS.map((name) => ({ value: name, label: name })),
+              { value: CUSTOM_INSTITUTION_VALUE, label: "Other (Enter custom)" }
+            ]}
+            value={watch("institutionName") ?? ""}
+            onChange={(e) => setValue("institutionName", e.target.value)}
+          />
+          {(watch("institutionName") ?? "") === CUSTOM_INSTITUTION_VALUE ? (
+            <TextInput label="Custom Institution" {...register("customInstitution")} />
+          ) : null}
         </div>
 
         <h4 style={{ marginTop: 14 }}>Optional: first monthly budget</h4>

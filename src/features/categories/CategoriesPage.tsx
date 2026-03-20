@@ -129,7 +129,7 @@ export function CategoriesPage() {
                   }}
                 />
                 <ActionIconButton
-                  icon="edit"
+                  icon="archive"
                   label={category.isArchived ? "Unarchive category" : "Archive category"}
                   onClick={() => archiveMutation.mutate(category)}
                 />

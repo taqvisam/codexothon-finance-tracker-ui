@@ -7,12 +7,19 @@ import { apiClient } from "../../services/apiClient";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
 import { Dropdown } from "../../components/Dropdown";
+import {
+  CUSTOM_INSTITUTION_VALUE,
+  INSTITUTION_OPTIONS,
+  resolveInstitutionName,
+  splitInstitutionName
+} from "../../constants/institutions";
 
 interface Account {
   id: string;
   name: string;
   type: string;
   currentBalance: number;
+  institutionName?: string;
 }
 
 interface Input {
@@ -20,6 +27,7 @@ interface Input {
   type: "Bank" | "CreditCard" | "CashWallet" | "Savings";
   openingBalance: number;
   institutionName?: string;
+  customInstitution?: string;
 }
 
 interface TransferInput {
@@ -39,7 +47,8 @@ export function AccountsPage() {
     name: "",
     type: "Bank",
     openingBalance: 0,
-    institutionName: ""
+    institutionName: "",
+    customInstitution: ""
   };
   const transferDefaults: TransferInput = {
     fromAccountId: "",
@@ -48,7 +57,7 @@ export function AccountsPage() {
     date: new Date().toISOString().slice(0, 10),
     note: ""
   };
-  const { register, handleSubmit, reset, setValue } = useForm<Input>({
+  const { register, handleSubmit, reset, setValue, watch } = useForm<Input>({
     defaultValues: accountDefaults
   });
   const transferForm = useForm<TransferInput>({
@@ -63,10 +72,18 @@ export function AccountsPage() {
 
   const createMutation = useMutation({
     mutationFn: async (payload: Input) => {
+      const institution = resolveInstitutionName(payload.institutionName ?? "", payload.customInstitution ?? "");
+      const requestPayload = {
+        name: payload.name,
+        type: payload.type,
+        openingBalance: payload.openingBalance,
+        institutionName: institution || undefined
+      };
+
       if (editId) {
-        return apiClient.put(`/accounts/${editId}`, payload);
+        return apiClient.put(`/accounts/${editId}`, requestPayload);
       }
-      return apiClient.post("/accounts", payload);
+      return apiClient.post("/accounts", requestPayload);
     },
     onSuccess: () => {
       notify(editId ? "Account updated" : "Account created");
@@ -107,7 +124,23 @@ export function AccountsPage() {
             <option>Bank</option><option>CreditCard</option><option>CashWallet</option><option>Savings</option>
           </select>
           <input className="input" type="number" placeholder="Opening Balance" {...register("openingBalance", { valueAsNumber: true })} />
-          <input className="input" placeholder="Institution" {...register("institutionName")} />
+          <Dropdown
+            label="Institution / Provider"
+            options={[
+              { value: "", label: "Select institution (optional)" },
+              ...INSTITUTION_OPTIONS.map((name) => ({ value: name, label: name })),
+              { value: CUSTOM_INSTITUTION_VALUE, label: "Other (Enter custom)" }
+            ]}
+            value={watch("institutionName") ?? ""}
+            onChange={(e) => setValue("institutionName", e.target.value)}
+          />
+          {(watch("institutionName") ?? "") === CUSTOM_INSTITUTION_VALUE ? (
+            <input
+              className="input"
+              placeholder="Enter custom institution"
+              {...register("customInstitution")}
+            />
+          ) : null}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn" type="submit">{editId ? "Update Account" : "Create Account"}</button>
@@ -175,6 +208,9 @@ export function AccountsPage() {
                         setValue("name", r.name);
                         setValue("type", r.type as Input["type"]);
                         setValue("openingBalance", r.currentBalance);
+                        const institution = splitInstitutionName(r.institutionName);
+                        setValue("institutionName", institution.selectedInstitution);
+                        setValue("customInstitution", institution.customInstitution);
                       }}
                     />
                     <ActionIconButton

@@ -38,6 +38,11 @@ interface TrendItem {
   expense: number;
 }
 
+interface CategoryItem {
+  id: string;
+  name: string;
+}
+
 const chartColors = ["#2f6fbe", "#ee9a2f", "#36a269", "#dd5757", "#697b96", "#2f97d8"];
 
 export function DashboardPage() {
@@ -80,6 +85,12 @@ export function DashboardPage() {
     initialData: []
   });
 
+  const categoriesQuery = useQuery({
+    queryKey: ["dashboard-categories"],
+    queryFn: async () => (await apiClient.get<CategoryItem[]>("/categories")).data,
+    initialData: []
+  });
+
   const recurringQuery = useQuery({
     queryKey: ["dashboard-recurring"],
     queryFn: async () =>
@@ -119,10 +130,16 @@ export function DashboardPage() {
     return { balance, income, expense, savings };
   }, [accountsQuery.data, goalsQuery.data, trendQuery.data]);
 
+  const categoryNameById = useMemo(
+    () => new Map(categoriesQuery.data.map((category) => [category.id, category.name])),
+    [categoriesQuery.data]
+  );
+
   const budgetCards = budgetsQuery.data.slice(0, 4).map((budget) => {
     const percent = budget.amount > 0 ? (budget.spentAmount / budget.amount) * 100 : 0;
     return {
       ...budget,
+      categoryName: categoryNameById.get(budget.categoryId) ?? budget.categoryId,
       percent,
       level: percent >= 120 ? "danger" : percent >= 100 ? "warn" : percent >= 80 ? "warn" : "ok"
     };
@@ -145,7 +162,7 @@ export function DashboardPage() {
         const severity = b.percent >= 120 ? "danger" : b.percent >= 100 ? "warning" : "info";
         return {
           type: severity as "info" | "warning" | "danger",
-          message: `${b.categoryId}: ${Math.round(b.percent)}% of budget used`
+          message: `${b.categoryName}: ${Math.round(b.percent)}% of budget used`
         };
       });
 
@@ -262,7 +279,7 @@ export function DashboardPage() {
             budgetCards.map((budget) => (
               <div key={budget.id} style={{ marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <strong>{budget.categoryId}</strong>
+                  <strong>{budget.categoryName}</strong>
                   <span>{Math.round(budget.percent)}%</span>
                 </div>
                 <ProgressBar value={budget.percent} />
