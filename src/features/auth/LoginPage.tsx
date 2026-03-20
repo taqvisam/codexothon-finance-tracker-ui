@@ -91,13 +91,6 @@ export function LoginPage() {
             </button>
           </form>
 
-          <div className="auth-sep">or</div>
-
-          <div className="auth-social-row">
-            <button className="btn ghost auth-social-btn" type="button">Google</button>
-            <button className="btn ghost auth-social-btn" type="button">Facebook</button>
-          </div>
-
           <p className="muted auth-signup-link">
             Don&apos;t you have an account? <Link to="/signup">Sign Up</Link>
           </p>
