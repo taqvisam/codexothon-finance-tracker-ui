@@ -1137,11 +1137,11 @@ body.dark-theme .settings-switch-row span {
   .topbar {
     margin-top: 0;
     border-radius: 0;
-    padding: 12px;
+    padding: 12px 10px;
   }
 
   .content {
-    padding: 0 10px 12px;
+    padding: 0 12px 12px;
   }
 
   .topbar-inner {
@@ -1151,13 +1151,18 @@ body.dark-theme .settings-switch-row span {
   }
 
   .topbar-tools {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
     gap: 8px;
   }
 
   .topbar-filter {
-    justify-content: space-between;
+    flex: 1 1 220px;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
 
   .topbar-date {
@@ -1166,12 +1171,12 @@ body.dark-theme .settings-switch-row span {
   }
 
   .topbar-add-btn {
-    width: 100%;
+    flex: 1 1 100%;
   }
 
   .topbar-user {
     margin-left: 0;
-    align-self: flex-end;
+    align-self: flex-start;
   }
 
   .two-col {
@@ -1190,12 +1195,26 @@ body.dark-theme .settings-switch-row span {
     justify-content: space-between;
   }
 
+  .table-wrap {
+    -webkit-overflow-scrolling: touch;
+    border-radius: 6px;
+  }
+
   .table {
-    min-width: 640px;
+    min-width: 520px;
+  }
+
+  .table th,
+  .table td {
+    white-space: nowrap;
   }
 
   .section-link-row {
     text-align: left;
+  }
+
+  .quick-actions .btn {
+    width: 100%;
   }
 
   .auth-frame {
