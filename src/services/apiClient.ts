@@ -6,7 +6,10 @@ const apiUrl = (
 ).replace(/\/+$/, "");
 
 export const apiClient = axios.create({
-  baseURL: `${apiUrl}/api`
+  baseURL: `${apiUrl}/api`,
+  headers: {
+    "ngrok-skip-browser-warning": "true"
+  }
 });
 
 apiClient.interceptors.request.use((config) => {

@@ -28,6 +28,7 @@ interface OnboardingInput {
 }
 
 export function OnboardingPage() {
+  const ONBOARDING_SKIP_KEY = "onboardingSkipped";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { notify, selectedPeriod } = useUiStore();
@@ -73,6 +74,9 @@ export function OnboardingPage() {
       }
     },
     onSuccess: async () => {
+      localStorage.removeItem(ONBOARDING_SKIP_KEY);
+      await queryClient.invalidateQueries({ queryKey: ["onboarding-accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["onboarding-accounts-guard"] });
       await queryClient.invalidateQueries({ queryKey: ["accounts"] });
       notify("Onboarding completed");
       navigate("/");
@@ -87,9 +91,10 @@ export function OnboardingPage() {
 
   useEffect(() => {
     if (accountsQuery.data.length > 0) {
+      localStorage.removeItem(ONBOARDING_SKIP_KEY);
       navigate("/");
     }
-  }, [accountsQuery.data.length, navigate]);
+  }, [accountsQuery.data.length, navigate, ONBOARDING_SKIP_KEY]);
 
   return (
     <section className="card">
@@ -133,7 +138,14 @@ export function OnboardingPage() {
           <button className="btn" type="submit" disabled={createMutation.isPending}>
             {createMutation.isPending ? "Saving..." : "Finish Onboarding"}
           </button>
-          <button className="btn ghost" type="button" onClick={() => navigate("/")}>
+          <button
+            className="btn ghost"
+            type="button"
+            onClick={() => {
+              localStorage.setItem(ONBOARDING_SKIP_KEY, "true");
+              navigate("/");
+            }}
+          >
             Skip
           </button>
         </div>

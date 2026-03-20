@@ -11,14 +11,27 @@ interface AccountItem {
 }
 
 export function AppShell() {
+  const ONBOARDING_SKIP_KEY = "onboardingSkipped";
   const location = useLocation();
+  const onboardingSkipped = localStorage.getItem(ONBOARDING_SKIP_KEY) === "true";
   const accountsQuery = useQuery({
     queryKey: ["onboarding-accounts-guard"],
     queryFn: async () => (await apiClient.get<AccountItem[]>("/accounts")).data,
     initialData: []
   });
 
-  if (!accountsQuery.isLoading && !accountsQuery.isFetching && accountsQuery.data.length === 0 && location.pathname !== "/onboarding") {
+  if (accountsQuery.data.length > 0 && onboardingSkipped) {
+    localStorage.removeItem(ONBOARDING_SKIP_KEY);
+  }
+
+  if (
+    !accountsQuery.isLoading &&
+    !accountsQuery.isFetching &&
+    !accountsQuery.isError &&
+    !onboardingSkipped &&
+    accountsQuery.data.length === 0 &&
+    location.pathname !== "/onboarding"
+  ) {
     return <Navigate to="/onboarding" replace />;
   }
 
