@@ -219,6 +219,25 @@ export function DashboardPage() {
               </ResponsiveContainer>
             )}
           </div>
+          {categoryData.length > 0 ? (
+            <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
+              {categoryData.map((item) => (
+                <div key={`legend-${item.name}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 999,
+                      background: item.color,
+                      border: "1px solid rgba(0,0,0,0.08)"
+                    }}
+                  />
+                  <span className="muted">{item.name}: {currency(item.value)}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </ChartCard>
         <ChartCard title="Income vs Expense Trend">
           <div style={{ height: 220 }}>

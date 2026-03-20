@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -74,7 +74,6 @@ export function TransactionsPage() {
 
   const typeValue = watch("type");
   const accountIdValue = watch("accountId");
-  const categoryIdValue = watch("categoryId");
 
   const accountsQuery = useQuery({
     queryKey: ["txn-accounts"],
@@ -140,7 +139,7 @@ export function TransactionsPage() {
       setSelectedAccount("");
       setSelectedCategory("");
       setSearch("");
-      reset({ type: "Expense", date: todayIso } as Input);
+      resetTransactionForm();
     }
   });
 
@@ -151,7 +150,7 @@ export function TransactionsPage() {
       notify("Transaction deleted");
       if (editId === id) {
         setEditId(null);
-        reset({ type: "Expense", date: todayIso } as Input);
+        resetTransactionForm();
       }
     }
   });
@@ -166,28 +165,17 @@ export function TransactionsPage() {
     [accountIdValue, accountsQuery.data]
   );
 
-  useEffect(() => {
-    if (!accountIdValue && accountsQuery.data.length > 0) {
-      setValue("accountId", accountsQuery.data[0].id, { shouldValidate: true });
-    }
-  }, [accountIdValue, accountsQuery.data, setValue]);
-
-  useEffect(() => {
-    if (typeValue === "Transfer") {
-      if (categoryIdValue) {
-        setValue("categoryId", undefined, { shouldValidate: true });
-      }
-      const transferValue = watch("transferAccountId");
-      if (!transferValue && transferDestinationOptions.length > 0) {
-        setValue("transferAccountId", transferDestinationOptions[0].id, { shouldValidate: true });
-      }
-      return;
-    }
-
-    if (!categoryIdValue && filteredCategories.length > 0) {
-      setValue("categoryId", filteredCategories[0].id, { shouldValidate: true });
-    }
-  }, [categoryIdValue, filteredCategories, setValue, transferDestinationOptions, typeValue, watch]);
+  const resetTransactionForm = () => {
+    reset({ type: "Expense", date: todayIso } as Input);
+    setValue("accountId", "" as unknown as Input["accountId"]);
+    setValue("categoryId", undefined);
+    setValue("transferAccountId", undefined);
+    setValue("amount", undefined as unknown as Input["amount"]);
+    setValue("merchant", "");
+    setValue("paymentMethod", "");
+    setValue("tags", "");
+    setValue("note", "");
+  };
 
   return (
     <section className="card">
@@ -200,8 +188,8 @@ export function TransactionsPage() {
       >
         <div className="form-grid">
           <Dropdown
-            options={accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))}
-            value={watch("accountId")}
+            options={[{ value: "", label: "Select Account" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
+            value={watch("accountId") ?? ""}
             onChange={(e) => setValue("accountId", e.target.value)}
             label="Account"
           />
@@ -250,7 +238,7 @@ export function TransactionsPage() {
               variant="secondary"
               onClick={() => {
                 setEditId(null);
-                reset({ type: "Expense", date: todayIso } as Input);
+                resetTransactionForm();
               }}
             >
               Cancel
