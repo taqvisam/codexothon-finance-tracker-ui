@@ -25,31 +25,55 @@ export function ResetPasswordPage() {
   });
 
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
-      <section className="card" style={{ width: 420 }}>
-        <h2>Reset Password</h2>
-        <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>
-          <div className="form-grid" style={{ gridTemplateColumns: "1fr" }}>
-            <label>
-              Email
-              <input className="input" {...register("email")} />
-              {formState.errors.email && <div className="error">{formState.errors.email.message}</div>}
-            </label>
-            <label>
-              Reset Token
-              <input className="input" {...register("token")} />
-              {formState.errors.token && <div className="error">{formState.errors.token.message}</div>}
-            </label>
-            <label>
-              New Password
-              <input className="input" type="password" {...register("newPassword")} />
-              {formState.errors.newPassword && <div className="error">{formState.errors.newPassword.message}</div>}
-            </label>
+    <main className="auth-shell reset-shell">
+      <div className="auth-frame reset-frame">
+        <section className="reset-visual">
+          <div className="auth-logo">
+            <span className="auth-logo-mark">◉</span>
+            <span>Personal Expense Tracker</span>
           </div>
-          <button className="btn" type="submit">Reset Password</button>
-        </form>
-        <p className="muted"><Link to="/login">Back to login</Link></p>
-      </section>
+          <div className="reset-hero">
+            <div className="reset-key">🗝️</div>
+            <h2>Set a new password</h2>
+            <p className="muted">
+              Paste your reset token and choose a secure password to regain access.
+            </p>
+          </div>
+        </section>
+
+        <section className="auth-form reset-form">
+          <h2>Reset Password</h2>
+          <p className="muted">Use the token from your email to set a new password.</p>
+          <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>
+            <div className="form-grid auth-form-grid">
+              <label>
+                <span className="muted">Email address</span>
+                <input className="input" placeholder="you@example.com" {...register("email")} />
+                {formState.errors.email ? <span className="error">{formState.errors.email.message}</span> : null}
+              </label>
+              <label>
+                <span className="muted">Reset token</span>
+                <input className="input" placeholder="Paste token from email" {...register("token")} />
+                {formState.errors.token ? <span className="error">{formState.errors.token.message}</span> : null}
+              </label>
+              <label>
+                <span className="muted">New password</span>
+                <input className="input" type="password" placeholder="At least 8 characters" {...register("newPassword")} />
+                {formState.errors.newPassword ? <span className="error">{formState.errors.newPassword.message}</span> : null}
+              </label>
+            </div>
+            <button className="btn auth-login-btn" type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "Resetting..." : "Reset Password"}
+            </button>
+          </form>
+          <p className="muted reset-links">
+            <Link to="/forgot-password">Didn&apos;t receive token? Request again</Link>
+          </p>
+          <p className="muted reset-links">
+            <Link to="/login">Back to login</Link>
+          </p>
+        </section>
+      </div>
     </main>
   );
 }

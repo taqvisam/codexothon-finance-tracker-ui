@@ -889,6 +889,60 @@ body.dark-theme .settings-switch-row span {
   font-weight: 600;
 }
 
+.reset-shell {
+  background: linear-gradient(135deg, #d7e0ed, #c5d3e7);
+}
+
+.reset-frame {
+  min-height: min(640px, 90vh);
+}
+
+.reset-visual {
+  padding: 58px 54px;
+  background: radial-gradient(circle at top left, rgba(67, 126, 206, 0.2), transparent 60%), #f4f7fc;
+  border-right: 1px solid #dbe4f1;
+}
+
+.reset-hero {
+  margin-top: 70px;
+}
+
+.reset-key {
+  width: 66px;
+  height: 66px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  background: linear-gradient(135deg, #3b74c3, #73a6ee);
+  box-shadow: 0 12px 24px rgba(59, 116, 195, 0.2);
+}
+
+.reset-hero h2 {
+  margin: 18px 0 8px;
+  font-size: 44px;
+  line-height: 1.08;
+  letter-spacing: -0.8px;
+}
+
+.reset-hero p {
+  max-width: 360px;
+}
+
+.reset-form {
+  padding-top: 76px;
+}
+
+.reset-links {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.reset-links a {
+  color: #4778be;
+  font-weight: 600;
+}
+
 .auth-widget {
   width: 180px;
   border: 1px solid #dee5ef;
@@ -1351,6 +1405,14 @@ body.dark-theme .settings-switch-row span {
   }
 
   .forgot-form {
+    padding-top: 28px;
+  }
+
+  .reset-visual {
+    display: none;
+  }
+
+  .reset-form {
     padding-top: 28px;
   }
 
