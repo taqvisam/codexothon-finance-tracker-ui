@@ -33,7 +33,7 @@ Frontend web app for Personal Finance Tracker.
 
 ## Demo Credentials
 - demo@finance.com / Demo@123
-- test@finance.com / Test@123
+- test@amiti.in / Test@123
 
 ## QA Note
 - Login page includes a demo login shortcut for QA speed.

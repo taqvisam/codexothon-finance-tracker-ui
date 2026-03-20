@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "../store/authStore";
 
 const apiUrl = (
-  import.meta.env.VITE_API_URL ?? "https://nondelusive-unemotionally-tommye.ngrok-free.dev"
+  import.meta.env.VITE_API_URL ?? "https://finance-tracker-syed-hba2afgqh3bbafeg.centralindia-01.azurewebsites.net"
 ).replace(/\/+$/, "");
 
 export const apiClient = axios.create({
