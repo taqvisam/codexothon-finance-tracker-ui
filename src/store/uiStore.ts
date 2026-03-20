@@ -1,0 +1,68 @@
+import { create } from "zustand";
+
+export interface AppNotification {
+  id: string;
+  message: string;
+  type: "success" | "warning" | "error";
+}
+
+interface UiState {
+  globalSearch: string;
+  selectedPeriod: string;
+  dateFrom: string;
+  dateTo: string;
+  notifications: AppNotification[];
+  setGlobalSearch: (value: string) => void;
+  setSelectedPeriod: (period: string) => void;
+  setDateRange: (from: string, to: string) => void;
+  notify: (message: string, type?: AppNotification["type"]) => void;
+  dismiss: (id: string) => void;
+}
+
+function toIsoDate(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function toPeriod(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${date.getFullYear()}-${month}`;
+}
+
+function periodWindow(period: string) {
+  const [yearText, monthText] = period.split("-");
+  const year = Number(yearText);
+  const monthIndex = Number(monthText) - 1;
+  const start = new Date(year, monthIndex, 1);
+  const end = new Date(year, monthIndex + 1, 0);
+  return { from: toIsoDate(start), to: toIsoDate(end) };
+}
+
+const today = new Date();
+const defaultPeriod = toPeriod(today);
+const defaultWindow = periodWindow(defaultPeriod);
+
+export const useUiStore = create<UiState>((set) => ({
+  globalSearch: "",
+  selectedPeriod: defaultPeriod,
+  dateFrom: defaultWindow.from,
+  dateTo: defaultWindow.to,
+  notifications: [],
+  setGlobalSearch: (value) => set({ globalSearch: value }),
+  setSelectedPeriod: (period) =>
+    set(() => {
+      const window = periodWindow(period);
+      return { selectedPeriod: period, dateFrom: window.from, dateTo: window.to };
+    }),
+  setDateRange: (from, to) => set({ dateFrom: from, dateTo: to }),
+  notify: (message, type = "success") =>
+    set((state) => ({
+      notifications: [
+        ...state.notifications,
+        { id: crypto.randomUUID(), message, type }
+      ]
+    })),
+  dismiss: (id) =>
+    set((state) => ({
+      notifications: state.notifications.filter((n) => n.id !== id)
+    }))
+}));
