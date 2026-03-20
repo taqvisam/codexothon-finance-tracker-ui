@@ -24,10 +24,18 @@ interface CategoryItem {
   type: "Income" | "Expense";
 }
 
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const schema = z.object({
   accountId: z.string().uuid("Account is required."),
-  categoryId: z.string().uuid("Category is required.").optional(),
-  transferAccountId: z.string().uuid("Destination account is required for transfer.").optional(),
+  categoryId: z
+    .string()
+    .optional()
+    .refine((value) => !value || uuidPattern.test(value), "Category is required."),
+  transferAccountId: z
+    .string()
+    .optional()
+    .refine((value) => !value || uuidPattern.test(value), "Destination account is required for transfer."),
   type: z.enum(["Income", "Expense", "Transfer"]),
   amount: z.number().positive(),
   date: z.string().min(1, "Date is required."),
