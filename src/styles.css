@@ -269,6 +269,10 @@ body.dark-theme .settings-switch-row span {
   flex-wrap: wrap;
 }
 
+.topbar-toggle {
+  display: none;
+}
+
 .topbar-filter {
   display: flex;
   align-items: center;
@@ -432,6 +436,41 @@ body.dark-theme .settings-switch-row span {
 .section-link-row {
   margin-top: 8px;
   text-align: right;
+}
+
+.mobile-collapse {
+  border: 1px solid #dbe2ec;
+  border-radius: 8px;
+  background: #ffffff;
+  margin-top: 12px;
+}
+
+.mobile-collapse summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  font-weight: 600;
+  color: #2c3e59;
+}
+
+.mobile-collapse summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobile-collapse summary::after {
+  content: "+";
+  float: right;
+  color: #5d6e88;
+  font-weight: 700;
+}
+
+.mobile-collapse[open] summary::after {
+  content: "-";
+}
+
+.mobile-collapse-body {
+  border-top: 1px solid #e4eaf3;
+  padding: 8px;
 }
 
 .progress {
@@ -1150,10 +1189,20 @@ body.dark-theme .settings-switch-row span {
     gap: 10px;
   }
 
+  .topbar-toggle {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+  }
+
   .topbar-tools {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+  }
+
+  .topbar-tools.collapsed {
+    display: none;
   }
 
   .topbar-filter {

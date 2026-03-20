@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { apiClient } from "../services/apiClient";
@@ -8,11 +9,37 @@ export function Topbar() {
   const navigate = useNavigate();
   const { displayName, profileImageUrl, logout } = useAuthStore();
   const { dateFrom, dateTo, setDateRange } = useUiStore();
+  const [isMobile, setIsMobile] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(true);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 980px)");
+    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      const mobile = event.matches;
+      setIsMobile(mobile);
+      setToolsOpen(!mobile);
+    };
+
+    handleChange(media);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
 
   return (
     <header className="topbar">
       <div className="topbar-inner">
-        <div className="topbar-tools">
+        {isMobile ? (
+          <button className="btn ghost topbar-toggle" type="button" onClick={() => setToolsOpen((value) => !value)}>
+            {toolsOpen ? "Hide Filters" : "Show Filters"}
+          </button>
+        ) : null}
+        <div className={`topbar-tools${isMobile && !toolsOpen ? " collapsed" : ""}`}>
           <label className="topbar-filter">
             <span className="muted">From:</span>
             <input

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -45,11 +45,52 @@ interface CategoryItem {
 
 const chartColors = ["#2f6fbe", "#ee9a2f", "#36a269", "#dd5757", "#697b96", "#2f97d8"];
 
+function MobileSection({
+  title,
+  isMobile,
+  defaultOpen = false,
+  children
+}: {
+  title: string;
+  isMobile: boolean;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  if (!isMobile) {
+    return <>{children}</>;
+  }
+
+  return (
+    <details className="mobile-collapse" open={defaultOpen}>
+      <summary>{title}</summary>
+      <div className="mobile-collapse-body">{children}</div>
+    </details>
+  );
+}
+
 export function DashboardPage() {
   const navigate = useNavigate();
   const currency = useCurrency();
   const { dateFrom, dateTo, selectedPeriod } = useUiStore();
   const [selectedYear, selectedMonth] = selectedPeriod.split("-").map(Number);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 980px)");
+    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      setIsMobile(event.matches);
+    };
+
+    handleChange(media);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
 
   const transactionsQuery = useQuery({
     queryKey: ["recent-transactions", dateFrom, dateTo],
@@ -179,21 +220,23 @@ export function DashboardPage() {
 
   return (
     <>
-      <section className="card" style={{ marginTop: 12 }}>
-        <div className="quick-actions">
-          <button className="btn" type="button" onClick={() => navigate("/transactions")}>Add Transaction</button>
-          <button className="btn ghost" type="button" onClick={() => navigate("/budgets")}>Create Budget</button>
-          <button className="btn ghost" type="button" onClick={() => navigate("/recurring")}>Add Recurring Bill</button>
-          <button className="btn ghost" type="button" onClick={() => navigate("/goals")}>Update Goal Contribution</button>
-        </div>
-        {alerts.length > 0 ? (
-          <div className="alert-stack">
-            {alerts.map((alert, idx) => (
-              <AlertBanner key={`${idx}-${alert.message}`} type={alert.type} message={alert.message} />
-            ))}
+      <MobileSection title="Quick Actions & Alerts" isMobile={isMobile}>
+        <section className="card" style={{ marginTop: 12 }}>
+          <div className="quick-actions">
+            <button className="btn" type="button" onClick={() => navigate("/transactions")}>Add Transaction</button>
+            <button className="btn ghost" type="button" onClick={() => navigate("/budgets")}>Create Budget</button>
+            <button className="btn ghost" type="button" onClick={() => navigate("/recurring")}>Add Recurring Bill</button>
+            <button className="btn ghost" type="button" onClick={() => navigate("/goals")}>Update Goal Contribution</button>
           </div>
-        ) : null}
-      </section>
+          {alerts.length > 0 ? (
+            <div className="alert-stack">
+              {alerts.map((alert, idx) => (
+                <AlertBanner key={`${idx}-${alert.message}`} type={alert.type} message={alert.message} />
+              ))}
+            </div>
+          ) : null}
+        </section>
+      </MobileSection>
 
       <section className="card-grid">
         <SummaryCard title="Balance" value={summary.balance} />
@@ -203,88 +246,92 @@ export function DashboardPage() {
       </section>
 
       <section className="two-col">
-        <ChartCard title="Spending by Category">
-          <div style={{ height: 220 }}>
-            {categoryData.length === 0 ? (
-              <p className="muted">No category spend data.</p>
-            ) : (
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie data={categoryData} dataKey="value" nameKey="name" innerRadius={45}>
-                    {categoryData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-          {categoryData.length > 0 ? (
-            <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
-              {categoryData.map((item) => (
-                <div key={`legend-${item.name}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <MobileSection title="Spending by Category" isMobile={isMobile}>
+          <ChartCard title="Spending by Category">
+            <div style={{ height: 220 }}>
+              {categoryData.length === 0 ? (
+                <p className="muted">No category spend data.</p>
+              ) : (
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie data={categoryData} dataKey="value" nameKey="name" innerRadius={45}>
+                      {categoryData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+            {categoryData.length > 0 ? (
+              <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
+                {categoryData.map((item) => (
+                  <div key={`legend-${item.name}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 999,
+                        background: item.color,
+                        border: "1px solid rgba(0,0,0,0.08)"
+                      }}
+                    />
+                    <span className="muted">{item.name}: {currency(item.value)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </ChartCard>
+        </MobileSection>
+        <MobileSection title="Income vs Expense Trend" isMobile={isMobile}>
+          <ChartCard title="Income vs Expense Trend">
+            <div style={{ height: 220 }}>
+              {trendQuery.data.length === 0 ? (
+                <p className="muted">No income/expense data.</p>
+              ) : (
+                <ResponsiveContainer>
+                  <BarChart data={trendQuery.data}>
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Bar dataKey="income" fill="#2f6fbe" />
+                    <Bar dataKey="expense" fill="#dd5757" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+            {trendQuery.data.length > 0 ? (
+              <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span
                     aria-hidden="true"
                     style={{
                       width: 10,
                       height: 10,
                       borderRadius: 999,
-                      background: item.color,
+                      background: "#2f6fbe",
                       border: "1px solid rgba(0,0,0,0.08)"
                     }}
                   />
-                  <span className="muted">{item.name}: {currency(item.value)}</span>
+                  <span className="muted">Income</span>
                 </div>
-              ))}
-            </div>
-          ) : null}
-        </ChartCard>
-        <ChartCard title="Income vs Expense Trend">
-          <div style={{ height: 220 }}>
-            {trendQuery.data.length === 0 ? (
-              <p className="muted">No income/expense data.</p>
-            ) : (
-              <ResponsiveContainer>
-                <BarChart data={trendQuery.data}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Bar dataKey="income" fill="#2f6fbe" />
-                  <Bar dataKey="expense" fill="#dd5757" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-          {trendQuery.data.length > 0 ? (
-            <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 999,
-                    background: "#2f6fbe",
-                    border: "1px solid rgba(0,0,0,0.08)"
-                  }}
-                />
-                <span className="muted">Income</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 999,
+                      background: "#dd5757",
+                      border: "1px solid rgba(0,0,0,0.08)"
+                    }}
+                  />
+                  <span className="muted">Expense</span>
+                </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 999,
-                    background: "#dd5757",
-                    border: "1px solid rgba(0,0,0,0.08)"
-                  }}
-                />
-                <span className="muted">Expense</span>
-              </div>
-            </div>
-          ) : null}
-        </ChartCard>
+            ) : null}
+          </ChartCard>
+        </MobileSection>
       </section>
 
       <section className="two-col">
@@ -321,59 +368,65 @@ export function DashboardPage() {
             </>
           )}
         </article>
-        <article className="card">
-          <h4>Upcoming Recurring Payments</h4>
-          <DataTable
-            rows={recurringQuery.data
-              .filter((x) => x.nextRunDate >= dateFrom && x.nextRunDate <= dateTo)
-              .slice(0, 5)
-              .map((x) => ({ name: x.title, amount: x.amount, due: x.nextRunDate }))}
-            columns={[
-              { key: "name", title: "Bill", render: (r) => r.name },
-              { key: "amount", title: "Amount", render: (r) => currency(r.amount) },
-              { key: "due", title: "Due", render: (r) => r.due }
-            ]}
-          />
-        </article>
+        <MobileSection title="Upcoming Recurring Payments" isMobile={isMobile}>
+          <article className="card">
+            <h4>Upcoming Recurring Payments</h4>
+            <DataTable
+              rows={recurringQuery.data
+                .filter((x) => x.nextRunDate >= dateFrom && x.nextRunDate <= dateTo)
+                .slice(0, 5)
+                .map((x) => ({ name: x.title, amount: x.amount, due: x.nextRunDate }))}
+              columns={[
+                { key: "name", title: "Bill", render: (r) => r.name },
+                { key: "amount", title: "Amount", render: (r) => currency(r.amount) },
+                { key: "due", title: "Due", render: (r) => r.due }
+              ]}
+            />
+          </article>
+        </MobileSection>
       </section>
 
       <section className="two-col">
-        <article className="card">
-          <h4>Budget Progress Cards</h4>
-          {budgetCards.length === 0 ? (
-            <p className="muted">No budgets yet.</p>
-          ) : (
-            budgetCards.map((budget) => (
-              <div key={budget.id} style={{ marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <strong>{budget.categoryName}</strong>
-                  <span>{Math.round(budget.percent)}%</span>
+        <MobileSection title="Budget Progress Cards" isMobile={isMobile}>
+          <article className="card">
+            <h4>Budget Progress Cards</h4>
+            {budgetCards.length === 0 ? (
+              <p className="muted">No budgets yet.</p>
+            ) : (
+              budgetCards.map((budget) => (
+                <div key={budget.id} style={{ marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <strong>{budget.categoryName}</strong>
+                    <span>{Math.round(budget.percent)}%</span>
+                  </div>
+                  <ProgressBar value={budget.percent} />
+                  <span className={`muted budget-${budget.level}`}>
+                    {currency(budget.spentAmount)} / {currency(budget.amount)}
+                  </span>
                 </div>
-                <ProgressBar value={budget.percent} />
-                <span className={`muted budget-${budget.level}`}>
-                  {currency(budget.spentAmount)} / {currency(budget.amount)}
-                </span>
-              </div>
-            ))
-          )}
-        </article>
+              ))
+            )}
+          </article>
+        </MobileSection>
 
-        <article className="card">
-          <h4>Savings Goal Progress</h4>
-          {goalsQuery.data.length === 0 ? (
-            <p className="muted">No goals yet.</p>
-          ) : (
-            goalsQuery.data.slice(0, 4).map((goal) => (
-              <div key={goal.id} style={{ marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <strong>{goal.name}</strong>
-                  <span className="muted">{Math.round(goal.progressPercent)}%</span>
+        <MobileSection title="Savings Goal Progress" isMobile={isMobile}>
+          <article className="card">
+            <h4>Savings Goal Progress</h4>
+            {goalsQuery.data.length === 0 ? (
+              <p className="muted">No goals yet.</p>
+            ) : (
+              goalsQuery.data.slice(0, 4).map((goal) => (
+                <div key={goal.id} style={{ marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <strong>{goal.name}</strong>
+                    <span className="muted">{Math.round(goal.progressPercent)}%</span>
+                  </div>
+                  <ProgressBar value={goal.progressPercent} />
                 </div>
-                <ProgressBar value={goal.progressPercent} />
-              </div>
-            ))
-          )}
-        </article>
+              ))
+            )}
+          </article>
+        </MobileSection>
       </section>
     </>
   );
