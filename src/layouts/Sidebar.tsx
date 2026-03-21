@@ -30,19 +30,8 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
   return (
     <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
       <div className="brand-block">
-        <div className="brand-main">
-          <div className="brand-mark" aria-hidden="true">◎</div>
-          <div className="brand-text">{collapsed ? "PFT" : "Personal Finance"}</div>
-        </div>
-        <button
-          type="button"
-          className="sidebar-collapse-btn"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          onClick={onToggleCollapsed}
-        >
-          {collapsed ? ">>" : "<<"}
-        </button>
+        <div className="brand-mark" aria-hidden="true">◎</div>
+        <div className="brand-text">{collapsed ? "PFT" : "Personal Finance"}</div>
       </div>
       <nav className="sidebar-nav">
         {items.map(([iconPath, label, path]) => (
@@ -59,7 +48,17 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
       </nav>
       <div className="sidebar-foot">
         <span>{collapsed ? "V2" : "Version 2"}</span>
+        <button
+          type="button"
+          className="sidebar-collapse-btn"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onClick={onToggleCollapsed}
+        >
+          {collapsed ? "›" : "‹"}
+        </button>
       </div>
     </aside>
   );
 }
+
