@@ -340,6 +340,111 @@ a {
   margin-top: 12px;
 }
 
+.v2-page-grid {
+  display: grid;
+  grid-template-columns: 1.65fr 0.9fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.v2-side-stack {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.insight-pill {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e9f2ff;
+  color: #2a72d6;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid #edf2f7;
+  font-size: 13px;
+  color: #3a4d6c;
+}
+
+.insight-dot {
+  color: #2f6fbe;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.recurring-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid #edf2f7;
+}
+
+.mini-switch {
+  width: 40px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  background: #d5dde9;
+  position: relative;
+  cursor: pointer;
+}
+
+.mini-switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 120ms ease;
+}
+
+.mini-switch.on {
+  background: #4bc795;
+}
+
+.mini-switch.on span {
+  transform: translateX(16px);
+}
+
+.budget-overview {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.budget-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e7edf7;
+  border-radius: 10px;
+  background: #fbfcff;
+}
+
+.budget-row + .budget-row {
+  margin-top: 8px;
+}
+
+.insights-grid {
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
 .chart-card {
   min-height: 280px;
 }
@@ -692,6 +797,30 @@ body.dark-theme .btn.ghost {
   background: #162136;
 }
 
+body.dark-theme .insight-pill {
+  background: rgba(66, 129, 222, 0.22);
+  color: #8bb9ff;
+}
+
+body.dark-theme .insight-item,
+body.dark-theme .recurring-row {
+  border-top-color: #2b3a52;
+  color: #ced9ec;
+}
+
+body.dark-theme .mini-switch {
+  background: #44536c;
+}
+
+body.dark-theme .mini-switch.on {
+  background: #2fae7d;
+}
+
+body.dark-theme .budget-row {
+  background: #152134;
+  border-color: #2d3b55;
+}
+
 @media (max-width: 980px) {
   .shell {
     grid-template-columns: 1fr;
@@ -760,10 +889,20 @@ body.dark-theme .btn.ghost {
   }
 
   .two-col,
+  .v2-page-grid,
+  .insights-grid,
   .settings-grid,
   .auth-frame,
   .forgot-frame,
   .reset-frame {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-row {
     grid-template-columns: 1fr;
   }
 

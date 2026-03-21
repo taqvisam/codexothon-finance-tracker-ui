@@ -24,6 +24,26 @@ interface CategoryItem {
   type: "Income" | "Expense";
 }
 
+interface HealthScoreResponse {
+  score: number;
+  suggestions: string[];
+}
+
+interface RecurringItem {
+  id: string;
+  title: string;
+  amount: number;
+  nextRunDate: string;
+  isPaused: boolean;
+  type: "Income" | "Expense" | "Transfer";
+  categoryId?: string | null;
+  accountId?: string | null;
+  frequency: "Daily" | "Weekly" | "Monthly" | "Yearly";
+  startDate: string;
+  endDate?: string | null;
+  autoCreateTransaction: boolean;
+}
+
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const schema = z.object({
@@ -108,6 +128,17 @@ export function TransactionsPage() {
     initialData: []
   });
 
+  const healthScoreQuery = useQuery({
+    queryKey: ["txn-health-score"],
+    queryFn: async () => (await apiClient.get<HealthScoreResponse>("/insights/health-score")).data
+  });
+
+  const recurringQuery = useQuery({
+    queryKey: ["txn-recurring"],
+    queryFn: async () => (await apiClient.get<RecurringItem[]>("/recurring")).data,
+    initialData: []
+  });
+
   const transactionsQuery = useQuery({
     queryKey: ["transactions", search, dateFrom, dateTo, page, pageSize, selectedType, selectedAccount, selectedCategory],
     queryFn: async () =>
@@ -178,6 +209,24 @@ export function TransactionsPage() {
     }
   });
 
+  const recurringToggleMutation = useMutation({
+    mutationFn: async (item: RecurringItem) =>
+      apiClient.put(`/recurring/${item.id}`, {
+        title: item.title,
+        type: item.type,
+        amount: item.amount,
+        categoryId: item.categoryId,
+        accountId: item.accountId,
+        frequency: item.frequency,
+        startDate: item.startDate,
+        endDate: item.endDate,
+        nextRunDate: item.nextRunDate,
+        autoCreateTransaction: item.autoCreateTransaction,
+        isPaused: !item.isPaused
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["txn-recurring"] })
+  });
+
   const filteredCategories = useMemo(
     () => categoriesQuery.data.filter((c) => (typeValue === "Income" ? c.type === "Income" : c.type === "Expense")),
     [categoriesQuery.data, typeValue]
@@ -211,164 +260,221 @@ export function TransactionsPage() {
   };
 
   return (
-    <section className="card">
-      <h3>Transactions</h3>
-      <form
-        onSubmit={handleSubmit(
-          (data) => upsertMutation.mutate(data),
-          (errors) => notifyFirstValidationError(errors)
-        )}
-      >
-        <div className="form-grid">
-          <Dropdown
-            options={[{ value: "", label: "Select Account" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
-            value={watch("accountId") ?? ""}
-            onChange={(e) => setValue("accountId", e.target.value)}
-            label="Account"
-          />
-          <Dropdown
-            options={[
-              { value: "Expense", label: "Expense" },
-              { value: "Income", label: "Income" },
-              { value: "Transfer", label: "Transfer" }
-            ]}
-            value={watch("type")}
-            onChange={(e) => setValue("type", e.target.value as Input["type"])}
-            label="Type"
-          />
-          {typeValue !== "Transfer" ? (
-            <Dropdown
-              options={[{ value: "", label: "Select Category" }, ...filteredCategories.map((c) => ({ value: c.id, label: c.name }))]}
-              value={watch("categoryId") ?? ""}
-              onChange={(e) => setValue("categoryId", e.target.value || undefined)}
-              label="Category"
-            />
-          ) : (
-            <div style={{ alignSelf: "end" }}>
-              <span className="muted">Category not required for transfer.</span>
-            </div>
+    <>
+      <section className="card">
+        <h3>{editId ? "Edit Transaction" : "Add Transaction"}</h3>
+        <form
+          onSubmit={handleSubmit(
+            (data) => upsertMutation.mutate(data),
+            (errors) => notifyFirstValidationError(errors)
           )}
-          {typeValue === "Transfer" ? (
+        >
+          <div className="form-grid">
             <Dropdown
-              options={[{ value: "", label: "Select destination account" }, ...transferDestinationOptions.map((a) => ({ value: a.id, label: a.name }))]}
-              value={watch("transferAccountId") ?? ""}
-              onChange={(e) => setValue("transferAccountId", e.target.value || undefined)}
-              label="Destination Account"
+              options={[{ value: "", label: "Select Account" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
+              value={watch("accountId") ?? ""}
+              onChange={(e) => setValue("accountId", e.target.value)}
+              label="Account"
             />
-          ) : null}
-          <TextInput label="Amount" type="number" step="0.01" {...register("amount", { valueAsNumber: true })} />
-          <TextInput label="Date" type="date" {...register("date")} />
-          <TextInput label="Merchant" {...register("merchant")} />
-          <TextInput label="Payment Method" placeholder="Card / Cash / UPI" {...register("paymentMethod")} />
-          <TextInput label="Tags" placeholder="family, groceries" {...register("tags")} />
-          <TextInput label="Note" {...register("note")} />
-        </div>
-        <div className="form-actions">
-          <Button type="submit">{editId ? "Update Transaction" : "+ Add Transaction"}</Button>
-          {editId ? (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setEditId(null);
-                resetTransactionForm();
-              }}
-            >
-              Cancel
-            </Button>
-          ) : null}
-        </div>
-      </form>
-
-      <div className="form-grid" style={{ marginTop: 16 }}>
-        <TextInput
-          label="Search"
-          placeholder="Merchant or note"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-        <Dropdown
-          label="Filter Type"
-          options={[
-            { value: "", label: "All Types" },
-            { value: "Income", label: "Income" },
-            { value: "Expense", label: "Expense" },
-            { value: "Transfer", label: "Transfer" }
-          ]}
-          value={selectedType}
-          onChange={(e) => { setSelectedType(e.target.value); setPage(1); }}
-        />
-        <Dropdown
-          label="Filter Account"
-          options={[{ value: "", label: "All Accounts" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
-          value={selectedAccount}
-          onChange={(e) => { setSelectedAccount(e.target.value); setPage(1); }}
-        />
-        <Dropdown
-          label="Filter Category"
-          options={[{ value: "", label: "All Categories" }, ...categoriesQuery.data.map((c) => ({ value: c.id, label: c.name }))]}
-          value={selectedCategory}
-          onChange={(e) => { setSelectedCategory(e.target.value); setPage(1); }}
-        />
-      </div>
-
-      <div style={{ marginTop: 16 }}>
-        {transactionsQuery.isError ? (
-          <p className="error">Failed to load transactions.</p>
-        ) : transactionsQuery.data.length === 0 ? (
-          <p className="muted">No transactions found.</p>
-        ) : (
-          <>
-            <DataTable
-              rows={transactionsQuery.data}
-              columns={[
-                { key: "date", title: "Date", render: (r) => r.date },
-                { key: "merchant", title: "Description", render: (r) => r.merchant ?? "-" },
-                { key: "type", title: "Type", render: (r) => r.type },
-                { key: "amount", title: "Amount", render: (r) => currency(r.amount) },
-                {
-                  key: "actions",
-                  title: "Actions",
-                  render: (r) => (
-                    <div className="action-icon-row">
-                      <ActionIconButton
-                        icon="edit"
-                        label="Edit transaction"
-                        onClick={() => {
-                        setEditId(r.id);
-                        setValue("accountId", r.accountId);
-                        setValue("categoryId", normalizeUuid(r.categoryId));
-                        setValue("type", r.type);
-                        setValue("amount", r.amount);
-                        setValue("date", r.date);
-                        setValue("merchant", r.merchant);
-                        setValue("paymentMethod", r.paymentMethod);
-                        setValue("tags", r.tags?.join(", "));
-                        setValue("transferAccountId", normalizeUuid(r.transferAccountId));
-                        setValue("note", r.note);
-                      }}
-                    />
-                      <ActionIconButton
-                        icon="delete"
-                        label="Delete transaction"
-                        onClick={() => deleteMutation.mutate(r.id)}
-                      />
-                    </div>
-                  )
-                }
+            <Dropdown
+              options={[
+                { value: "Expense", label: "Expense" },
+                { value: "Income", label: "Income" },
+                { value: "Transfer", label: "Transfer" }
               ]}
+              value={watch("type")}
+              onChange={(e) => setValue("type", e.target.value as Input["type"])}
+              label="Type"
             />
-            <div className="pagination-actions">
-              <Button type="button" variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-              <span className="muted" style={{ alignSelf: "center" }}>Page {page}</span>
-              <Button type="button" variant="secondary" disabled={transactionsQuery.data.length < pageSize} onClick={() => setPage((p) => p + 1)}>Next</Button>
+            {typeValue !== "Transfer" ? (
+              <Dropdown
+                options={[{ value: "", label: "Select Category" }, ...filteredCategories.map((c) => ({ value: c.id, label: c.name }))]}
+                value={watch("categoryId") ?? ""}
+                onChange={(e) => setValue("categoryId", e.target.value || undefined)}
+                label="Category"
+              />
+            ) : (
+              <div style={{ alignSelf: "end" }}>
+                <span className="muted">Category not required for transfer.</span>
+              </div>
+            )}
+            {typeValue === "Transfer" ? (
+              <Dropdown
+                options={[{ value: "", label: "Select destination account" }, ...transferDestinationOptions.map((a) => ({ value: a.id, label: a.name }))]}
+                value={watch("transferAccountId") ?? ""}
+                onChange={(e) => setValue("transferAccountId", e.target.value || undefined)}
+                label="Destination Account"
+              />
+            ) : null}
+            <TextInput label="Amount" type="number" step="0.01" {...register("amount", { valueAsNumber: true })} />
+            <TextInput label="Date" type="date" {...register("date")} />
+            <TextInput label="Merchant" {...register("merchant")} />
+            <TextInput label="Payment Method" placeholder="Card / Cash / UPI" {...register("paymentMethod")} />
+            <TextInput label="Tags" placeholder="family, groceries" {...register("tags")} />
+            <TextInput label="Note" {...register("note")} />
+          </div>
+          <div className="form-actions">
+            <Button type="submit">{editId ? "Update Transaction" : "+ Add Transaction"}</Button>
+            {editId ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setEditId(null);
+                  resetTransactionForm();
+                }}
+              >
+                Cancel
+              </Button>
+            ) : null}
+          </div>
+        </form>
+      </section>
+
+      <section className="v2-page-grid">
+        <article className="card">
+          <div className="card-head">
+            <h3 style={{ marginBottom: 0 }}>Transactions</h3>
+            <span className="muted">Showing {transactionsQuery.data.length}</span>
+          </div>
+
+          <div className="form-grid" style={{ marginTop: 8 }}>
+            <TextInput
+              label="Search"
+              placeholder="Merchant or note"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+            <Dropdown
+              label="Type"
+              options={[
+                { value: "", label: "All Types" },
+                { value: "Income", label: "Income" },
+                { value: "Expense", label: "Expense" },
+                { value: "Transfer", label: "Transfer" }
+              ]}
+              value={selectedType}
+              onChange={(e) => { setSelectedType(e.target.value); setPage(1); }}
+            />
+            <Dropdown
+              label="Account"
+              options={[{ value: "", label: "All Accounts" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
+              value={selectedAccount}
+              onChange={(e) => { setSelectedAccount(e.target.value); setPage(1); }}
+            />
+            <Dropdown
+              label="Category"
+              options={[{ value: "", label: "All Categories" }, ...categoriesQuery.data.map((c) => ({ value: c.id, label: c.name }))]}
+              value={selectedCategory}
+              onChange={(e) => { setSelectedCategory(e.target.value); setPage(1); }}
+            />
+          </div>
+
+          <div style={{ marginTop: 10 }}>
+            {transactionsQuery.isError ? (
+              <p className="error">Failed to load transactions.</p>
+            ) : transactionsQuery.data.length === 0 ? (
+              <p className="muted">No transactions found.</p>
+            ) : (
+              <>
+                <DataTable
+                  rows={transactionsQuery.data}
+                  columns={[
+                    { key: "date", title: "Date", render: (r) => r.date },
+                    { key: "merchant", title: "Merchant/Description", render: (r) => r.merchant ?? "-" },
+                    { key: "type", title: "Category", render: (r) => r.type },
+                    { key: "amount", title: "Amount", render: (r) => currency(r.amount) },
+                    {
+                      key: "actions",
+                      title: "Actions",
+                      render: (r) => (
+                        <div className="action-icon-row">
+                          <ActionIconButton
+                            icon="edit"
+                            label="Edit transaction"
+                            onClick={() => {
+                              setEditId(r.id);
+                              setValue("accountId", r.accountId);
+                              setValue("categoryId", normalizeUuid(r.categoryId));
+                              setValue("type", r.type);
+                              setValue("amount", r.amount);
+                              setValue("date", r.date);
+                              setValue("merchant", r.merchant);
+                              setValue("paymentMethod", r.paymentMethod);
+                              setValue("tags", r.tags?.join(", "));
+                              setValue("transferAccountId", normalizeUuid(r.transferAccountId));
+                              setValue("note", r.note);
+                            }}
+                          />
+                          <ActionIconButton
+                            icon="delete"
+                            label="Delete transaction"
+                            onClick={() => deleteMutation.mutate(r.id)}
+                          />
+                        </div>
+                      )
+                    }
+                  ]}
+                />
+                <div className="pagination-actions">
+                  <Button type="button" variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
+                  <span className="muted" style={{ alignSelf: "center" }}>Page {page}</span>
+                  <Button type="button" variant="secondary" disabled={transactionsQuery.data.length < pageSize} onClick={() => setPage((p) => p + 1)}>Next</Button>
+                </div>
+              </>
+            )}
+          </div>
+        </article>
+
+        <aside className="v2-side-stack">
+          <article className="card">
+            <div className="card-head">
+              <h4 style={{ marginBottom: 0 }}>Insights</h4>
+              <span className="insight-pill">V2</span>
             </div>
-          </>
-        )}
-      </div>
-    </section>
+            <p className="muted" style={{ marginBottom: 8 }}>
+              Health Score: <strong>{Math.round(healthScoreQuery.data?.score ?? 0)}</strong>/100
+            </p>
+            {(healthScoreQuery.data?.suggestions ?? ["No insight suggestions available yet."])
+              .slice(0, 3)
+              .map((suggestion) => (
+                <div className="insight-item" key={suggestion}>
+                  <span className="insight-dot" aria-hidden="true">•</span>
+                  <span>{suggestion}</span>
+                </div>
+              ))}
+          </article>
+
+          <article className="card">
+            <div className="card-head">
+              <h4 style={{ marginBottom: 0 }}>Recurring Expenses</h4>
+            </div>
+            {recurringQuery.data.length === 0 ? (
+              <p className="muted">No recurring items configured.</p>
+            ) : (
+              recurringQuery.data.slice(0, 5).map((item) => (
+                <div className="recurring-row" key={item.id}>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <div className="muted">{currency(item.amount)} on {item.nextRunDate}</div>
+                  </div>
+                  <button
+                    type="button"
+                    className={`mini-switch${item.isPaused ? "" : " on"}`}
+                    aria-label={item.isPaused ? "Enable recurring item" : "Pause recurring item"}
+                    onClick={() => recurringToggleMutation.mutate(item)}
+                  >
+                    <span />
+                  </button>
+                </div>
+              ))
+            )}
+          </article>
+        </aside>
+      </section>
+    </>
   );
 }
