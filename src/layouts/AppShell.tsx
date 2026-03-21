@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { Navigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { ToastContainer } from "../components/ToastContainer";
@@ -12,8 +13,17 @@ interface AccountItem {
 
 export function AppShell() {
   const ONBOARDING_SKIP_KEY = "onboardingSkipped";
+  const SIDEBAR_COLLAPSED_KEY = "sidebarCollapsed";
   const location = useLocation();
   const onboardingSkipped = localStorage.getItem(ONBOARDING_SKIP_KEY) === "true";
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"
+  );
+
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
   const accountsQuery = useQuery({
     queryKey: ["onboarding-accounts-guard"],
     queryFn: async () => (await apiClient.get<AccountItem[]>("/accounts")).data,
@@ -36,8 +46,11 @@ export function AppShell() {
   }
 
   return (
-    <div className="shell">
-      <Sidebar />
+    <div className={`shell${sidebarCollapsed ? " shell-sidebar-collapsed" : ""}`}>
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggleCollapsed={() => setSidebarCollapsed((value) => !value)}
+      />
       <main className="content">
         <Topbar />
         <Outlet />
