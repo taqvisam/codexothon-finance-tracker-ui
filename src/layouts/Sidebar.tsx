@@ -21,17 +21,12 @@ const items = [
   ["M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Zm8-3.5-2.1.7a6.9 6.9 0 0 1-.4 1l1.2 1.9-1.9 1.9-1.9-1.2c-.3.2-.7.3-1 .4L12 20l-1.2-2.1c-.4-.1-.7-.2-1-.4l-1.9 1.2-1.9-1.9 1.2-1.9a6.9 6.9 0 0 1-.4-1L4 12l2.1-1.2c.1-.4.2-.7.4-1L5.3 7.9 7.2 6l1.9 1.2c.3-.2.6-.3 1-.4L12 4l1.2 2.1c.4.1.7.2 1 .4L16.1 5.3 18 7.2l-1.2 1.9c.2.3.3.6.4 1L20 12Z", "Settings", "/settings"]
 ] as const;
 
-interface SidebarProps {
-  collapsed: boolean;
-  onToggleCollapsed: () => void;
-}
-
-export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
+export function Sidebar() {
   return (
-    <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
+    <aside className="sidebar">
       <div className="brand-block">
         <div className="brand-mark" aria-hidden="true">◎</div>
-        <div className="brand-text">{collapsed ? "PFT" : "Personal Finance"}</div>
+        <div className="brand-text">PFT</div>
       </div>
       <nav className="sidebar-nav">
         {items.map(([iconPath, label, path]) => (
@@ -39,7 +34,9 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
             key={path}
             to={path}
             title={label}
-            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
           >
             <span className="nav-icon"><NavIcon path={iconPath} /></span>
             <span className="nav-label">{label}</span>
@@ -47,18 +44,8 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
         ))}
       </nav>
       <div className="sidebar-foot">
-        <span>{collapsed ? "V2" : "Version 2"}</span>
-        <button
-          type="button"
-          className="sidebar-collapse-btn"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          onClick={onToggleCollapsed}
-        >
-          {collapsed ? "›" : "‹"}
-        </button>
+        <span>V2</span>
       </div>
     </aside>
   );
 }
-
