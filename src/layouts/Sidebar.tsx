@@ -25,26 +25,26 @@ export function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="brand-block">
-        <div className="brand-mark">◉</div>
-        <div className="brand-text">Personal Finance</div>
+        <div className="brand-mark" aria-hidden="true">◎</div>
+        <div className="brand-text">PFT</div>
       </div>
       <nav className="sidebar-nav">
         {items.map(([iconPath, label, path]) => (
           <NavLink
             key={path}
             to={path}
+            title={label}
             className={({ isActive }) =>
               isActive ? "nav-link active" : "nav-link"
             }
           >
             <span className="nav-icon"><NavIcon path={iconPath} /></span>
-            <span>{label}</span>
+            <span className="nav-label">{label}</span>
           </NavLink>
         ))}
       </nav>
       <div className="sidebar-foot">
-        <span>Version: 1.0.0</span>
-        <span aria-hidden="true">‹</span>
+        <span>V2</span>
       </div>
     </aside>
   );

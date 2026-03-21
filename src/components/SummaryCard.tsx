@@ -8,7 +8,7 @@ interface Props {
 export function SummaryCard({ title, value }: Props) {
   const currency = useCurrency();
   return (
-    <article className="card">
+    <article className="card summary-card">
       <h4>{title}</h4>
       <div className="big">{currency(value)}</div>
     </article>

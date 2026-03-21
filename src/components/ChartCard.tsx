@@ -7,8 +7,10 @@ interface Props {
 
 export function ChartCard({ title, children }: Props) {
   return (
-    <article className="card">
-      <h4>{title}</h4>
+    <article className="card chart-card">
+      <div className="card-head">
+        <h4>{title}</h4>
+      </div>
       {children}
     </article>
   );
