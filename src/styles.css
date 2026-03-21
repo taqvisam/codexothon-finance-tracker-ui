@@ -54,10 +54,17 @@ a {
 }
 
 .brand-block {
-  display: grid;
-  place-items: center;
-  gap: 6px;
-  padding: 8px 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 6px 10px;
+}
+
+.brand-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .brand-mark {
@@ -72,10 +79,10 @@ a {
 }
 
 .brand-text {
-  font-size: 11px;
+  font-size: 13px;
   color: #5f6d84;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.4px;
 }
 
 .sidebar-nav {
@@ -159,6 +166,11 @@ a {
 
 .sidebar.collapsed .brand-text {
   font-size: 11px;
+}
+
+.sidebar.collapsed .brand-main {
+  width: 100%;
+  justify-content: center;
 }
 
 .sidebar.collapsed .sidebar-foot {
@@ -873,6 +885,14 @@ body.dark-theme .budget-row {
   .sidebar {
     grid-template-rows: auto auto;
     padding: 8px;
+  }
+
+  .brand-block {
+    justify-content: center;
+  }
+
+  .sidebar-collapse-btn {
+    display: none;
   }
 
   .sidebar-nav {
