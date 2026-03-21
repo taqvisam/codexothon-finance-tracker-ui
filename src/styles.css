@@ -770,6 +770,10 @@ a {
   margin-top: 12px;
 }
 
+.settings-shell {
+  margin-top: 0;
+}
+
 .settings-card,
 .settings-toggle-card,
 .settings-danger-card {
@@ -777,6 +781,110 @@ a {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 14px;
+}
+
+.settings-side-stack {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.settings-divider {
+  border-top: 1px solid var(--line);
+  margin: 8px 0 12px;
+}
+
+.settings-avatar-wrap {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+
+.settings-avatar {
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4e8ff0, #2a74da);
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #e8eef8;
+}
+
+.settings-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.settings-change-btn {
+  width: auto;
+}
+
+.settings-form {
+  margin-top: 8px;
+  display: grid;
+  gap: 10px;
+}
+
+.settings-save-btn {
+  margin-top: 12px;
+}
+
+.settings-toggle-card {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.settings-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-switch {
+  width: 50px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: #d6deea;
+  position: relative;
+  cursor: pointer;
+}
+
+.settings-switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 120ms ease;
+}
+
+.settings-switch.on {
+  background: #4bc795;
+}
+
+.settings-switch.on span {
+  transform: translateX(22px);
+}
+
+.settings-danger-title {
+  color: #d94f5f;
+  font-weight: 700;
+  margin: 6px 0;
+}
+
+.settings-danger-btn {
+  margin-top: 8px;
 }
 
 .settings-tabs {
@@ -845,6 +953,18 @@ body.dark-theme .btn.ghost {
 
 body.dark-theme .btn.ghost {
   background: #162136;
+}
+
+body.dark-theme .settings-divider {
+  border-top-color: #2b3a52;
+}
+
+body.dark-theme .settings-avatar {
+  border-color: #2f3f59;
+}
+
+body.dark-theme .settings-switch {
+  background: #42526c;
 }
 
 body.dark-theme .sidebar-collapse-btn {

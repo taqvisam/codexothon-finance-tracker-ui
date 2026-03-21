@@ -57,6 +57,9 @@ export function SettingsPage() {
   const [emailAddress, setEmailAddress] = useState(email ?? "");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [prefs, setPrefs] = useState<PreferenceState>({
     emailNotifications: true,
     pushNotifications: true,
@@ -119,6 +122,38 @@ export function SettingsPage() {
       const message = (
         error as { response?: { data?: { error?: string } } }
       ).response?.data?.error ?? "Failed to save profile settings.";
+      notify(message, "error");
+    }
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async () =>
+      (
+        await apiClient.post("/auth/change-password", {
+          currentPassword,
+          newPassword,
+          confirmPassword
+        })
+      ).data as { message: string },
+    onSuccess: async (result) => {
+      notify(result.message ?? "Password changed successfully.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      try
+      {
+        await apiClient.post("/auth/logout");
+      }
+      catch
+      {
+      }
+      logout();
+      navigate("/login");
+    },
+    onError: (error) => {
+      const message = (
+        error as { response?: { data?: { error?: string } } }
+      ).response?.data?.error ?? "Failed to change password.";
       notify(message, "error");
     }
   });
@@ -194,6 +229,18 @@ export function SettingsPage() {
     navigate("/signup");
   };
 
+  const changePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      notify("Please fill current, new, and confirm password.", "warning");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      notify("Confirm password must match new password.", "warning");
+      return;
+    }
+    changePasswordMutation.mutate();
+  };
+
   return (
     <section className="settings-shell">
       <div className="settings-grid">
@@ -220,7 +267,43 @@ export function SettingsPage() {
         <aside className="settings-side-stack">
           <article className="card settings-card">
             <h3>Notification Settings</h3>
-            <p className="muted">Comming soon...</p>
+            <p className="muted">Coming soon...</p>
+          </article>
+
+          <article className="card settings-card">
+            <h3>Security</h3>
+            <div className="settings-form">
+              <TextInput
+                label="Current Password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+              <TextInput
+                label="New Password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <TextInput
+                label="Confirm New Password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="btn"
+                onClick={changePassword}
+                disabled={changePasswordMutation.isPending}
+              >
+                {changePasswordMutation.isPending ? "Updating..." : "Change Password"}
+              </button>
+              <p className="muted">Password must be at least 8 chars with upper, lower, and number.</p>
+            </div>
           </article>
 
           <article className="card settings-toggle-card">
