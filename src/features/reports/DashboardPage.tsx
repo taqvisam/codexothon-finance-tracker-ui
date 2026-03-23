@@ -333,7 +333,7 @@ export function DashboardPage() {
         </section>
       </MobileSection>
 
-      <section className="card-grid">
+      <section className="card-grid dashboard-summary-grid">
         <SummaryCard title="Balance" value={summary.balance} />
         <SummaryCard title="Current Month Income" value={summary.income} />
         <SummaryCard title="Current Month Expense" value={summary.expense} />

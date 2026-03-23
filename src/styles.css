@@ -414,6 +414,10 @@ a {
   gap: 10px;
 }
 
+.dashboard-summary-grid {
+  margin-top: 12px;
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
