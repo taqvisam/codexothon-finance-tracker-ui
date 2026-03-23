@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { TextInput } from "../../components/TextInput";
@@ -158,15 +158,7 @@ export function SettingsPage() {
     }
   });
 
-  const avatarInitials = useMemo(() => {
-    const source = fullName || displayName || "U";
-    return source
-      .split(" ")
-      .filter(Boolean)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("")
-      .slice(0, 2);
-  }, [displayName, fullName]);
+  const resolvedAvatar = profileImageUrl?.trim() ? profileImageUrl : "/default-avatar.svg";
 
   const setPref = <K extends keyof PreferenceState>(key: K, value: PreferenceState[K]) => {
     setPrefs((prev) => ({ ...prev, [key]: value }));
@@ -249,7 +241,7 @@ export function SettingsPage() {
           <div className="settings-divider" />
           <div className="settings-avatar-wrap">
             <div className="settings-avatar">
-              {profileImageUrl ? <img src={profileImageUrl} alt={fullName || "Profile"} className="settings-avatar-img" /> : avatarInitials}
+              <img src={resolvedAvatar} alt={fullName || "Profile"} className="settings-avatar-img" />
             </div>
             <button type="button" className="btn settings-change-btn" onClick={onPickImage}>Change</button>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onImageSelected} />

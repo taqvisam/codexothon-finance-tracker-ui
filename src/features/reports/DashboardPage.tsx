@@ -55,6 +55,9 @@ interface ForecastMonth {
   upcomingKnownExpenses: number;
   forecastedEndBalance: number;
   safeToSpend: number;
+  confidenceScore: number;
+  model: string;
+  estimatedNegativeDate?: string | null;
   riskWarnings: string[];
 }
 
@@ -101,11 +104,22 @@ function MobileSection({
 }
 
 export function DashboardPage() {
+  const DISMISSED_ALERTS_KEY = "pft-dashboard-dismissed-alerts";
   const navigate = useNavigate();
   const currency = useCurrency();
   const { dateFrom, dateTo, selectedPeriod } = useUiStore();
   const [selectedYear, selectedMonth] = selectedPeriod.split("-").map(Number);
   const [isMobile, setIsMobile] = useState(false);
+  const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
+    const raw = localStorage.getItem(DISMISSED_ALERTS_KEY);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw) as string[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 980px)");
@@ -250,6 +264,7 @@ export function DashboardPage() {
       .map((b) => {
         const severity = b.percent >= 120 ? "danger" : b.percent >= 100 ? "warning" : "info";
         return {
+          key: `budget:${b.categoryName}:${Math.round(b.percent)}`,
           type: severity as "info" | "warning" | "danger",
           message: `${b.categoryName}: ${Math.round(b.percent)}% of budget used`
         };
@@ -259,17 +274,39 @@ export function DashboardPage() {
       .filter((r) => r.nextRunDate >= dateFrom && r.nextRunDate <= end)
       .slice(0, 3)
       .map((r) => ({
+        key: `recurring:${r.title}:${r.nextRunDate}`,
         type: "warning" as const,
         message: `Upcoming recurring payment in next 3 days: ${r.title} (${currency(r.amount)}) on ${r.nextRunDate}`
       }));
 
     const forecastWarnings = (forecastMonthQuery.data?.riskWarnings ?? []).map((warning) => ({
+      key: `forecast:${warning}`,
       type: "warning" as const,
       message: warning
     }));
 
-    return [...budgetAlerts, ...recurringAlerts, ...forecastWarnings];
-  }, [budgetCards, currency, dateFrom, forecastMonthQuery.data?.riskWarnings, recurringQuery.data]);
+    return [...budgetAlerts, ...recurringAlerts, ...forecastWarnings].filter(
+      (alert) => !dismissedAlerts.includes(alert.key)
+    );
+  }, [budgetCards, currency, dateFrom, dismissedAlerts, forecastMonthQuery.data?.riskWarnings, recurringQuery.data]);
+
+  const dismissAlert = (key: string) => {
+    setDismissedAlerts((prev) => {
+      if (prev.includes(key)) return prev;
+      const next = [...prev, key];
+      localStorage.setItem(DISMISSED_ALERTS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const forecastDelta = useMemo(() => {
+    if (!forecastDailyQuery.data.length) {
+      return 0;
+    }
+    const first = forecastDailyQuery.data[0]?.projectedBalance ?? 0;
+    const last = forecastDailyQuery.data[forecastDailyQuery.data.length - 1]?.projectedBalance ?? 0;
+    return last - first;
+  }, [forecastDailyQuery.data]);
 
   return (
     <>
@@ -284,7 +321,12 @@ export function DashboardPage() {
           {alerts.length > 0 ? (
             <div className="alert-stack">
               {alerts.map((alert, idx) => (
-                <AlertBanner key={`${idx}-${alert.message}`} type={alert.type} message={alert.message} />
+                <AlertBanner
+                  key={`${idx}-${alert.key}`}
+                  type={alert.type}
+                  message={alert.message}
+                  onDismiss={() => dismissAlert(alert.key)}
+                />
               ))}
             </div>
           ) : null}
@@ -311,26 +353,60 @@ export function DashboardPage() {
 
       <section className="two-col">
         <MobileSection title="Forecast (Daily Projection)" isMobile={isMobile}>
-          <ChartCard title="Daily Projected Balance">
-            <div style={{ height: 220 }}>
+          <ChartCard title="Cash Flow Forecast Engine">
+            <div className="forecast-header">
+              <div className="forecast-kpi">
+                <span className="muted">Safe to spend</span>
+                <strong>{currency(forecastMonthQuery.data?.safeToSpend ?? 0)}</strong>
+              </div>
+              <div className="forecast-kpi">
+                <span className="muted">Confidence</span>
+                <strong>{Math.round(forecastMonthQuery.data?.confidenceScore ?? 0)}%</strong>
+              </div>
+              <div className={`forecast-kpi ${forecastDelta >= 0 ? "trend-up" : "trend-down"}`}>
+                <span className="muted">Projected momentum</span>
+                <strong>{forecastDelta >= 0 ? "+" : ""}{currency(forecastDelta)}</strong>
+              </div>
+            </div>
+
+            <div className="forecast-chart-wrap">
               {forecastDailyQuery.data.length === 0 ? (
                 <p className="muted">No forecast data.</p>
               ) : (
                 <ResponsiveContainer>
                   <LineChart data={forecastDailyQuery.data}>
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="projectedBalance" stroke="#1f75dd" strokeWidth={2} dot={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      formatter={(value) => currency(Number(value ?? 0))}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="projectedBalance"
+                      stroke="#2f7be2"
+                      strokeWidth={3}
+                      dot={false}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               )}
             </div>
+
             {forecastMonthQuery.data ? (
-              <p className="muted">
-                Safe to spend: <strong>{currency(forecastMonthQuery.data.safeToSpend)}</strong>. Known upcoming expenses:{" "}
-                <strong>{currency(forecastMonthQuery.data.upcomingKnownExpenses)}</strong>.
-              </p>
+              <div className="forecast-meta">
+                <span className="forecast-chip">Model: {forecastMonthQuery.data.model}</span>
+                <span className="forecast-chip">
+                  Known upcoming expenses: {currency(forecastMonthQuery.data.upcomingKnownExpenses)}
+                </span>
+                {forecastMonthQuery.data.estimatedNegativeDate ? (
+                  <span className="forecast-chip danger">
+                    Risk date: {forecastMonthQuery.data.estimatedNegativeDate}
+                  </span>
+                ) : (
+                  <span className="forecast-chip ok">No negative-balance date predicted</span>
+                )}
+              </div>
             ) : null}
           </ChartCard>
         </MobileSection>

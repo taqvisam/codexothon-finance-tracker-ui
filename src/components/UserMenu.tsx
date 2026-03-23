@@ -10,20 +10,16 @@ interface Props {
 
 export function UserMenu({ displayName, profileImageUrl, onProfile, onSettings, onLogout }: Props) {
   const [open, setOpen] = useState(false);
-  const initials = displayName
-    .split(" ")
-    .map((x) => x[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const firstName = displayName.trim().split(/\s+/)[0] ?? displayName;
+  const resolvedProfileImage = profileImageUrl?.trim() ? profileImageUrl : "/default-avatar.svg";
 
   return (
     <div className="user-dropdown">
       <button className="user-chip" onClick={() => setOpen((x) => !x)}>
         <span className="avatar">
-          {profileImageUrl ? <img src={profileImageUrl} alt={displayName} className="avatar-img" /> : initials}
+          <img src={resolvedProfileImage} alt={displayName} className="avatar-img" />
         </span>
-        <span>{displayName}</span>
+        <span>{firstName}</span>
         <span>▾</span>
       </button>
       {open ? (
