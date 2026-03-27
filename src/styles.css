@@ -1162,6 +1162,26 @@ a {
   text-align: right;
 }
 
+.summary-card-link-row {
+  margin-top: 10px;
+  text-align: right;
+}
+
+.summary-card-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #4778be;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.summary-card-link:hover {
+  color: #2f64b3;
+  text-decoration: underline;
+}
+
 .progress {
   width: 100%;
   height: 8px;
@@ -2009,6 +2029,14 @@ body.dark-theme .alert-danger {
 
 body.dark-theme .user-menu button:hover {
   background: rgba(55, 76, 109, 0.5);
+}
+
+body.dark-theme .summary-card-link {
+  color: #8eb8ff;
+}
+
+body.dark-theme .summary-card-link:hover {
+  color: #b5d1ff;
 }
 
 body.dark-theme .user-menu-row {

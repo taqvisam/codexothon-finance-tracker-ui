@@ -447,9 +447,11 @@ export function DashboardPage() {
             </span>
           </div>
           <div className="big">{Math.round(healthScoreQuery.data?.score ?? 0)}</div>
-          <button className="btn ghost" type="button" onClick={() => navigate("/insights")}>
-            View breakdown
-          </button>
+          <div className="summary-card-link-row">
+            <button className="summary-card-link" type="button" onClick={() => navigate("/insights")}>
+              View breakdown
+            </button>
+          </div>
         </article>
       </section>
 
