@@ -2236,8 +2236,12 @@ body::after {
 }
 
 .nav-link.active {
-  background: linear-gradient(180deg, #eaf2ff, #dceaff);
-  border-color: rgba(42, 119, 227, 0.28);
+  background:
+    linear-gradient(135deg, rgba(107, 99, 255, 0.96), rgba(78, 131, 255, 0.92)),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 38%);
+  border-color: rgba(94, 110, 241, 0.32);
+  color: #ffffff;
+  box-shadow: 0 14px 24px rgba(83, 101, 239, 0.22);
 }
 
 .topbar-search,
