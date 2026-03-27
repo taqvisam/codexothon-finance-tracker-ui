@@ -155,7 +155,7 @@ export function GoogleSignInButton({ mode, onSuccess }: GoogleSignInButtonProps)
 
   return (
     <div className="google-auth-block">
-      <div className="auth-sep">or continue with</div>
+      <div className="auth-sep"><span>or</span></div>
       <div className="google-signin-btn-wrap" ref={buttonContainerRef} />
       {oauthMutation.isPending ? <p className="muted">Signing in with Google...</p> : null}
       {googleError ? <p className="error" style={{ marginTop: 8 }}>{googleError}</p> : null}

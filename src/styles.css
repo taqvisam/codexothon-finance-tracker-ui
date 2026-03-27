@@ -1592,9 +1592,23 @@ a {
 
 .auth-sep {
   margin: 18px 0 14px;
-  text-align: center;
   color: #9aa7bd;
   font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-sep::before,
+.auth-sep::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #d7e0ee;
+}
+
+.auth-sep span {
+  flex-shrink: 0;
 }
 
 .google-signin-btn-wrap {
@@ -1959,6 +1973,11 @@ body.dark-theme .reset-key {
 
 body.dark-theme .auth-sep {
   color: #9aabc8;
+}
+
+body.dark-theme .auth-sep::before,
+body.dark-theme .auth-sep::after {
+  background: #334760;
 }
 
 body.dark-theme .insight-pill {
