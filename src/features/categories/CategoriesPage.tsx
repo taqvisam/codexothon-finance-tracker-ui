@@ -24,11 +24,54 @@ interface Input {
   isArchived: boolean;
 }
 
+const categoryIconOptions = [
+  { value: "wallet", label: "Wallet" },
+  { value: "food", label: "Food" },
+  { value: "travel", label: "Travel" },
+  { value: "shopping", label: "Shopping" },
+  { value: "salary", label: "Salary" },
+  { value: "home", label: "Home" },
+  { value: "health", label: "Health" },
+  { value: "gift", label: "Gift" }
+];
+
+const categoryColorOptions = [
+  { value: "#2f6fbe", label: "Ocean Blue" },
+  { value: "#2ea05f", label: "Emerald Green" },
+  { value: "#dd5757", label: "Coral Red" },
+  { value: "#ee9a2f", label: "Amber Gold" },
+  { value: "#7b61c9", label: "Royal Violet" },
+  { value: "#0f9aa8", label: "Teal" }
+];
+
+const categoryIconGlyphs: Record<string, string> = {
+  wallet: "◫",
+  food: "◔",
+  travel: "✈",
+  shopping: "◈",
+  salary: "▣",
+  home: "⌂",
+  health: "♥",
+  gift: "✿"
+};
+
+function getCategoryIconGlyph(icon?: string | null) {
+  return categoryIconGlyphs[icon ?? ""] ?? categoryIconGlyphs.wallet;
+}
+
+function getCategoryColor(color?: string | null, type?: "Income" | "Expense") {
+  if (color && categoryColorOptions.some((option) => option.value === color)) {
+    return color;
+  }
+
+  return type === "Income" ? "#2ea05f" : "#2f6fbe";
+}
+
 export function CategoriesPage() {
   const queryClient = useQueryClient();
   const { notify } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
-  const defaults: Input = { name: "", type: "Expense", color: "", icon: "", isArchived: false };
+  const defaults: Input = { name: "", type: "Expense", color: "#2f6fbe", icon: "wallet", isArchived: false };
   const { register, handleSubmit, reset, setValue, watch } = useForm<Input>({
     defaultValues: defaults
   });
@@ -94,10 +137,47 @@ export function CategoriesPage() {
               { value: "Income", label: "Income" }
             ]}
             value={watch("type")}
-            onChange={(e) => setValue("type", e.target.value as Input["type"])}
+            onChange={(e) => {
+              const nextType = e.target.value as Input["type"];
+              setValue("type", nextType);
+              setValue("color", nextType === "Income" ? "#2ea05f" : "#2f6fbe");
+            }}
           />
-          <TextInput label="Color" placeholder="#2f6fbe" {...register("color")} />
-          <TextInput label="Icon" placeholder="wallet" {...register("icon")} />
+          <Dropdown
+            label="Accent Color"
+            options={categoryColorOptions}
+            value={watch("color") ?? defaults.color ?? ""}
+            onChange={(e) => setValue("color", e.target.value)}
+          />
+          <Dropdown
+            label="Category Icon"
+            options={categoryIconOptions.map((option) => ({
+              value: option.value,
+              label: `${getCategoryIconGlyph(option.value)} ${option.label}`
+            }))}
+            value={watch("icon") ?? defaults.icon ?? ""}
+            onChange={(e) => setValue("icon", e.target.value)}
+          />
+        </div>
+        <div className="category-form-preview">
+          <span
+            className="category-preview-chip"
+            style={{
+              borderColor: getCategoryColor(watch("color"), watch("type")),
+              color: getCategoryColor(watch("color"), watch("type"))
+            }}
+          >
+            <span
+              className="category-preview-icon"
+              style={{
+                background: `${getCategoryColor(watch("color"), watch("type"))}18`,
+                color: getCategoryColor(watch("color"), watch("type"))
+              }}
+            >
+              {getCategoryIconGlyph(watch("icon"))}
+            </span>
+            Preview: {watch("name") || "Your category"} • {watch("type")}
+          </span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn" type="submit">{editId ? "Update Category" : "Create Category"}</button>
@@ -112,12 +192,23 @@ export function CategoriesPage() {
       <div style={{ marginTop: 16 }}>
         {categoriesQuery.isError ? <p className="error">Failed to load categories.</p> : null}
         {!categoriesQuery.isError && categoriesQuery.data.length === 0 ? <p className="muted">No categories yet.</p> : null}
-        {categoriesQuery.data.map((category) => (
-          <article key={category.id} className="card" style={{ marginBottom: 10 }}>
+        {categoriesQuery.data.map((category) => {
+          const accentColor = getCategoryColor(category.color, category.type);
+          const iconGlyph = getCategoryIconGlyph(category.icon);
+          return (
+          <article key={category.id} className="card category-card" style={{ marginBottom: 10, borderColor: accentColor }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-              <div>
-                <strong>{category.name}</strong>
-                <div className="muted">{category.type} {category.isArchived ? "• Archived" : ""}</div>
+              <div className="category-title-wrap">
+                <span
+                  className="category-icon-badge"
+                  style={{ background: `${accentColor}16`, color: accentColor, borderColor: `${accentColor}45` }}
+                >
+                  {iconGlyph}
+                </span>
+                <div>
+                  <strong>{category.name}</strong>
+                  <div className="muted">{category.type} {category.isArchived ? "• Archived" : ""}</div>
+                </div>
               </div>
               <div className="action-icon-row">
                 <ActionIconButton
@@ -127,8 +218,8 @@ export function CategoriesPage() {
                     setEditId(category.id);
                     setValue("name", category.name);
                     setValue("type", category.type);
-                    setValue("color", category.color ?? "");
-                    setValue("icon", category.icon ?? "");
+                    setValue("color", getCategoryColor(category.color, category.type));
+                    setValue("icon", category.icon ?? "wallet");
                     setValue("isArchived", category.isArchived);
                   }}
                 />
@@ -145,7 +236,7 @@ export function CategoriesPage() {
               </div>
             </div>
           </article>
-        ))}
+        )})}
       </div>
     </section>
   );
