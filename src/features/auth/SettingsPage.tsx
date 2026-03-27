@@ -175,11 +175,6 @@ export function SettingsPage() {
     fileInputRef.current?.click();
   };
 
-  const removeProfileImage = () => {
-    setProfileImageUrl(null);
-    notify("Profile image removed. Click Save Changes to persist.");
-  };
-
   const onImageSelected = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -270,11 +265,6 @@ export function SettingsPage() {
             </div>
             <div className="settings-avatar-actions">
               <button type="button" className="btn settings-change-btn" onClick={onPickImage}>Change</button>
-              {hasProfileImage ? (
-                <button type="button" className="btn ghost settings-remove-btn" onClick={removeProfileImage}>
-                  Remove
-                </button>
-              ) : null}
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onImageSelected} />
           </div>
