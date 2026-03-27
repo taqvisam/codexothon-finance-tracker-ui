@@ -1,5 +1,9 @@
-import { NavLink } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { BrandIcon } from "../components/BrandIcon";
+import { UserMenu } from "../components/UserMenu";
+import { useAuthStore } from "../store/authStore";
+import { apiClient } from "../services/apiClient";
 
 function NavIcon({ path }: { path: string }) {
   return (
@@ -20,8 +24,7 @@ const items = [
   ["M4 12h4l2-5 4 10 2-5h4", "Insights", "/insights"],
   ["M5 7h14M5 12h8M5 17h12M18 7l1.5-1.5M18 17l1.5 1.5", "Rules", "/rules"],
   ["M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M16 3.1a4 4 0 0 1 0 7.8M23 21v-2a4 4 0 0 0-3-3.9M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z", "Shared", "/shared-accounts"],
-  ["M8 8a6 6 0 1 1-1 8M8 8V4M8 8h4", "Recurring", "/recurring"],
-  ["M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Zm8-3.5-2.1.7a6.9 6.9 0 0 1-.4 1l1.2 1.9-1.9 1.9-1.9-1.2c-.3.2-.7.3-1 .4L12 20l-1.2-2.1c-.4-.1-.7-.2-1-.4l-1.9 1.2-1.9-1.9 1.2-1.9a6.9 6.9 0 0 1-.4-1L4 12l2.1-1.2c.1-.4.2-.7.4-1L5.3 7.9 7.2 6l1.9 1.2c.3-.2.6-.3 1-.4L12 4l1.2 2.1c.4.1.7.2 1 .4L16.1 5.3 18 7.2l-1.2 1.9c.2.3.3.6.4 1L20 12Z", "Settings", "/settings"]
+  ["M8 8a6 6 0 1 1-1 8M8 8V4M8 8h4", "Recurring", "/recurring"]
 ] as const;
 
 interface SidebarProps {
@@ -49,6 +52,42 @@ function ToggleIcon({ collapsed }: { collapsed: boolean }) {
 }
 
 export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { displayName, profileImageUrl, logout } = useAuthStore();
+  const [isMobile, setIsMobile] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 980px)");
+    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      setIsMobile(event.matches);
+    };
+
+    handleChange(media);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile || !navRef.current) {
+      return;
+    }
+
+    const activeItem = navRef.current.querySelector(".nav-link.active");
+    if (!(activeItem instanceof HTMLElement)) {
+      return;
+    }
+
+    activeItem.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [isMobile, location.pathname]);
+
   return (
     <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
       <div className="brand-block">
@@ -61,6 +100,26 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
             <div className="brand-subtext">Tracker V2</div>
           </div>
         </div>
+        {isMobile ? (
+          <div className="sidebar-mobile-user">
+            <UserMenu
+              displayName={displayName ?? "Guest User"}
+              profileImageUrl={profileImageUrl}
+              onProfile={() => navigate("/settings")}
+              onLogout={async () => {
+                try
+                {
+                  await apiClient.post("/auth/logout");
+                }
+                catch
+                {
+                }
+                logout();
+                navigate("/login");
+              }}
+            />
+          </div>
+        ) : null}
         <button
           type="button"
           className="sidebar-toggle-btn"
@@ -71,7 +130,7 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
           <ToggleIcon collapsed={collapsed} />
         </button>
       </div>
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" ref={navRef}>
         {items.map(([iconPath, label, path]) => (
           <NavLink
             key={path}
