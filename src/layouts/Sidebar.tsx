@@ -53,7 +53,10 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
       <div className="brand-block">
         <div className="brand-main">
           <div className="brand-mark" aria-hidden="true">◎</div>
-          <div className="brand-text">Personal Finance</div>
+          <div className="brand-copy">
+            <div className="brand-text">Personal Finance</div>
+            <div className="brand-subtext">Tracker V2</div>
+          </div>
         </div>
         <button
           type="button"
@@ -81,7 +84,17 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
         ))}
       </nav>
       <div className="sidebar-foot">
-        <span>{collapsed ? "V2" : "Version 2"}</span>
+        {collapsed ? (
+          <div className="sidebar-foot-mini" aria-hidden="true">•</div>
+        ) : (
+          <div className="sidebar-promo">
+            <div className="sidebar-promo-copy">
+              <strong>Stay on top of cash flow</strong>
+              <span>Forecast, budgets, rules, and shared tracking in one place.</span>
+            </div>
+            <div className="sidebar-promo-badge">V2</div>
+          </div>
+        )}
       </div>
     </aside>
   );
