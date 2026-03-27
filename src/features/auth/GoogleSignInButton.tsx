@@ -45,6 +45,7 @@ declare global {
 }
 
 const GOOGLE_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+const DEFAULT_GOOGLE_CLIENT_ID = "498464652437-eu733fgopumap2p0153bkm8ljqtgd3s4.apps.googleusercontent.com";
 
 function ensureGoogleScript(): Promise<void> {
   if (window.__pftGoogleScriptPromise) {
@@ -78,7 +79,9 @@ function ensureGoogleScript(): Promise<void> {
 export function GoogleSignInButton({ mode, onSuccess }: GoogleSignInButtonProps) {
   const buttonContainerRef = useRef<HTMLDivElement | null>(null);
   const [googleError, setGoogleError] = useState<string | null>(null);
-  const clientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim();
+  const clientId = (
+    (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim() || DEFAULT_GOOGLE_CLIENT_ID
+  );
 
   const oauthMutation = useMutation({
     mutationFn: async (idToken: string) =>
