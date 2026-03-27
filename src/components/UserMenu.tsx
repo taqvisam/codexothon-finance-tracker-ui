@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { applyTheme, getStoredTheme, type ThemeMode } from "../utils/theme";
 
 interface Props {
@@ -11,8 +11,35 @@ interface Props {
 export function UserMenu({ displayName, profileImageUrl, onProfile, onLogout }: Props) {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(() => getStoredTheme());
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const firstName = displayName.trim().split(/\s+/)[0] ?? displayName;
   const resolvedProfileImage = profileImageUrl?.trim() ? profileImageUrl : "/default-avatar.svg";
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!dropdownRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    const handleFocusIn = (event: FocusEvent) => {
+      if (!dropdownRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("focusin", handleFocusIn);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("focusin", handleFocusIn);
+    };
+  }, [open]);
 
   const toggleTheme = () => {
     const nextTheme: ThemeMode = theme === "dark" ? "light" : "dark";
@@ -21,7 +48,7 @@ export function UserMenu({ displayName, profileImageUrl, onProfile, onLogout }: 
   };
 
   return (
-    <div className="user-dropdown">
+    <div className="user-dropdown" ref={dropdownRef}>
       <button className="user-chip" onClick={() => setOpen((x) => !x)}>
         <span className="avatar">
           <img src={resolvedProfileImage} alt={displayName} className="avatar-img" />
