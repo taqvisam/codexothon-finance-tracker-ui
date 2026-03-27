@@ -31,6 +31,45 @@ interface GoalActionState {
   action: GoalActionType;
 }
 
+const goalIconOptions = [
+  { value: "target", label: "Target" },
+  { value: "home", label: "Home" },
+  { value: "car", label: "Car" },
+  { value: "plane", label: "Travel" },
+  { value: "shield", label: "Emergency" },
+  { value: "book", label: "Education" },
+  { value: "gift", label: "Gift" },
+  { value: "heart", label: "Health" }
+];
+
+const goalColorOptions = [
+  { value: "#2f6fbe", label: "Ocean Blue" },
+  { value: "#2ea05f", label: "Emerald Green" },
+  { value: "#dd5757", label: "Coral Red" },
+  { value: "#ee9a2f", label: "Amber Gold" },
+  { value: "#7b61c9", label: "Royal Violet" },
+  { value: "#0f9aa8", label: "Teal" }
+];
+
+const goalIconGlyphs: Record<string, string> = {
+  target: "◎",
+  home: "⌂",
+  car: "◈",
+  plane: "✈",
+  shield: "🛡",
+  book: "✦",
+  gift: "✿",
+  heart: "♥"
+};
+
+function getGoalIconGlyph(icon?: string | null) {
+  return goalIconGlyphs[icon ?? ""] ?? goalIconGlyphs.target;
+}
+
+function getGoalColor(color?: string | null) {
+  return goalColorOptions.find((option) => option.value === color)?.value ?? "#2f6fbe";
+}
+
 function uniqueSorted(values: number[]) {
   return Array.from(new Set(values))
     .filter((x) => Number.isFinite(x) && x > 0)
@@ -76,8 +115,8 @@ export function GoalsPage() {
     targetAmount: 0,
     targetDate: "",
     linkedAccountId: "",
-    icon: "",
-    color: ""
+    icon: goalIconOptions[0].value,
+    color: goalColorOptions[0].value
   };
   const { register, handleSubmit, reset, setValue, watch } = useForm<GoalInput>({
     defaultValues: goalDefaults
@@ -227,8 +266,29 @@ export function GoalsPage() {
             value={watch("linkedAccountId") ?? ""}
             onChange={(e) => setValue("linkedAccountId", e.target.value)}
           />
-          <TextInput label="Icon" placeholder="target" {...register("icon")} />
-          <TextInput label="Color" placeholder="#2f6fbe" {...register("color")} />
+          <Dropdown
+            label="Goal Icon"
+            options={goalIconOptions.map((option) => ({
+              value: option.value,
+              label: `${getGoalIconGlyph(option.value)} ${option.label}`
+            }))}
+            value={watch("icon") ?? goalDefaults.icon ?? ""}
+            onChange={(e) => setValue("icon", e.target.value)}
+          />
+          <Dropdown
+            label="Accent Color"
+            options={goalColorOptions}
+            value={watch("color") ?? goalDefaults.color ?? ""}
+            onChange={(e) => setValue("color", e.target.value)}
+          />
+        </div>
+        <div className="goal-form-preview">
+          <span className="goal-preview-chip" style={{ borderColor: getGoalColor(watch("color")), color: getGoalColor(watch("color")) }}>
+            <span className="goal-preview-icon" style={{ background: `${getGoalColor(watch("color"))}18`, color: getGoalColor(watch("color")) }}>
+              {getGoalIconGlyph(watch("icon"))}
+            </span>
+            Preview: {watch("name") || "Your goal"}
+          </span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn" type="submit">{editId ? "Update Goal" : "Add Goal"}</button>
@@ -254,10 +314,24 @@ export function GoalsPage() {
         {goalsQuery.data.map((goal) => {
           const isAchieved = goal.currentAmount >= goal.targetAmount || goal.progressPercent >= 100;
           const isOnHold = goal.status === "on-hold";
+          const accentColor = getGoalColor(goal.color);
+          const goalIcon = getGoalIconGlyph(goal.icon);
           return (
-          <article className="card" key={goal.id} style={{ marginBottom: 10, borderColor: isAchieved ? "#6fcf97" : undefined }}>
+          <article
+            className="card goal-card"
+            key={goal.id}
+            style={{
+              marginBottom: 10,
+              borderColor: isAchieved ? "#6fcf97" : accentColor
+            }}
+          >
             <div className="goal-tile-head">
-              <strong>{goal.name}</strong>
+              <div className="goal-title-wrap">
+                <span className="goal-icon-badge" style={{ background: `${accentColor}16`, color: accentColor, borderColor: `${accentColor}45` }}>
+                  {goalIcon}
+                </span>
+                <strong>{goal.name}</strong>
+              </div>
               <div className="goal-tile-actions">
                 <ActionIconButton
                   icon="edit"
@@ -296,7 +370,7 @@ export function GoalsPage() {
               </div>
             </div>
             <p className={isAchieved ? "goal-achieved-text" : "muted"}>{currency(goal.currentAmount)} / {currency(goal.targetAmount)}</p>
-            <ProgressBar value={goal.progressPercent} barColor={isAchieved ? "#2ea05f" : undefined} />
+            <ProgressBar value={goal.progressPercent} barColor={isAchieved ? "#2ea05f" : accentColor} />
             {isAchieved ? <span className="goal-achieved-badge">Goal Achieved</span> : null}
             {isOnHold ? <span className="goal-hold-badge">On Hold</span> : null}
             <div style={{ marginTop: 10, display: "flex", gap: 8 }}>

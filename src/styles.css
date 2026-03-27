@@ -2075,6 +2075,55 @@ body::after {
   margin-bottom: 4px;
 }
 
+.goal-card {
+  box-shadow: 0 16px 30px rgba(34, 58, 93, 0.08);
+}
+
+.goal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.goal-icon-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(113, 146, 198, 0.26);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.goal-form-preview {
+  margin: 10px 0 12px;
+}
+
+.goal-preview-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.goal-preview-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
 .goal-tile-actions {
   display: flex;
   align-items: center;
@@ -2152,6 +2201,10 @@ body.dark-theme .goal-modal-card {
   background: #182335;
   border-color: #2f3d54;
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
+}
+
+body.dark-theme .goal-preview-chip {
+  background: rgba(18, 28, 43, 0.9);
 }
 
 body.dark-theme .goal-achieved-badge {
