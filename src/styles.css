@@ -420,7 +420,7 @@ a {
   position: absolute;
   top: 44px;
   right: 0;
-  width: 220px;
+  width: 260px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -453,16 +453,27 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 11px 12px;
+  gap: 16px;
+  padding: 14px 16px;
   border-top: 1px solid var(--line);
   background: #fff;
+}
+
+.user-menu-meta {
+  min-width: 0;
+  flex: 1;
 }
 
 .user-menu-label {
   color: #2e3f5a;
   font-weight: 600;
   margin-bottom: 2px;
+}
+
+.user-menu-subtext {
+  color: #8090a7;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .logout-action {

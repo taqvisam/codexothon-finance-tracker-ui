@@ -33,9 +33,9 @@ export function UserMenu({ displayName, profileImageUrl, onProfile, onLogout }: 
         <div className="user-menu">
           <button onClick={() => { setOpen(false); onProfile(); }}>My Profile</button>
           <div className="user-menu-row">
-            <div>
+            <div className="user-menu-meta">
               <div className="user-menu-label">Theme</div>
-              <div className="muted">{theme === "dark" ? "Dark mode" : "Light mode"}</div>
+              <div className="user-menu-subtext">{theme === "dark" ? "Dark mode" : "Light mode"}</div>
             </div>
             <button
               type="button"
