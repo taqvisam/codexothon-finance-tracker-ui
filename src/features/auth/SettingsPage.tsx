@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { TextInput } from "../../components/TextInput";
@@ -57,6 +57,9 @@ export function SettingsPage() {
   const [emailAddress, setEmailAddress] = useState(email ?? "");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [prefs, setPrefs] = useState<PreferenceState>({
     emailNotifications: true,
     pushNotifications: true,
@@ -123,15 +126,39 @@ export function SettingsPage() {
     }
   });
 
-  const avatarInitials = useMemo(() => {
-    const source = fullName || displayName || "U";
-    return source
-      .split(" ")
-      .filter(Boolean)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("")
-      .slice(0, 2);
-  }, [displayName, fullName]);
+  const changePasswordMutation = useMutation({
+    mutationFn: async () =>
+      (
+        await apiClient.post("/auth/change-password", {
+          currentPassword,
+          newPassword,
+          confirmPassword
+        })
+      ).data as { message: string },
+    onSuccess: async (result) => {
+      notify(result.message ?? "Password changed successfully.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      try
+      {
+        await apiClient.post("/auth/logout");
+      }
+      catch
+      {
+      }
+      logout();
+      navigate("/login");
+    },
+    onError: (error) => {
+      const message = (
+        error as { response?: { data?: { error?: string } } }
+      ).response?.data?.error ?? "Failed to change password.";
+      notify(message, "error");
+    }
+  });
+
+  const resolvedAvatar = profileImageUrl?.trim() ? profileImageUrl : "/default-avatar.svg";
 
   const setPref = <K extends keyof PreferenceState>(key: K, value: PreferenceState[K]) => {
     setPrefs((prev) => ({ ...prev, [key]: value }));
@@ -194,6 +221,18 @@ export function SettingsPage() {
     navigate("/signup");
   };
 
+  const changePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      notify("Please fill current, new, and confirm password.", "warning");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      notify("Confirm password must match new password.", "warning");
+      return;
+    }
+    changePasswordMutation.mutate();
+  };
+
   return (
     <section className="settings-shell">
       <div className="settings-grid">
@@ -202,7 +241,7 @@ export function SettingsPage() {
           <div className="settings-divider" />
           <div className="settings-avatar-wrap">
             <div className="settings-avatar">
-              {profileImageUrl ? <img src={profileImageUrl} alt={fullName || "Profile"} className="settings-avatar-img" /> : avatarInitials}
+              <img src={resolvedAvatar} alt={fullName || "Profile"} className="settings-avatar-img" />
             </div>
             <button type="button" className="btn settings-change-btn" onClick={onPickImage}>Change</button>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onImageSelected} />
@@ -220,7 +259,43 @@ export function SettingsPage() {
         <aside className="settings-side-stack">
           <article className="card settings-card">
             <h3>Notification Settings</h3>
-            <p className="muted">Comming soon...</p>
+            <p className="muted">Coming soon...</p>
+          </article>
+
+          <article className="card settings-card">
+            <h3>Security</h3>
+            <div className="settings-form">
+              <TextInput
+                label="Current Password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+              <TextInput
+                label="New Password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <TextInput
+                label="Confirm New Password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="btn"
+                onClick={changePassword}
+                disabled={changePasswordMutation.isPending}
+              >
+                {changePasswordMutation.isPending ? "Updating..." : "Change Password"}
+              </button>
+              <p className="muted">Password must be at least 8 chars with upper, lower, and number.</p>
+            </div>
           </article>
 
           <article className="card settings-toggle-card">

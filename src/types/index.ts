@@ -19,10 +19,12 @@ export interface TransactionItem {
   note?: string;
   paymentMethod?: string;
   tags?: string[];
+  alerts?: string[];
 }
 
 export interface BudgetItem {
   id: string;
+  accountId?: string | null;
   categoryId: string;
   month: number;
   year: number;

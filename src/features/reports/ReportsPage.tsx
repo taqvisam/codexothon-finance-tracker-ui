@@ -28,7 +28,19 @@ interface CategoryItem {
   name: string;
 }
 
-const piePalette = ["#2f6fbe", "#36a269", "#ee9a2f", "#dd5757", "#7a5fd3", "#31a4c8", "#8a6b56", "#d46d9f"];
+interface TrendPoint {
+  month: string;
+  income: number;
+  expense: number;
+}
+
+interface ReportTrendsResponse {
+  categoryTrends: { period: string; category: string; amount: number }[];
+  savingsRateTrend: { period: string; savingsRate: number }[];
+  incomeVsExpense: TrendPoint[];
+}
+
+const piePalette = ["#2f6fbe", "#36a269", "#ee9a2f", "#dd5757", "#1e8caa", "#6f7c91"];
 
 function colorForCategory(name: string) {
   let hash = 0;
@@ -64,28 +76,22 @@ export function ReportsPage() {
     initialData: []
   });
   const trendQuery = useQuery({
-    queryKey: ["report-trend", from, to, accountId, categoryId, type],
+    queryKey: ["report-trends-v2", from, to, accountId, categoryId],
     queryFn: async () =>
       (
-        await apiClient.get<{ month: string; income: number; expense: number }[]>("/reports/income-vs-expense", {
-          params: { from, to, accountId: accountId || undefined, categoryId: categoryId || undefined, type: type || undefined }
+        await apiClient.get<ReportTrendsResponse>("/reports/trends", {
+          params: { from, to, accountId: accountId || undefined, categoryId: categoryId || undefined }
         })
-      ).data,
-    initialData: []
+      ).data
   });
-  const accountTrendQuery = useQuery({
-    queryKey: ["report-account-trend", from, to, accountId, categoryId, type],
+  const netWorthQuery = useQuery({
+    queryKey: ["report-net-worth", from, to, accountId],
     queryFn: async () =>
       (
-        await apiClient.get<{ date: string; accountName: string; balance: number }[]>("/reports/account-balance-trend", {
-          params: { from, to, accountId: accountId || undefined, categoryId: categoryId || undefined, type: type || undefined }
+        await apiClient.get<{ period: string; netWorth: number }[]>("/reports/net-worth", {
+          params: { from, to, accountId: accountId || undefined }
         })
       ).data,
-    initialData: []
-  });
-  const savingsQuery = useQuery({
-    queryKey: ["report-savings-progress"],
-    queryFn: async () => (await apiClient.get<{ name: string; currentAmount: number; targetAmount: number }[]>("/goals")).data,
     initialData: []
   });
 
@@ -140,83 +146,95 @@ export function ReportsPage() {
           <button className="btn" onClick={exportCsv}>Export CSV</button>
         </div>
       </div>
+
       <section className="two-col">
-      <ChartCard title="Category Spending">
-        <div style={{ height: 260 }}>
-          {categorySpendQuery.isError ? (
-            <p className="error">Failed chart/report fetch.</p>
-          ) : categorySpendQuery.data.length === 0 ? (
-            <p className="muted">No report data. Try expanding date range.</p>
-          ) : (
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={categorySpendQuery.data} dataKey="amount" nameKey="category">
-                  {categorySpendQuery.data.map((item) => (
-                    <Cell key={item.category} fill={colorForCategory(item.category)} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </ChartCard>
-      <ChartCard title="Income vs Expense Trend">
-        <div style={{ height: 260 }}>
-          {trendQuery.isError ? (
-            <p className="error">Failed chart/report fetch.</p>
-          ) : trendQuery.data.length === 0 ? (
-            <p className="muted">No report data. Try expanding date range.</p>
-          ) : (
-            <ResponsiveContainer>
-              <LineChart data={trendQuery.data}>
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="income" stroke="#2f68d8" strokeWidth={2} />
-                <Line type="monotone" dataKey="expense" stroke="#eb5757" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </ChartCard>
-      <ChartCard title="Account Balance Trend">
-        <div style={{ height: 260 }}>
-          {accountTrendQuery.isError ? (
-            <p className="error">Failed chart/report fetch.</p>
-          ) : accountTrendQuery.data.length === 0 ? (
-            <p className="muted">No report data. Try expanding date range.</p>
-          ) : (
-            <ResponsiveContainer>
-              <LineChart data={accountTrendQuery.data}>
-                <XAxis dataKey="accountName" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="balance" stroke="#2f68d8" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </ChartCard>
-      <ChartCard title="Savings Progress">
-        <div style={{ height: 260 }}>
-          {savingsQuery.isError ? (
-            <p className="error">Failed chart/report fetch.</p>
-          ) : savingsQuery.data.length === 0 ? (
-            <p className="muted">No goals available.</p>
-          ) : (
-            <ResponsiveContainer>
-              <BarChart data={savingsQuery.data}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="currentAmount" fill="#36a269" />
-                <Bar dataKey="targetAmount" fill="#8ca3c2" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </ChartCard>
+        <ChartCard title="Category Spending">
+          <div style={{ height: 260 }}>
+            {categorySpendQuery.data.length === 0 ? (
+              <p className="muted">No report data. Try expanding date range.</p>
+            ) : (
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie data={categorySpendQuery.data} dataKey="amount" nameKey="category">
+                    {categorySpendQuery.data.map((item) => (
+                      <Cell key={item.category} fill={colorForCategory(item.category)} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </ChartCard>
+
+        <ChartCard title="Income vs Expense Over Months">
+          <div style={{ height: 260 }}>
+            {trendQuery.data?.incomeVsExpense?.length ? (
+              <ResponsiveContainer>
+                <LineChart data={trendQuery.data.incomeVsExpense}>
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="income" stroke="#2f68d8" strokeWidth={2} />
+                  <Line type="monotone" dataKey="expense" stroke="#eb5757" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="muted">No comparison data available.</p>
+            )}
+          </div>
+        </ChartCard>
+
+        <ChartCard title="Category Trends Over Time">
+          <div style={{ height: 260 }}>
+            {trendQuery.data?.categoryTrends?.length ? (
+              <ResponsiveContainer>
+                <BarChart data={trendQuery.data.categoryTrends}>
+                  <XAxis dataKey="period" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="amount" fill="#36a269" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="muted">No category trend data available.</p>
+            )}
+          </div>
+        </ChartCard>
+
+        <ChartCard title="Savings Rate Trend">
+          <div style={{ height: 260 }}>
+            {trendQuery.data?.savingsRateTrend?.length ? (
+              <ResponsiveContainer>
+                <LineChart data={trendQuery.data.savingsRateTrend}>
+                  <XAxis dataKey="period" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="savingsRate" stroke="#e2a43d" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="muted">No savings rate trend available.</p>
+            )}
+          </div>
+        </ChartCard>
+
+        <ChartCard title="Net Worth Tracking">
+          <div style={{ height: 260 }}>
+            {netWorthQuery.data.length ? (
+              <ResponsiveContainer>
+                <LineChart data={netWorthQuery.data}>
+                  <XAxis dataKey="period" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="netWorth" stroke="#1e8caa" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="muted">No net worth data available.</p>
+            )}
+          </div>
+        </ChartCard>
       </section>
     </section>
   );

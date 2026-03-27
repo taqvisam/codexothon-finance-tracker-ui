@@ -6,6 +6,7 @@ import { apiClient } from "../../services/apiClient";
 import { useAuthStore } from "../../store/authStore";
 import { Link, useNavigate } from "react-router-dom";
 import { useCurrency } from "../../hooks/useCurrency";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 
 const schema = z.object({
   email: z.string().email(),
@@ -90,6 +91,13 @@ export function LoginPage() {
               {loginMutation.isPending ? "Logging in..." : "Login"}
             </button>
           </form>
+          <GoogleSignInButton
+            mode="login"
+            onSuccess={(data) => {
+              setAuth(data);
+              navigate("/onboarding");
+            }}
+          />
 
           <p className="muted auth-signup-link">
             Don&apos;t you have an account? <Link to="/signup">Sign Up</Link>

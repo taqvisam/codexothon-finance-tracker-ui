@@ -5,9 +5,12 @@ import {
   Bar,
   BarChart,
   Cell,
+  Line,
+  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis
 } from "recharts";
@@ -43,6 +46,38 @@ interface CategoryItem {
   name: string;
 }
 
+interface ForecastMonth {
+  year: number;
+  month: number;
+  currentBalance: number;
+  projectedIncome: number;
+  projectedExpense: number;
+  upcomingKnownExpenses: number;
+  forecastedEndBalance: number;
+  safeToSpend: number;
+  confidenceScore: number;
+  model: string;
+  estimatedNegativeDate?: string | null;
+  riskWarnings: string[];
+}
+
+interface ForecastDailyPoint {
+  date: string;
+  projectedBalance: number;
+}
+
+interface HealthScoreFactor {
+  name: string;
+  score: number;
+  description: string;
+}
+
+interface HealthScore {
+  score: number;
+  breakdown: HealthScoreFactor[];
+  suggestions: string[];
+}
+
 const chartColors = ["#2f6fbe", "#ee9a2f", "#36a269", "#dd5757", "#697b96", "#2f97d8"];
 
 function MobileSection({
@@ -69,11 +104,22 @@ function MobileSection({
 }
 
 export function DashboardPage() {
+  const DISMISSED_ALERTS_KEY = "pft-dashboard-dismissed-alerts";
   const navigate = useNavigate();
   const currency = useCurrency();
   const { dateFrom, dateTo, selectedPeriod } = useUiStore();
   const [selectedYear, selectedMonth] = selectedPeriod.split("-").map(Number);
   const [isMobile, setIsMobile] = useState(false);
+  const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
+    const raw = localStorage.getItem(DISMISSED_ALERTS_KEY);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw) as string[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 980px)");
@@ -163,6 +209,22 @@ export function DashboardPage() {
     initialData: []
   });
 
+  const forecastMonthQuery = useQuery({
+    queryKey: ["dashboard-forecast-month"],
+    queryFn: async () => (await apiClient.get<ForecastMonth>("/forecast/month")).data
+  });
+
+  const forecastDailyQuery = useQuery({
+    queryKey: ["dashboard-forecast-daily"],
+    queryFn: async () => (await apiClient.get<ForecastDailyPoint[]>("/forecast/daily")).data,
+    initialData: []
+  });
+
+  const healthScoreQuery = useQuery({
+    queryKey: ["dashboard-health-score"],
+    queryFn: async () => (await apiClient.get<HealthScore>("/insights/health-score")).data
+  });
+
   const summary = useMemo<SummaryMetrics>(() => {
     const balance = accountsQuery.data.reduce((sum, a) => sum + a.currentBalance, 0);
     const income = trendQuery.data.reduce((sum, row) => sum + row.income, 0);
@@ -202,6 +264,7 @@ export function DashboardPage() {
       .map((b) => {
         const severity = b.percent >= 120 ? "danger" : b.percent >= 100 ? "warning" : "info";
         return {
+          key: `budget:${b.categoryName}:${Math.round(b.percent)}`,
           type: severity as "info" | "warning" | "danger",
           message: `${b.categoryName}: ${Math.round(b.percent)}% of budget used`
         };
@@ -211,12 +274,39 @@ export function DashboardPage() {
       .filter((r) => r.nextRunDate >= dateFrom && r.nextRunDate <= end)
       .slice(0, 3)
       .map((r) => ({
+        key: `recurring:${r.title}:${r.nextRunDate}`,
         type: "warning" as const,
         message: `Upcoming recurring payment in next 3 days: ${r.title} (${currency(r.amount)}) on ${r.nextRunDate}`
       }));
 
-    return [...budgetAlerts, ...recurringAlerts];
-  }, [budgetCards, currency, dateFrom, recurringQuery.data]);
+    const forecastWarnings = (forecastMonthQuery.data?.riskWarnings ?? []).map((warning) => ({
+      key: `forecast:${warning}`,
+      type: "warning" as const,
+      message: warning
+    }));
+
+    return [...budgetAlerts, ...recurringAlerts, ...forecastWarnings].filter(
+      (alert) => !dismissedAlerts.includes(alert.key)
+    );
+  }, [budgetCards, currency, dateFrom, dismissedAlerts, forecastMonthQuery.data?.riskWarnings, recurringQuery.data]);
+
+  const dismissAlert = (key: string) => {
+    setDismissedAlerts((prev) => {
+      if (prev.includes(key)) return prev;
+      const next = [...prev, key];
+      localStorage.setItem(DISMISSED_ALERTS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const forecastDelta = useMemo(() => {
+    if (!forecastDailyQuery.data.length) {
+      return 0;
+    }
+    const first = forecastDailyQuery.data[0]?.projectedBalance ?? 0;
+    const last = forecastDailyQuery.data[forecastDailyQuery.data.length - 1]?.projectedBalance ?? 0;
+    return last - first;
+  }, [forecastDailyQuery.data]);
 
   return (
     <>
@@ -231,21 +321,95 @@ export function DashboardPage() {
           {alerts.length > 0 ? (
             <div className="alert-stack">
               {alerts.map((alert, idx) => (
-                <AlertBanner key={`${idx}-${alert.message}`} type={alert.type} message={alert.message} />
+                <AlertBanner
+                  key={`${idx}-${alert.key}`}
+                  type={alert.type}
+                  message={alert.message}
+                  onDismiss={() => dismissAlert(alert.key)}
+                />
               ))}
             </div>
           ) : null}
         </section>
       </MobileSection>
 
-      <section className="card-grid">
+      <section className="card-grid dashboard-summary-grid">
         <SummaryCard title="Balance" value={summary.balance} />
         <SummaryCard title="Current Month Income" value={summary.income} />
         <SummaryCard title="Current Month Expense" value={summary.expense} />
         <SummaryCard title="Savings" value={summary.savings} />
+        <SummaryCard
+          title="Projected Balance"
+          value={forecastMonthQuery.data?.forecastedEndBalance ?? summary.balance}
+        />
+        <article className="card">
+          <h4>Financial Health Score</h4>
+          <div className="big">{Math.round(healthScoreQuery.data?.score ?? 0)}</div>
+          <button className="btn ghost" type="button" onClick={() => navigate("/insights")}>
+            View breakdown
+          </button>
+        </article>
       </section>
 
       <section className="two-col">
+        <MobileSection title="Forecast (Daily Projection)" isMobile={isMobile}>
+          <ChartCard title="Cash Flow Forecast Engine">
+            <div className="forecast-header">
+              <div className="forecast-kpi">
+                <span className="muted">Safe to spend</span>
+                <strong>{currency(forecastMonthQuery.data?.safeToSpend ?? 0)}</strong>
+              </div>
+              <div className="forecast-kpi">
+                <span className="muted">Confidence</span>
+                <strong>{Math.round(forecastMonthQuery.data?.confidenceScore ?? 0)}%</strong>
+              </div>
+              <div className={`forecast-kpi ${forecastDelta >= 0 ? "trend-up" : "trend-down"}`}>
+                <span className="muted">Projected momentum</span>
+                <strong>{forecastDelta >= 0 ? "+" : ""}{currency(forecastDelta)}</strong>
+              </div>
+            </div>
+
+            <div className="forecast-chart-wrap">
+              {forecastDailyQuery.data.length === 0 ? (
+                <p className="muted">No forecast data.</p>
+              ) : (
+                <ResponsiveContainer>
+                  <LineChart data={forecastDailyQuery.data}>
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      formatter={(value) => currency(Number(value ?? 0))}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="projectedBalance"
+                      stroke="#2f7be2"
+                      strokeWidth={3}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {forecastMonthQuery.data ? (
+              <div className="forecast-meta">
+                <span className="forecast-chip">Model: {forecastMonthQuery.data.model}</span>
+                <span className="forecast-chip">
+                  Known upcoming expenses: {currency(forecastMonthQuery.data.upcomingKnownExpenses)}
+                </span>
+                {forecastMonthQuery.data.estimatedNegativeDate ? (
+                  <span className="forecast-chip danger">
+                    Risk date: {forecastMonthQuery.data.estimatedNegativeDate}
+                  </span>
+                ) : (
+                  <span className="forecast-chip ok">No negative-balance date predicted</span>
+                )}
+              </div>
+            ) : null}
+          </ChartCard>
+        </MobileSection>
         <MobileSection title="Spending by Category" isMobile={isMobile}>
           <ChartCard title="Spending by Category">
             <div style={{ height: 220 }}>
