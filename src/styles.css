@@ -3295,6 +3295,19 @@ body::after {
   margin: 14px 0 12px;
 }
 
+.onboarding-template-download {
+  background: linear-gradient(135deg, #2ea05f, #2bb673);
+  border: 1px solid rgba(31, 132, 78, 0.84);
+  color: #f7fffb;
+  box-shadow: 0 12px 24px rgba(32, 140, 88, 0.22);
+}
+
+.onboarding-template-download:hover {
+  background: linear-gradient(135deg, #278b52, #249764);
+  color: #ffffff;
+  border-color: rgba(28, 108, 67, 0.9);
+}
+
 .onboarding-import-list {
   display: grid;
   gap: 10px;
@@ -3391,6 +3404,18 @@ body.dark-theme .onboarding-import-card {
 
 body.dark-theme .onboarding-import-card.subtle {
   background: linear-gradient(180deg, #182437, #152032);
+}
+
+body.dark-theme .onboarding-template-download {
+  background: linear-gradient(135deg, #2c9f68, #34b37b);
+  border-color: rgba(94, 209, 149, 0.45);
+  color: #f4fff9;
+  box-shadow: 0 14px 26px rgba(7, 24, 16, 0.28);
+}
+
+body.dark-theme .onboarding-template-download:hover {
+  background: linear-gradient(135deg, #238455, #2d9b6a);
+  color: #ffffff;
 }
 
 body.dark-theme .onboarding-import-list-item {

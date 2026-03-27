@@ -216,7 +216,7 @@ export function OnboardingPage() {
   const queryClient = useQueryClient();
   const { notify, selectedPeriod } = useUiStore();
   const [year, month] = selectedPeriod.split("-").map(Number);
-  const [setupMode, setSetupMode] = useState<"manual" | "import">("manual");
+  const [setupMode, setSetupMode] = useState<"manual" | "import">("import");
   const [importFile, setImportFile] = useState<File | null>(null);
   const { register, handleSubmit, setValue, watch } = useForm<OnboardingInput>({
     defaultValues: {
@@ -422,7 +422,7 @@ export function OnboardingPage() {
               Upload a single Excel workbook and let the backend create the right records and balances for you.
             </p>
             <div className="onboarding-template-links">
-              <a className="btn ghost" href="/sample-onboarding-import.xlsx" download>
+              <a className="btn onboarding-template-download" href="/sample-onboarding-import.xlsx" download>
                 Download sample workbook
               </a>
             </div>
@@ -476,6 +476,9 @@ export function OnboardingPage() {
             </div>
             <p className="muted onboarding-import-note">
               Use human-readable values only. No database IDs are needed. Categories and account mappings are resolved automatically during import.
+            </p>
+            <p className="muted onboarding-import-note">
+              The sample workbook is tuned to populate dashboard forecasts, financial health trends, and Insights highlights with recent six-month data.
             </p>
           </article>
         </div>
