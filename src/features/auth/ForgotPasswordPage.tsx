@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
+import { AuthShell } from "./AuthShell";
 
 const schema = z.object({
   email: z.string().email()
@@ -22,35 +23,13 @@ export function ForgotPasswordPage() {
   });
 
   return (
-    <main className="auth-shell forgot-shell">
-      <div className="auth-frame forgot-frame">
-        <div className="auth-window-bar">
-          <div className="auth-window-dots" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="auth-window-pill">finotic.com</div>
-        </div>
-        <section className="forgot-visual">
-          <div className="auth-logo">
-            <span className="auth-logo-mark">◉</span>
-            <span>Personal Expense Tracker</span>
-          </div>
-
-          <div className="forgot-hero">
-            <div className="forgot-lock">🔐</div>
-            <h2>Reset access quickly</h2>
-            <p className="muted">
-              Enter your account email. If it exists, we will send a password reset link instantly.
-            </p>
-          </div>
-        </section>
-
-        <section className="auth-form forgot-form">
-          <div className="auth-form-inner">
-          <h2>Forgot Password</h2>
-          <p className="muted">No worries. We&apos;ll help you recover your account.</p>
+    <AuthShell
+      mode="forgot"
+      formTitle="Forgot Password"
+      formSubtitle="Enter your email and we will send reset instructions if the account exists."
+      visualTitle="Reset Access Without Friction."
+      visualSubtitle="Recover your account quickly and get back to your budgets, reports, and day-to-day tracking."
+    >
           <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>
             <div className="form-grid auth-form-grid">
               <label>
@@ -74,9 +53,6 @@ export function ForgotPasswordPage() {
           <p className="muted forgot-links">
             <Link to="/login">Back to login</Link>
           </p>
-          </div>
-        </section>
-      </div>
-    </main>
+    </AuthShell>
   );
 }

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
+import { AuthShell } from "./AuthShell";
 
 const schema = z.object({
   email: z.string().email(),
@@ -25,34 +26,13 @@ export function ResetPasswordPage() {
   });
 
   return (
-    <main className="auth-shell reset-shell">
-      <div className="auth-frame reset-frame">
-        <div className="auth-window-bar">
-          <div className="auth-window-dots" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="auth-window-pill">finotic.com</div>
-        </div>
-        <section className="reset-visual">
-          <div className="auth-logo">
-            <span className="auth-logo-mark">◉</span>
-            <span>Personal Expense Tracker</span>
-          </div>
-          <div className="reset-hero">
-            <div className="reset-key">🗝️</div>
-            <h2>Set a new password</h2>
-            <p className="muted">
-              Paste your reset token and choose a secure password to regain access.
-            </p>
-          </div>
-        </section>
-
-        <section className="auth-form reset-form">
-          <div className="auth-form-inner">
-          <h2>Reset Password</h2>
-          <p className="muted">Use the token from your email to set a new password.</p>
+    <AuthShell
+      mode="reset"
+      formTitle="Reset Password"
+      formSubtitle="Use the token from your email and set a new secure password."
+      visualTitle="Secure Your Account Again."
+      visualSubtitle="Finish recovery with a new password and continue from the same financial workspace."
+    >
           <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>
             <div className="form-grid auth-form-grid">
               <label>
@@ -81,9 +61,6 @@ export function ResetPasswordPage() {
           <p className="muted reset-links">
             <Link to="/login">Back to login</Link>
           </p>
-          </div>
-        </section>
-      </div>
-    </main>
+    </AuthShell>
   );
 }

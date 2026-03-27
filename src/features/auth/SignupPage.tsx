@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
 import { useAuthStore } from "../../store/authStore";
-import { useCurrency } from "../../hooks/useCurrency";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { AuthShell } from "./AuthShell";
 
 const schema = z.object({
   displayName: z.string().min(2, "Display name is required."),
@@ -24,7 +24,6 @@ type Input = z.infer<typeof schema>;
 export function SignupPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
-  const currency = useCurrency();
   const { register, handleSubmit, formState } = useForm<Input>({
     resolver: zodResolver(schema)
   });
@@ -42,46 +41,13 @@ export function SignupPage() {
     : null;
 
   return (
-    <main className="auth-shell">
-      <div className="auth-frame">
-        <div className="auth-window-bar">
-          <div className="auth-window-dots" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="auth-window-pill">finotic.com</div>
-        </div>
-        <section className="auth-visual">
-          <div className="auth-logo">
-            <span className="auth-logo-mark">◉</span>
-            <span>Personal Expense Tracker</span>
-          </div>
-
-          <div className="auth-illustration">
-            <article className="auth-balance-card">
-              <small>CURRENT BALANCE</small>
-              <strong>{currency(24359)}</strong>
-            </article>
-            <article className="auth-donut-card">
-              <div className="auth-donut" aria-label="34 percent food" />
-              <span>Food</span>
-            </article>
-            <article className="auth-add-card">
-              <div className="auth-add-plus">+</div>
-              <strong>Set your first goal</strong>
-              <small>Track your budget from day one</small>
-            </article>
-          </div>
-
-          <h2 className="auth-signup-visual-title">Get started!</h2>
-          <p className="muted">Create your account and start tracking your personal finances.</p>
-        </section>
-
-        <section className="auth-form">
-          <div className="auth-form-inner">
-          <h2>Create Account</h2>
-          <p className="muted">Sign up to manage income, expenses, budgets and goals</p>
+    <AuthShell
+      mode="signup"
+      formTitle="Sign Up"
+      formSubtitle="Create your account and start tracking income, expenses, budgets, and goals."
+      visualTitle="Build A Cleaner Money Routine."
+      visualSubtitle="Start with a simple setup, then grow into forecasting, insights, and smarter financial planning."
+    >
           <form onSubmit={handleSubmit((data) => signupMutation.mutate(data))}>
             <div className="form-grid auth-form-grid">
               <label>
@@ -117,9 +83,6 @@ export function SignupPage() {
           </p>
 
           <p className="auth-footer">© 2026 ALL RIGHTS RESERVED</p>
-          </div>
-        </section>
-      </div>
-    </main>
+    </AuthShell>
   );
 }

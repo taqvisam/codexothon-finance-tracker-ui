@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { apiClient } from "../../services/apiClient";
 import { useAuthStore } from "../../store/authStore";
 import { Link, useNavigate } from "react-router-dom";
-import { useCurrency } from "../../hooks/useCurrency";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { AuthShell } from "./AuthShell";
 
 const schema = z.object({
   email: z.string().email(),
@@ -18,7 +18,6 @@ type LoginInput = z.infer<typeof schema>;
 export function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
-  const currency = useCurrency();
   const { register, handleSubmit, formState } = useForm<LoginInput>({
     resolver: zodResolver(schema)
   });
@@ -41,46 +40,13 @@ export function LoginPage() {
   });
 
   return (
-    <main className="auth-shell">
-      <div className="auth-frame">
-        <div className="auth-window-bar">
-          <div className="auth-window-dots" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="auth-window-pill">finotic.com</div>
-        </div>
-        <section className="auth-visual">
-          <div className="auth-logo">
-            <span className="auth-logo-mark">◉</span>
-            <span>Personal Expense Tracker</span>
-          </div>
-
-          <div className="auth-illustration">
-            <article className="auth-balance-card">
-              <small>CURRENT BALANCE</small>
-              <strong>{currency(24359)}</strong>
-            </article>
-            <article className="auth-donut-card">
-              <div className="auth-donut" aria-label="34 percent food" />
-              <span>Food</span>
-            </article>
-            <article className="auth-add-card">
-              <div className="auth-add-plus">+</div>
-              <strong>New transaction</strong>
-              <small>or upload .xls file</small>
-            </article>
-          </div>
-
-          <h2>Welcome back!</h2>
-          <p className="muted">Start managing your finance faster and better</p>
-        </section>
-
-        <section className="auth-form">
-          <div className="auth-form-inner">
-          <h2>Welcome back!</h2>
-          <p className="muted">Start managing your finance faster and better</p>
+    <AuthShell
+      mode="login"
+      formTitle="Log In"
+      formSubtitle="Access your dashboard and keep every expense in one place."
+      visualTitle="Get All Your Finances At One Place."
+      visualSubtitle="Track budgets, balances, goals, and recurring spending from a single control center."
+    >
           <form onSubmit={handleSubmit((data) => loginMutation.mutate(data))}>
             <div className="form-grid auth-form-grid">
               <label>
@@ -113,9 +79,6 @@ export function LoginPage() {
           </p>
 
           <p className="auth-footer">© 2026 ALL RIGHTS RESERVED</p>
-          </div>
-        </section>
-      </div>
-    </main>
+    </AuthShell>
   );
 }
