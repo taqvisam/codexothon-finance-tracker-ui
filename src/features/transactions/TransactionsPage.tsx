@@ -22,6 +22,8 @@ interface CategoryItem {
   id: string;
   name: string;
   type: "Income" | "Expense";
+  color?: string | null;
+  icon?: string | null;
 }
 
 interface HealthScoreResponse {
@@ -86,6 +88,10 @@ function normalizeUuid(value: string | null | undefined): string | undefined {
   if (!value) return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function normalizeCategoryName(value: string | null | undefined): string {
+  return (value ?? "").trim().toLowerCase();
 }
 
 export function TransactionsPage() {
@@ -336,14 +342,61 @@ export function TransactionsPage() {
     }
 
     const header = parseCsvLine(lines[0]).map((cell) => cell.toLowerCase());
-    const rows = lines.slice(1).map((line) => {
+    const knownCategoryIds = new Set(categoriesQuery.data.map((category) => category.id));
+    const categoryCatalog = new Map(
+      categoriesQuery.data.map((category) => [`${category.type}:${normalizeCategoryName(category.name)}`, category])
+    );
+    const fallbackCategories = new Map<"Income" | "Expense", CategoryItem>();
+
+    const ensureFallbackCategory = async (type: "Income" | "Expense") => {
+      const existingFallback = fallbackCategories.get(type)
+        ?? categoryCatalog.get(`${type}:${normalizeCategoryName("Others")}`);
+      if (existingFallback) {
+        fallbackCategories.set(type, existingFallback);
+        return existingFallback;
+      }
+
+      const response = await apiClient.post<CategoryItem>("/categories", {
+        name: "Others",
+        type,
+        color: type === "Income" ? "#1F77E5" : "#94A3B8",
+        icon: "wallet",
+        isArchived: false
+      });
+
+      const createdCategory = response.data;
+      categoryCatalog.set(`${type}:${normalizeCategoryName(createdCategory.name)}`, createdCategory);
+      fallbackCategories.set(type, createdCategory);
+      return createdCategory;
+    };
+
+    const rows = await Promise.all(lines.slice(1).map(async (line) => {
       const values = parseCsvLine(line);
       const get = (name: string) => values[header.indexOf(name)] ?? "";
+      const transactionType = (get("type") || "Expense") as Input["type"];
+      const categoryToken = get("categoryid") || get("category") || get("categoryname");
+      let resolvedCategoryId: string | undefined;
+
+      if (transactionType !== "Transfer") {
+        const normalizedToken = categoryToken.trim();
+        if (uuidPattern.test(normalizedToken)) {
+          resolvedCategoryId = knownCategoryIds.has(normalizedToken) ? normalizedToken : undefined;
+        } else if (normalizedToken.length > 0) {
+          const matchedCategory = categoryCatalog.get(`${transactionType}:${normalizeCategoryName(normalizedToken)}`);
+          resolvedCategoryId = matchedCategory?.id;
+        }
+
+        if (!resolvedCategoryId) {
+          const fallbackCategory = await ensureFallbackCategory(transactionType);
+          resolvedCategoryId = fallbackCategory.id;
+        }
+      }
+
       return {
         accountId: selectedImportAccountId,
-        categoryId: get("categoryid") || undefined,
+        categoryId: resolvedCategoryId,
         transferAccountId: get("transferaccountid") || undefined,
-        type: (get("type") || "Expense") as Input["type"],
+        type: transactionType,
         amount: Number(get("amount")),
         date: get("date"),
         merchant: get("merchant") || undefined,
@@ -351,9 +404,10 @@ export function TransactionsPage() {
         paymentMethod: get("paymentmethod") || undefined,
         tags: get("tags") || undefined
       } satisfies Input;
-    });
+    }));
 
     importMutation.mutate(rows);
+    await queryClient.invalidateQueries({ queryKey: ["txn-categories"] });
   };
 
   const closeImportModal = () => {
