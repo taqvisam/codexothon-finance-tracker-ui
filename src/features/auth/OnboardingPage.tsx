@@ -74,11 +74,38 @@ interface WorkbookTransactionRow {
   tags?: string[];
 }
 
+interface WorkbookRecurringRow {
+  title: string;
+  type: string;
+  amount: number;
+  category?: string;
+  accountName: string;
+  frequency: string;
+  startDate: string;
+  endDate?: string;
+  nextRunDate: string;
+  autoCreateTransaction: boolean;
+  isPaused: boolean;
+}
+
+interface WorkbookRuleRow {
+  name: string;
+  conditionField: string;
+  conditionOperator: string;
+  conditionValue: string;
+  actionType: string;
+  actionValue: string;
+  priority: number;
+  isActive: boolean;
+}
+
 interface WorkbookImportPayload {
   accounts: WorkbookAccountRow[];
   budgets: WorkbookBudgetRow[];
   goals: WorkbookGoalRow[];
   transactions: WorkbookTransactionRow[];
+  recurring: WorkbookRecurringRow[];
+  rules: WorkbookRuleRow[];
 }
 
 function normalizeHeader(value: string) {
@@ -97,6 +124,19 @@ function toNumber(value: unknown) {
 function toText(value: unknown) {
   const normalized = String(value ?? "").trim();
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function toBoolean(value: unknown, fallback = false) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized) {
+    return fallback;
+  }
+
+  return ["true", "yes", "y", "1", "on"].includes(normalized);
 }
 
 function toIsoDate(value: unknown) {
@@ -213,11 +253,50 @@ function parseWorkbook(file: File): Promise<WorkbookImportPayload> {
       } satisfies WorkbookTransactionRow;
     }).filter((row) => row.accountName && row.date && row.amount > 0);
 
+    const recurringRows = mapRows(getSheet(workbook, "Recurring")).map((row) => {
+      const normalized = Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [normalizeHeader(key), value])
+      );
+
+      return {
+        title: String(normalized.title ?? normalized.name ?? "").trim(),
+        type: String(normalized.type ?? "Expense").trim(),
+        amount: toNumber(normalized.amount),
+        category: toText(normalized.category),
+        accountName: String(normalized.account ?? normalized.accountname ?? "").trim(),
+        frequency: String(normalized.frequency ?? "Monthly").trim(),
+        startDate: toIsoDate(normalized.startdate),
+        endDate: toText(toIsoDate(normalized.enddate)),
+        nextRunDate: toIsoDate(normalized.nextrundate ?? normalized.nextdate ?? normalized.nextrun),
+        autoCreateTransaction: toBoolean(normalized.autocreatetransaction, true),
+        isPaused: toBoolean(normalized.ispaused, false)
+      } satisfies WorkbookRecurringRow;
+    }).filter((row) => row.title && row.accountName && row.startDate && row.nextRunDate && row.amount > 0);
+
+    const ruleRows = mapRows(getSheet(workbook, "Rules")).map((row) => {
+      const normalized = Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [normalizeHeader(key), value])
+      );
+
+      return {
+        name: String(normalized.name ?? normalized.rulename ?? "").trim(),
+        conditionField: String(normalized.conditionfield ?? normalized.field ?? "").trim(),
+        conditionOperator: String(normalized.conditionoperator ?? normalized.operator ?? "").trim(),
+        conditionValue: String(normalized.conditionvalue ?? normalized.value ?? "").trim(),
+        actionType: String(normalized.actiontype ?? "").trim(),
+        actionValue: String(normalized.actionvalue ?? "").trim(),
+        priority: Math.round(toNumber(normalized.priority)),
+        isActive: toBoolean(normalized.isactive, true)
+      } satisfies WorkbookRuleRow;
+    }).filter((row) => row.name && row.conditionField && row.conditionOperator && row.conditionValue && row.actionType && row.actionValue);
+
     return {
       accounts: accountRows,
       budgets: budgetRows,
       goals: goalRows,
-      transactions: transactionRows
+      transactions: transactionRows,
+      recurring: recurringRows,
+      rules: ruleRows
     };
   });
 }
@@ -260,6 +339,8 @@ export function OnboardingPage() {
     await queryClient.invalidateQueries({ queryKey: ["transactions"] });
     await queryClient.invalidateQueries({ queryKey: ["budgets"] });
     await queryClient.invalidateQueries({ queryKey: ["goals"] });
+    await queryClient.invalidateQueries({ queryKey: ["recurring"] });
+    await queryClient.invalidateQueries({ queryKey: ["rules"] });
   };
 
   const createMutation = useMutation({
@@ -306,12 +387,14 @@ export function OnboardingPage() {
         budgetsCreated: number;
         goalsCreated: number;
         transactionsCreated: number;
+        recurringCreated: number;
+        rulesCreated: number;
       };
     },
     onSuccess: async (result) => {
       await invalidatePostOnboarding();
       notify(
-        `Imported ${result.accountsCreated} accounts, ${result.budgetsCreated} budgets, ${result.goalsCreated} goals, and ${result.transactionsCreated} transactions.`
+        `Imported ${result.accountsCreated} accounts, ${result.budgetsCreated} budgets, ${result.goalsCreated} goals, ${result.transactionsCreated} transactions, ${result.recurringCreated} recurring items, and ${result.rulesCreated} rules.`
       );
       navigate("/");
     },
@@ -356,13 +439,23 @@ export function OnboardingPage() {
       title: "Transactions",
       description: "Income, expenses, and transfers across the last six months.",
       fields: "account, type, amount, date, category, merchant, note, payment method, tags"
+    },
+    {
+      title: "Recurring",
+      description: "Future salary, rent, subscriptions, and other repeated cash flows for forecasting and the recurring page.",
+      fields: "title, type, amount, category, account, frequency, start date, next run date"
+    },
+    {
+      title: "Rules",
+      description: "Auto-categorization, tags, and alerts that immediately populate the rules engine page.",
+      fields: "name, condition field/operator/value, action type/value, priority, active"
     }
   ]), []);
 
   const onboardingBenefits = useMemo(() => ([
     "Forecasts get useful immediately with recent transaction patterns.",
     "Insights highlights light up with month-over-month changes.",
-    "Budgets, goals, and balances land in the app already connected."
+    "Budgets, goals, recurring plans, and rules land in the app already connected."
   ]), []);
 
   const selectedFileSummary = useMemo(() => {
@@ -383,7 +476,7 @@ export function OnboardingPage() {
           <span className="onboarding-eyebrow">First-run setup</span>
           <h3>Load a rich finance history in one move</h3>
           <p className="muted">
-            Start with a workbook that brings in accounts, budgets, goals, and recent transactions so the dashboard feels alive from the first screen.
+            Start with a workbook that brings in accounts, budgets, goals, recurring items, rules, and recent transactions so the dashboard feels alive from the first screen.
           </p>
           <div className="onboarding-highlight-row">
             {onboardingHighlights.map((item) => (
@@ -526,7 +619,7 @@ export function OnboardingPage() {
                 Download sample workbook
               </a>
               <p className="muted onboarding-template-caption">
-                Includes accounts, budgets, goals, and rich six-month transaction history tuned for dashboard and Insights signals.
+                Includes accounts, budgets, goals, recurring items, rules, and rich six-month transaction history tuned for dashboard and Insights signals.
               </p>
             </div>
 
@@ -582,7 +675,7 @@ export function OnboardingPage() {
                 <span className="onboarding-spinner" aria-hidden="true" />
                 <div>
                   <strong>Processing your workbook</strong>
-                  <p className="muted">Creating accounts, categories, budgets, goals, and transactions. This may take a few seconds.</p>
+                  <p className="muted">Creating accounts, categories, budgets, goals, recurring items, rules, and transactions. This may take a few seconds.</p>
                 </div>
               </div>
             ) : null}
@@ -608,7 +701,7 @@ export function OnboardingPage() {
               Use human-readable values only. No database IDs are needed. Categories and account mappings are resolved automatically during import.
             </p>
             <p className="muted onboarding-import-note">
-              The sample workbook is tuned to populate dashboard forecasts, financial health trends, and Insights highlights with recent six-month data.
+              The sample workbook is tuned to populate dashboard forecasts, financial health trends, recurring cash flows, rule automation, and Insights highlights with recent six-month data.
             </p>
           </article>
         </div>

@@ -104,6 +104,104 @@ const goals = [
   }
 ];
 
+const recurring = [
+  {
+    title: "Monthly Salary",
+    type: "Income",
+    amount: 72000,
+    category: "Salary",
+    accountName: "Horizon Checking",
+    frequency: "Monthly",
+    startDate: `${monthWindows[0].year}-${pad(monthWindows[0].month)}-01`,
+    endDate: "",
+    nextRunDate: `${monthWindows[5].year}-${pad(monthWindows[5].month)}-01`,
+    autoCreateTransaction: "TRUE",
+    isPaused: "FALSE"
+  },
+  {
+    title: "Apartment Rent",
+    type: "Expense",
+    amount: 19500,
+    category: "Rent",
+    accountName: "Horizon Checking",
+    frequency: "Monthly",
+    startDate: `${monthWindows[0].year}-${pad(monthWindows[0].month)}-03`,
+    endDate: "",
+    nextRunDate: `${monthWindows[5].year}-${pad(monthWindows[5].month)}-03`,
+    autoCreateTransaction: "TRUE",
+    isPaused: "FALSE"
+  },
+  {
+    title: "Subscription Stack",
+    type: "Expense",
+    amount: 1198,
+    category: "Entertainment",
+    accountName: "Atlas Credit Card",
+    frequency: "Monthly",
+    startDate: `${monthWindows[0].year}-${pad(monthWindows[0].month)}-13`,
+    endDate: "",
+    nextRunDate: `${monthWindows[5].year}-${pad(monthWindows[5].month)}-13`,
+    autoCreateTransaction: "TRUE",
+    isPaused: "FALSE"
+  },
+  {
+    title: "Emergency Fund Transfer",
+    type: "Expense",
+    amount: 9500,
+    category: "Others",
+    accountName: "Horizon Checking",
+    frequency: "Monthly",
+    startDate: `${monthWindows[0].year}-${pad(monthWindows[0].month)}-08`,
+    endDate: "",
+    nextRunDate: `${monthWindows[5].year}-${pad(monthWindows[5].month)}-08`,
+    autoCreateTransaction: "FALSE",
+    isPaused: "FALSE"
+  }
+];
+
+const rules = [
+  {
+    name: "Auto-tag food delivery",
+    conditionField: "Merchant",
+    conditionOperator: "Contains",
+    conditionValue: "Swiggy",
+    actionType: "AddTag",
+    actionValue: "food-delivery",
+    priority: 1,
+    isActive: "TRUE"
+  },
+  {
+    name: "Map Fresh Basket to Groceries",
+    conditionField: "Merchant",
+    conditionOperator: "Contains",
+    conditionValue: "Fresh Basket",
+    actionType: "SetCategory",
+    actionValue: "Groceries",
+    priority: 2,
+    isActive: "TRUE"
+  },
+  {
+    name: "Flag large travel charges",
+    conditionField: "Category",
+    conditionOperator: "Equals",
+    conditionValue: "Travel",
+    actionType: "TriggerAlert",
+    actionValue: "Review large travel expense",
+    priority: 3,
+    isActive: "TRUE"
+  },
+  {
+    name: "Tag subscriptions",
+    conditionField: "Merchant",
+    conditionOperator: "Contains",
+    conditionValue: "Netflix",
+    actionType: "AddTag",
+    actionValue: "subscription",
+    priority: 4,
+    isActive: "TRUE"
+  }
+];
+
 const salaryTotals = [70000, 70000, 71000, 72000, 72000, 72000];
 const freelanceTotals = [8000, 0, 12000, 9500, 0, 18500];
 const bonusTotals = [0, 0, 0, 0, 0, 24000];
@@ -364,10 +462,12 @@ XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(accounts), "Acco
 XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(budgets), "Budgets");
 XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(goals), "Goals");
 XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(transactions), "Transactions");
+XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(recurring), "Recurring");
+XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rules), "Rules");
 
 for (const target of outputTargets) {
   fs.mkdirSync(path.dirname(target), { recursive: true });
   XLSX.writeFile(workbook, target);
 }
 
-console.log(`Generated onboarding workbook with ${transactions.length} transactions across ${monthWindows.length} months.`);
+console.log(`Generated onboarding workbook with ${transactions.length} transactions, ${recurring.length} recurring items, and ${rules.length} rules across ${monthWindows.length} months.`);
