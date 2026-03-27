@@ -525,7 +525,7 @@ export function DashboardPage() {
                     <div
                       key={point.date}
                       className={`pulse-cell pulse-${point.tone}`}
-                      style={{ opacity: Math.max(0.35, point.intensity / 100) }}
+                      style={{ opacity: Math.max(0.74, point.intensity / 100) }}
                       title={`${point.label} | Balance ${currency(point.balance)} | Change ${point.change >= 0 ? "+" : ""}${currency(point.change)}`}
                     >
                       <span>{point.label}</span>
