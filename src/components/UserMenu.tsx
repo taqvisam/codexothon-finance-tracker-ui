@@ -1,17 +1,24 @@
 import { useState } from "react";
+import { applyTheme, getStoredTheme, type ThemeMode } from "../utils/theme";
 
 interface Props {
   displayName: string;
   profileImageUrl?: string | null;
   onProfile: () => void;
-  onSettings: () => void;
   onLogout: () => void;
 }
 
-export function UserMenu({ displayName, profileImageUrl, onProfile, onSettings, onLogout }: Props) {
+export function UserMenu({ displayName, profileImageUrl, onProfile, onLogout }: Props) {
   const [open, setOpen] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>(() => getStoredTheme());
   const firstName = displayName.trim().split(/\s+/)[0] ?? displayName;
   const resolvedProfileImage = profileImageUrl?.trim() ? profileImageUrl : "/default-avatar.svg";
+
+  const toggleTheme = () => {
+    const nextTheme: ThemeMode = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    applyTheme(nextTheme);
+  };
 
   return (
     <div className="user-dropdown">
@@ -25,7 +32,22 @@ export function UserMenu({ displayName, profileImageUrl, onProfile, onSettings, 
       {open ? (
         <div className="user-menu">
           <button onClick={() => { setOpen(false); onProfile(); }}>My Profile</button>
-          <button onClick={() => { setOpen(false); onSettings(); }}>Settings</button>
+          <div className="user-menu-row">
+            <div>
+              <div className="user-menu-label">Theme</div>
+              <div className="muted">{theme === "dark" ? "Dark mode" : "Light mode"}</div>
+            </div>
+            <button
+              type="button"
+              className={`settings-switch ${theme === "dark" ? "on" : ""}`}
+              role="switch"
+              aria-checked={theme === "dark"}
+              aria-label="Toggle dark mode"
+              onClick={toggleTheme}
+            >
+              <span />
+            </button>
+          </div>
           <button className="logout-action" onClick={() => { setOpen(false); onLogout(); }}>
             <span className="logout-icon" aria-hidden="true">↪</span>
             <span>Logout</span>

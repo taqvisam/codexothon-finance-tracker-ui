@@ -390,6 +390,22 @@ a {
   background: rgba(255, 255, 255, 0.38);
 }
 
+.user-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.user-menu-label {
+  color: #2e3f5a;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
 .logout-action {
   color: #d64a5a;
   font-weight: 600;
@@ -2656,6 +2672,15 @@ body.dark-theme .table td {
 
 body.dark-theme .user-menu button {
   background: #162133;
+  color: #edf3ff;
+}
+
+body.dark-theme .user-menu-row {
+  background: #162133;
+  border-color: #2a3952;
+}
+
+body.dark-theme .user-menu-label {
   color: #edf3ff;
 }
 

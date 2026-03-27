@@ -100,7 +100,6 @@ export function Topbar() {
             displayName={displayName ?? "Guest User"}
             profileImageUrl={profileImageUrl}
             onProfile={() => navigate("/settings")}
-            onSettings={() => navigate("/settings")}
             onLogout={async () => {
               try
               {
