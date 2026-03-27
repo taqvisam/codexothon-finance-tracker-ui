@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useUiStore } from "../../store/uiStore";
 import { apiClient } from "../../services/apiClient";
 import { Dropdown } from "../../components/Dropdown";
@@ -51,7 +51,7 @@ interface CategoryItem {
 }
 
 export function InsightsPage() {
-  const { dateFrom, dateTo } = useUiStore();
+  const { dateFrom, dateTo, topbarSearch } = useUiStore();
   const [accountId, setAccountId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const accountsQuery = useQuery({
@@ -89,6 +89,37 @@ export function InsightsPage() {
   });
 
   const score = healthScoreQuery.data?.score ?? 0;
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredHighlights = useMemo(() => {
+    if (!normalizedSearch) {
+      return highlightQuery.data;
+    }
+
+    return highlightQuery.data.filter((item) =>
+      [item.title, item.message, item.severity, item.periodLabel, String(item.changePercent)]
+        .some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [highlightQuery.data, normalizedSearch]);
+
+  const filteredBreakdown = useMemo(() => {
+    const items = healthScoreQuery.data?.breakdown ?? [];
+    if (!normalizedSearch) {
+      return items;
+    }
+
+    return items.filter((factor) =>
+      [factor.name, factor.description, String(factor.score)].some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [healthScoreQuery.data?.breakdown, normalizedSearch]);
+
+  const filteredSuggestions = useMemo(() => {
+    const items = healthScoreQuery.data?.suggestions ?? [];
+    if (!normalizedSearch) {
+      return items;
+    }
+
+    return items.filter((suggestion) => suggestion.toLowerCase().includes(normalizedSearch));
+  }, [healthScoreQuery.data?.suggestions, normalizedSearch]);
 
   return (
     <section>
@@ -119,9 +150,9 @@ export function InsightsPage() {
 
         <article className="card">
           <h4>Suggestions</h4>
-          {healthScoreQuery.data?.suggestions?.length ? (
+          {filteredSuggestions.length ? (
             <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {healthScoreQuery.data.suggestions.map((suggestion) => (
+              {filteredSuggestions.map((suggestion) => (
                 <li key={suggestion} className="muted" style={{ marginBottom: 6 }}>
                   {suggestion}
                 </li>
@@ -134,11 +165,11 @@ export function InsightsPage() {
 
         <article className="card" style={{ gridColumn: "1 / -1" }}>
           <h4>Insight Highlights</h4>
-          {highlightQuery.data.length === 0 ? (
+          {filteredHighlights.length === 0 ? (
             <p className="muted">No highlight cards available for this period.</p>
           ) : (
             <div className="card-grid">
-              {highlightQuery.data.map((item) => (
+              {filteredHighlights.map((item) => (
                 <article key={`${item.title}-${item.periodLabel}`} className="card summary-card">
                   <h4>{item.title}</h4>
                   <div className="big">{Math.round(item.changePercent)}%</div>
@@ -190,7 +221,7 @@ export function InsightsPage() {
           <h4>Score Breakdown</h4>
           {healthScoreQuery.isLoading ? (
             <p className="muted">Loading score details...</p>
-          ) : healthScoreQuery.data?.breakdown?.length ? (
+          ) : filteredBreakdown.length ? (
             <div className="table-wrap">
               <table className="table">
                 <thead>
@@ -201,7 +232,7 @@ export function InsightsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {healthScoreQuery.data.breakdown.map((factor) => (
+                  {filteredBreakdown.map((factor) => (
                     <tr key={factor.name}>
                       <td data-label="Factor">{factor.name}</td>
                       <td data-label="Score">{Math.round(factor.score)}</td>

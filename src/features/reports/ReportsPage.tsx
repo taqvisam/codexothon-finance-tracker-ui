@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChartCard } from "../../components/ChartCard";
 import { apiClient } from "../../services/apiClient";
 import { useUiStore } from "../../store/uiStore";
@@ -51,7 +51,7 @@ function colorForCategory(name: string) {
 }
 
 export function ReportsPage() {
-  const { dateFrom: from, dateTo: to, setDateRange } = useUiStore();
+  const { dateFrom: from, dateTo: to, setDateRange, topbarSearch } = useUiStore();
   const [accountId, setAccountId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [type, setType] = useState("");
@@ -108,6 +108,26 @@ export function ReportsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredCategorySpend = useMemo(() => {
+    if (!normalizedSearch) {
+      return categorySpendQuery.data;
+    }
+
+    return categorySpendQuery.data.filter((item) => item.category.toLowerCase().includes(normalizedSearch));
+  }, [categorySpendQuery.data, normalizedSearch]);
+
+  const filteredCategoryTrends = useMemo(() => {
+    const items = trendQuery.data?.categoryTrends ?? [];
+    if (!normalizedSearch) {
+      return items;
+    }
+
+    return items.filter((item) =>
+      [item.category, item.period, String(item.amount)].some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [normalizedSearch, trendQuery.data?.categoryTrends]);
+
   return (
     <section>
       <div className="card" style={{ marginBottom: 12 }}>
@@ -150,13 +170,13 @@ export function ReportsPage() {
       <section className="two-col">
         <ChartCard title="Category Spending">
           <div style={{ height: 260 }}>
-            {categorySpendQuery.data.length === 0 ? (
+            {filteredCategorySpend.length === 0 ? (
               <p className="muted">No report data. Try expanding date range.</p>
             ) : (
               <ResponsiveContainer>
                 <PieChart>
-                  <Pie data={categorySpendQuery.data} dataKey="amount" nameKey="category">
-                    {categorySpendQuery.data.map((item) => (
+                  <Pie data={filteredCategorySpend} dataKey="amount" nameKey="category">
+                    {filteredCategorySpend.map((item) => (
                       <Cell key={item.category} fill={colorForCategory(item.category)} />
                     ))}
                   </Pie>
@@ -187,9 +207,9 @@ export function ReportsPage() {
 
         <ChartCard title="Category Trends Over Time">
           <div style={{ height: 260 }}>
-            {trendQuery.data?.categoryTrends?.length ? (
+            {filteredCategoryTrends.length ? (
               <ResponsiveContainer>
-                <BarChart data={trendQuery.data.categoryTrends}>
+                <BarChart data={filteredCategoryTrends}>
                   <XAxis dataKey="period" />
                   <YAxis />
                   <Tooltip />

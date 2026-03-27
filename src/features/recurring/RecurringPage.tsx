@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { apiClient } from "../../services/apiClient";
 import { useUiStore } from "../../store/uiStore";
@@ -46,7 +46,7 @@ interface CategoryItem {
 
 export function RecurringPage() {
   const queryClient = useQueryClient();
-  const { notify, dateFrom, dateTo } = useUiStore();
+  const { notify, dateFrom, dateTo, topbarSearch } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
   const recurringDefaults: Input = {
     title: "",
@@ -141,6 +141,23 @@ export function RecurringPage() {
   const selectedType = watch("type");
   const filteredCategories = categoriesQuery.data.filter((c) => c.type === selectedType);
   const monthRecurring = recurringQuery.data.filter((item) => item.nextRunDate >= dateFrom && item.nextRunDate <= dateTo);
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredRecurring = useMemo(() => {
+    if (!normalizedSearch) {
+      return monthRecurring;
+    }
+
+    return monthRecurring.filter((item) =>
+      [
+        item.title,
+        item.type,
+        item.frequency,
+        item.nextRunDate,
+        item.isPaused ? "paused" : "active",
+        String(item.amount)
+      ].some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [monthRecurring, normalizedSearch]);
 
   return (
     <section className="card">
@@ -210,6 +227,8 @@ export function RecurringPage() {
           <p className="error">Failed to load recurring items.</p>
         ) : monthRecurring.length === 0 ? (
           <p className="muted">No recurring items yet.</p>
+        ) : filteredRecurring.length === 0 ? (
+          <p className="muted">No recurring items match your search.</p>
         ) : (
           <table className="table">
             <thead>
@@ -223,7 +242,7 @@ export function RecurringPage() {
               </tr>
             </thead>
             <tbody>
-              {monthRecurring.map((r) => (
+              {filteredRecurring.map((r) => (
                 <tr key={r.id}>
                   <td>{r.title}</td>
                   <td>{r.amount}</td>

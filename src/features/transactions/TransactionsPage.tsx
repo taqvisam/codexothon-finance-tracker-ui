@@ -91,7 +91,7 @@ function normalizeUuid(value: string | null | undefined): string | undefined {
 export function TransactionsPage() {
   const queryClient = useQueryClient();
   const currency = useCurrency();
-  const { dateFrom, dateTo, notify } = useUiStore();
+  const { dateFrom, dateTo, notify, topbarSearch, setTopbarSearch } = useUiStore();
   const todayIso = new Date().toISOString().slice(0, 10);
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const [page, setPage] = useState(1);
@@ -113,6 +113,11 @@ export function TransactionsPage() {
     register("transferAccountId");
     register("type");
   }, [register]);
+
+  useEffect(() => {
+    setSearch(topbarSearch);
+    setPage(1);
+  }, [topbarSearch]);
 
   const typeValue = watch("type");
   const accountIdValue = watch("accountId");
@@ -447,6 +452,7 @@ export function TransactionsPage() {
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
+                setTopbarSearch(e.target.value);
                 setPage(1);
               }}
             />

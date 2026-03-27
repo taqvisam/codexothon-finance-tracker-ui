@@ -108,7 +108,7 @@ function buildQuickAmounts(goal: GoalItem, action: GoalActionType) {
 export function GoalsPage() {
   const queryClient = useQueryClient();
   const currency = useCurrency();
-  const { notify } = useUiStore();
+  const { notify, topbarSearch } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
   const goalDefaults: GoalInput = {
     name: "",
@@ -214,6 +214,25 @@ export function GoalsPage() {
     return buildQuickAmounts(actionState.goal, actionState.action);
   }, [actionState]);
 
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredGoals = useMemo(() => {
+    if (!normalizedSearch) {
+      return goalsQuery.data;
+    }
+
+    return goalsQuery.data.filter((goal) =>
+      [
+        goal.name,
+        goal.status ?? "",
+        goal.targetDate ?? "",
+        goal.icon ?? "",
+        goal.color ?? "",
+        String(goal.targetAmount),
+        String(goal.currentAmount)
+      ].some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [goalsQuery.data, normalizedSearch]);
+
   const openActionModal = (goal: GoalItem, action: GoalActionType) => {
     if (action === "contribute" && goal.currentAmount >= goal.targetAmount) {
       notify("Goal already achieved", "warning");
@@ -311,7 +330,10 @@ export function GoalsPage() {
         {!goalsQuery.isError && goalsQuery.data.length === 0 && (
           <p className="muted">No goals yet. Suggest goal setup.</p>
         )}
-        {goalsQuery.data.map((goal) => {
+        {!goalsQuery.isError && goalsQuery.data.length > 0 && filteredGoals.length === 0 && (
+          <p className="muted">No goals match your search.</p>
+        )}
+        {filteredGoals.map((goal) => {
           const isAchieved = goal.currentAmount >= goal.targetAmount || goal.progressPercent >= 100;
           const isOnHold = goal.status === "on-hold";
           const accentColor = getGoalColor(goal.color);

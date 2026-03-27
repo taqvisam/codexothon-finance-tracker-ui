@@ -9,10 +9,9 @@ export function Topbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { displayName, profileImageUrl, logout } = useAuthStore();
-  const { dateFrom, dateTo, setDateRange } = useUiStore();
+  const { dateFrom, dateTo, setDateRange, topbarSearch, setTopbarSearch } = useUiStore();
   const [isMobile, setIsMobile] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(true);
-  const [searchText, setSearchText] = useState("");
 
   const titleByPath: Record<string, string> = {
     "/": "Dashboard",
@@ -30,6 +29,10 @@ export function Topbar() {
   };
 
   const pageTitle = titleByPath[location.pathname] ?? "Personal Finance";
+
+  useEffect(() => {
+    setTopbarSearch("");
+  }, [location.pathname, setTopbarSearch]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 980px)");
@@ -61,9 +64,9 @@ export function Topbar() {
           <span aria-hidden="true">⌕</span>
           <input
             className="input"
-            placeholder="Search"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            placeholder={`Search ${pageTitle.toLowerCase()}`}
+            value={topbarSearch}
+            onChange={(e) => setTopbarSearch(e.target.value)}
           />
         </label>
         {isMobile ? (

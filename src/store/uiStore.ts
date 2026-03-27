@@ -10,9 +10,11 @@ interface UiState {
   selectedPeriod: string;
   dateFrom: string;
   dateTo: string;
+  topbarSearch: string;
   notifications: AppNotification[];
   setSelectedPeriod: (period: string) => void;
   setDateRange: (from: string, to: string) => void;
+  setTopbarSearch: (value: string) => void;
   notify: (message: string, type?: AppNotification["type"]) => void;
   dismiss: (id: string) => void;
 }
@@ -51,6 +53,7 @@ export const useUiStore = create<UiState>((set) => ({
   selectedPeriod: defaultPeriod,
   dateFrom: defaultWindow.from,
   dateTo: defaultWindow.to,
+  topbarSearch: "",
   notifications: [],
   setSelectedPeriod: (period) =>
     set(() => {
@@ -74,6 +77,7 @@ export const useUiStore = create<UiState>((set) => ({
         selectedPeriod: toPeriod(start)
       };
     }),
+  setTopbarSearch: (value) => set(() => ({ topbarSearch: value })),
   notify: (message, type = "success") =>
     set((state) => ({
       notifications: [

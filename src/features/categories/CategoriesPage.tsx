@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ActionIconButton } from "../../components/ActionIconButton";
 import { Dropdown } from "../../components/Dropdown";
@@ -69,7 +69,7 @@ function getCategoryColor(color?: string | null, type?: "Income" | "Expense") {
 
 export function CategoriesPage() {
   const queryClient = useQueryClient();
-  const { notify } = useUiStore();
+  const { notify, topbarSearch } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
   const defaults: Input = { name: "", type: "Expense", color: "#2f6fbe", icon: "wallet", isArchived: false };
   const { register, handleSubmit, reset, setValue, watch } = useForm<Input>({
@@ -123,6 +123,23 @@ export function CategoriesPage() {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     }
   });
+
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredCategories = useMemo(() => {
+    if (!normalizedSearch) {
+      return categoriesQuery.data;
+    }
+
+    return categoriesQuery.data.filter((category) =>
+      [
+        category.name,
+        category.type,
+        category.icon ?? "",
+        category.color ?? "",
+        category.isArchived ? "archived" : "active"
+      ].some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [categoriesQuery.data, normalizedSearch]);
 
   return (
     <section className="card">
@@ -192,7 +209,8 @@ export function CategoriesPage() {
       <div style={{ marginTop: 16 }}>
         {categoriesQuery.isError ? <p className="error">Failed to load categories.</p> : null}
         {!categoriesQuery.isError && categoriesQuery.data.length === 0 ? <p className="muted">No categories yet.</p> : null}
-        {categoriesQuery.data.map((category) => {
+        {!categoriesQuery.isError && categoriesQuery.data.length > 0 && filteredCategories.length === 0 ? <p className="muted">No categories match your search.</p> : null}
+        {filteredCategories.map((category) => {
           const accentColor = getCategoryColor(category.color, category.type);
           const iconGlyph = getCategoryIconGlyph(category.icon);
           return (

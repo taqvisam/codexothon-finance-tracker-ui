@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Dropdown } from "../../components/Dropdown";
 import { TextInput } from "../../components/TextInput";
 import { Button } from "../../components/Button";
@@ -33,7 +33,7 @@ const defaultRule = {
 
 export function RulesPage() {
   const queryClient = useQueryClient();
-  const { notify } = useUiStore();
+  const { notify, topbarSearch } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultRule);
 
@@ -99,6 +99,26 @@ export function RulesPage() {
       await queryClient.invalidateQueries({ queryKey: ["rules"] });
     }
   });
+
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredRules = useMemo(() => {
+    if (!normalizedSearch) {
+      return rulesQuery.data;
+    }
+
+    return rulesQuery.data.filter((rule) =>
+      [
+        rule.name,
+        rule.condition.field,
+        rule.condition.operator,
+        rule.condition.value,
+        rule.action.type,
+        rule.action.value,
+        String(rule.priority),
+        rule.isActive ? "enabled" : "disabled"
+      ].some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [normalizedSearch, rulesQuery.data]);
 
   return (
     <>
@@ -176,12 +196,14 @@ export function RulesPage() {
       <section className="card" style={{ marginTop: 12 }}>
         <div className="card-head">
           <h3 style={{ marginBottom: 0 }}>Rules</h3>
-          <span className="muted">{rulesQuery.data.length} total</span>
+          <span className="muted">{filteredRules.length} total</span>
         </div>
         {rulesQuery.data.length === 0 ? (
           <p className="muted">No rules yet. Create one to auto-categorize, tag, or alert.</p>
+        ) : filteredRules.length === 0 ? (
+          <p className="muted">No rules match your search.</p>
         ) : (
-          rulesQuery.data.map((rule) => (
+          filteredRules.map((rule) => (
             <article key={rule.id} className="budget-row">
               <div>
                 <strong>{rule.name}</strong>

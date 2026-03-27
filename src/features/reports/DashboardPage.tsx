@@ -107,7 +107,7 @@ export function DashboardPage() {
   const DISMISSED_ALERTS_KEY = "pft-dashboard-dismissed-alerts";
   const navigate = useNavigate();
   const currency = useCurrency();
-  const { dateFrom, dateTo, selectedPeriod } = useUiStore();
+  const { dateFrom, dateTo, selectedPeriod, topbarSearch } = useUiStore();
   const [selectedYear, selectedMonth] = selectedPeriod.split("-").map(Number);
   const [isMobile, setIsMobile] = useState(false);
   const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
@@ -349,6 +349,57 @@ export function DashboardPage() {
       { stableDays: 0, pressureDays: 0, growthDays: 0 }
     );
   }, [pulseMatrix]);
+
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredRecentTransactions = useMemo(() => {
+    const rows = transactionsQuery.data.slice(0, 5);
+    if (!normalizedSearch) {
+      return rows;
+    }
+
+    return rows.filter((item) =>
+      [item.merchant ?? "", item.note ?? "", item.date, item.type, String(item.amount)]
+        .some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [normalizedSearch, transactionsQuery.data]);
+
+  const filteredRecurringPayments = useMemo(() => {
+    const rows = recurringQuery.data
+      .filter((x) => x.nextRunDate >= dateFrom && x.nextRunDate <= dateTo)
+      .slice(0, 5)
+      .map((x) => ({ name: x.title, amount: x.amount, due: x.nextRunDate }));
+
+    if (!normalizedSearch) {
+      return rows;
+    }
+
+    return rows.filter((item) =>
+      [item.name, item.due, String(item.amount)].some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [dateFrom, dateTo, normalizedSearch, recurringQuery.data]);
+
+  const filteredBudgetCards = useMemo(() => {
+    if (!normalizedSearch) {
+      return budgetCards;
+    }
+
+    return budgetCards.filter((budget) =>
+      [budget.categoryName, String(budget.amount), String(budget.spentAmount), String(budget.percent)]
+        .some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [budgetCards, normalizedSearch]);
+
+  const filteredGoalCards = useMemo(() => {
+    const rows = goalsQuery.data.slice(0, 4);
+    if (!normalizedSearch) {
+      return rows;
+    }
+
+    return rows.filter((goal) =>
+      [goal.name, goal.status ?? "", String(goal.targetAmount), String(goal.currentAmount), String(goal.progressPercent)]
+        .some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [goalsQuery.data, normalizedSearch]);
 
   return (
     <>
@@ -599,10 +650,12 @@ export function DashboardPage() {
           <h4>Recent Transactions</h4>
           {transactionsQuery.data.length === 0 ? (
             <p className="muted">No transactions yet. Add your first transaction.</p>
+          ) : filteredRecentTransactions.length === 0 ? (
+            <p className="muted">No recent transactions match your search.</p>
           ) : (
             <>
               <DataTable
-                rows={transactionsQuery.data.slice(0, 5)}
+                rows={filteredRecentTransactions}
                 columns={[
                   { key: "merchant", title: "Description", render: (r) => r.merchant ?? "-" },
                   { key: "date", title: "Date", render: (r) => r.date },
@@ -631,17 +684,18 @@ export function DashboardPage() {
         <MobileSection title="Upcoming Recurring Payments" isMobile={isMobile}>
           <article className="card">
             <h4>Upcoming Recurring Payments</h4>
-            <DataTable
-              rows={recurringQuery.data
-                .filter((x) => x.nextRunDate >= dateFrom && x.nextRunDate <= dateTo)
-                .slice(0, 5)
-                .map((x) => ({ name: x.title, amount: x.amount, due: x.nextRunDate }))}
-              columns={[
-                { key: "name", title: "Bill", render: (r) => r.name },
-                { key: "amount", title: "Amount", render: (r) => currency(r.amount) },
-                { key: "due", title: "Due", render: (r) => r.due }
-              ]}
-            />
+            {filteredRecurringPayments.length === 0 ? (
+              <p className="muted">No recurring payments match your search.</p>
+            ) : (
+              <DataTable
+                rows={filteredRecurringPayments}
+                columns={[
+                  { key: "name", title: "Bill", render: (r) => r.name },
+                  { key: "amount", title: "Amount", render: (r) => currency(r.amount) },
+                  { key: "due", title: "Due", render: (r) => r.due }
+                ]}
+              />
+            )}
           </article>
         </MobileSection>
       </section>
@@ -652,8 +706,10 @@ export function DashboardPage() {
             <h4>Budget Progress Cards</h4>
             {budgetCards.length === 0 ? (
               <p className="muted">No budgets yet.</p>
+            ) : filteredBudgetCards.length === 0 ? (
+              <p className="muted">No budget cards match your search.</p>
             ) : (
-              budgetCards.map((budget) => (
+              filteredBudgetCards.map((budget) => (
                 <div key={budget.id} style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <strong>{budget.categoryName}</strong>
@@ -674,8 +730,10 @@ export function DashboardPage() {
             <h4>Savings Goal Progress</h4>
             {goalsQuery.data.length === 0 ? (
               <p className="muted">No goals yet.</p>
+            ) : filteredGoalCards.length === 0 ? (
+              <p className="muted">No goals match your search.</p>
             ) : (
-              goalsQuery.data.slice(0, 4).map((goal) => (
+              filteredGoalCards.map((goal) => (
                 <div key={goal.id} style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <strong>{goal.name}</strong>

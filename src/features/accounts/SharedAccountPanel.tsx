@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dropdown } from "../../components/Dropdown";
 import { Button } from "../../components/Button";
@@ -34,7 +34,7 @@ interface Props {
 
 export function SharedAccountPanel({ accounts }: Props) {
   const queryClient = useQueryClient();
-  const { notify } = useUiStore();
+  const { notify, topbarSearch } = useUiStore();
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -98,6 +98,37 @@ export function SharedAccountPanel({ accounts }: Props) {
     }
   });
 
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredAccounts = useMemo(() => {
+    if (!normalizedSearch) {
+      return accounts;
+    }
+
+    return accounts.filter((account) => account.name.toLowerCase().includes(normalizedSearch));
+  }, [accounts, normalizedSearch]);
+
+  const filteredMembers = useMemo(() => {
+    if (!normalizedSearch) {
+      return membersQuery.data;
+    }
+
+    return membersQuery.data.filter((member) =>
+      [member.displayName, member.email, member.role, member.isOwner ? "owner" : "collaborator"]
+        .some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [membersQuery.data, normalizedSearch]);
+
+  const filteredActivity = useMemo(() => {
+    if (!normalizedSearch) {
+      return activityQuery.data;
+    }
+
+    return activityQuery.data.filter((activity) =>
+      [activity.actorName, activity.entityType, activity.action, activity.description]
+        .some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [activityQuery.data, normalizedSearch]);
+
   return (
     <section className="card">
       <div className="card-head">
@@ -112,7 +143,7 @@ export function SharedAccountPanel({ accounts }: Props) {
           label="Account"
           options={[
             { value: "", label: "Select account" },
-            ...accounts.map((account) => ({ value: account.id, label: account.name }))
+            ...filteredAccounts.map((account) => ({ value: account.id, label: account.name }))
           ]}
           value={selectedAccountId}
           onChange={(event) => setSelectedAccountId(event.target.value)}
@@ -127,8 +158,10 @@ export function SharedAccountPanel({ accounts }: Props) {
             <h4 style={{ marginBottom: 8 }}>Members</h4>
             {membersQuery.data.length === 0 ? (
               <p className="muted">No members yet.</p>
+            ) : filteredMembers.length === 0 ? (
+              <p className="muted">No members match your search.</p>
             ) : (
-              membersQuery.data.map((member) => (
+              filteredMembers.map((member) => (
                 <article key={member.userId} className="budget-row">
                   <div>
                     <strong>{member.displayName}</strong>
@@ -162,8 +195,10 @@ export function SharedAccountPanel({ accounts }: Props) {
             <h4 style={{ marginBottom: 8 }}>Recent Activity</h4>
             {activityQuery.data.length === 0 ? (
               <p className="muted">No shared account activity yet.</p>
+            ) : filteredActivity.length === 0 ? (
+              <p className="muted">No activity matches your search.</p>
             ) : (
-              activityQuery.data.map((activity) => (
+              filteredActivity.map((activity) => (
                 <div key={activity.id} className="insight-item">
                   <span className="insight-dot" aria-hidden="true">•</span>
                   <span>

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { DataTable } from "../../components/DataTable";
 import { ActionIconButton } from "../../components/ActionIconButton";
@@ -54,7 +54,7 @@ function formatAccountTypeLabel(type: string): string {
 export function AccountsPage() {
   const currency = useCurrency();
   const queryClient = useQueryClient();
-  const { notify } = useUiStore();
+  const { notify, topbarSearch } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
   const accountDefaults: Input = {
     name: "",
@@ -126,6 +126,23 @@ export function AccountsPage() {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
     }
   });
+
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredAccounts = useMemo(() => {
+    if (!normalizedSearch) {
+      return accountsQuery.data;
+    }
+
+    return accountsQuery.data.filter((account) => {
+      const institution = account.institutionName ?? "";
+      return [
+        account.name,
+        formatAccountTypeLabel(account.type),
+        institution,
+        String(account.currentBalance)
+      ].some((value) => value.toLowerCase().includes(normalizedSearch));
+    });
+  }, [accountsQuery.data, normalizedSearch]);
 
   return (
     <section className="card">
@@ -215,9 +232,11 @@ export function AccountsPage() {
           <p className="error">Failed to load accounts.</p>
         ) : accountsQuery.data.length === 0 ? (
           <p className="muted">No accounts yet. Create your first account.</p>
+        ) : filteredAccounts.length === 0 ? (
+          <p className="muted">No accounts match your search.</p>
         ) : (
           <DataTable
-            rows={accountsQuery.data}
+            rows={filteredAccounts}
             columns={[
               { key: "name", title: "Name", render: (r) => r.name },
               {

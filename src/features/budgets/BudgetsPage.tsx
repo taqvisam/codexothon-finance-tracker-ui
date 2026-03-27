@@ -48,7 +48,7 @@ const MONTH_OPTIONS = [
 export function BudgetsPage() {
   const currency = useCurrency();
   const queryClient = useQueryClient();
-  const { notify, selectedPeriod } = useUiStore();
+  const { notify, selectedPeriod, topbarSearch } = useUiStore();
   const [selectedYear, selectedMonth] = selectedPeriod.split("-").map(Number);
   const [editId, setEditId] = useState<string | null>(null);
   const budgetDefaults = useMemo<Input>(() => ({
@@ -133,6 +133,28 @@ export function BudgetsPage() {
   const monthBudgetTotal = budgetsQuery.data.reduce((sum, b) => sum + b.amount, 0);
   const monthSpentTotal = budgetsQuery.data.reduce((sum, b) => sum + b.spentAmount, 0);
   const monthUsagePercent = monthBudgetTotal > 0 ? (monthSpentTotal / monthBudgetTotal) * 100 : 0;
+  const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const filteredBudgets = useMemo(() => {
+    if (!normalizedSearch) {
+      return budgetsQuery.data;
+    }
+
+    return budgetsQuery.data.filter((budget) => {
+      const categoryName = categoriesQuery.data.find((category) => category.id === budget.categoryId)?.name ?? budget.categoryId;
+      const accountName = budget.accountId
+        ? accountsQuery.data.find((account) => account.id === budget.accountId)?.name ?? "Shared Account"
+        : "Personal";
+
+      return [
+        categoryName,
+        accountName,
+        String(budget.amount),
+        String(budget.spentAmount),
+        String(budget.year),
+        MONTH_OPTIONS.find((item) => Number(item.value) === budget.month)?.label ?? ""
+      ].some((value) => value.toLowerCase().includes(normalizedSearch));
+    });
+  }, [accountsQuery.data, budgetsQuery.data, categoriesQuery.data, normalizedSearch]);
 
   return (
     <>
@@ -232,14 +254,17 @@ export function BudgetsPage() {
       <section className="card budgets-card">
         <div className="card-head">
           <h3 style={{ marginBottom: 0 }}>Category-wise Budgets</h3>
-          <span className="muted">{budgetsQuery.data.length} categories</span>
+          <span className="muted">{filteredBudgets.length} categories</span>
         </div>
         <div className="budget-list">
           {budgetsQuery.isError && <p className="error">API unavailable.</p>}
           {!budgetsQuery.isError && budgetsQuery.data.length === 0 && (
             <p className="muted">No budgets yet. Suggest budget creation.</p>
           )}
-          {budgetsQuery.data.map((budget) => {
+          {!budgetsQuery.isError && budgetsQuery.data.length > 0 && filteredBudgets.length === 0 && (
+            <p className="muted">No budgets match your search.</p>
+          )}
+          {filteredBudgets.map((budget) => {
             const categoryName = categoriesQuery.data.find((category) => category.id === budget.categoryId)?.name ?? budget.categoryId;
             const accountName = budget.accountId
               ? accountsQuery.data.find((account) => account.id === budget.accountId)?.name ?? "Shared Account"
