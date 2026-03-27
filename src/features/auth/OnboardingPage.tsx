@@ -25,6 +25,10 @@ interface CategoryItem {
   type: "Income" | "Expense";
 }
 
+interface UserProfile {
+  email: string;
+}
+
 interface OnboardingInput {
   accountName: string;
   accountType: "Bank" | "CreditCard" | "CashWallet" | "Savings";
@@ -306,7 +310,7 @@ export function OnboardingPage() {
   const ONBOARDING_SKIP_KEY = "onboardingSkipped";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const email = useAuthStore((s) => s.email);
+  const authEmail = useAuthStore((s) => s.email);
   const { notify, selectedPeriod } = useUiStore();
   const [year, month] = selectedPeriod.split("-").map(Number);
   const [setupMode, setSetupMode] = useState<"manual" | "import">("import");
@@ -332,6 +336,12 @@ export function OnboardingPage() {
     queryKey: ["onboarding-categories"],
     queryFn: async () => (await apiClient.get<CategoryItem[]>("/categories")).data,
     initialData: []
+  });
+
+  const profileQuery = useQuery({
+    queryKey: ["onboarding-profile-email"],
+    queryFn: async () => (await apiClient.get<UserProfile>("/profile")).data,
+    enabled: !authEmail
   });
 
   const invalidatePostOnboarding = async () => {
@@ -417,17 +427,18 @@ export function OnboardingPage() {
   }, [accountsQuery.data.length, navigate, ONBOARDING_SKIP_KEY]);
 
   useEffect(() => {
-    if (!email || accountsQuery.isFetching || accountsQuery.data.length > 0) {
+    const introIdentity = (authEmail ?? profileQuery.data?.email ?? "").trim().toLowerCase();
+    if (!introIdentity || accountsQuery.isFetching || profileQuery.isFetching || accountsQuery.data.length > 0) {
       return;
     }
 
-    const seenKey = `v2-intro-seen:${email.toLowerCase()}`;
+    const seenKey = `v2-intro-seen:${introIdentity}`;
     if (localStorage.getItem(seenKey) === "true") {
       return;
     }
 
     setShowV2Intro(true);
-  }, [accountsQuery.data.length, accountsQuery.isFetching, email]);
+  }, [accountsQuery.data.length, accountsQuery.isFetching, authEmail, profileQuery.data?.email, profileQuery.isFetching]);
 
   const onboardingHighlights = useMemo(() => ([
     { value: "6 months", label: "recent cash-flow history" },
@@ -513,8 +524,9 @@ export function OnboardingPage() {
   }, [importFile]);
 
   const dismissV2Intro = () => {
-    if (email) {
-      localStorage.setItem(`v2-intro-seen:${email.toLowerCase()}`, "true");
+    const introIdentity = (authEmail ?? profileQuery.data?.email ?? "").trim().toLowerCase();
+    if (introIdentity) {
+      localStorage.setItem(`v2-intro-seen:${introIdentity}`, "true");
     }
     setShowV2Intro(false);
   };
