@@ -106,14 +106,17 @@ a {
 }
 
 .brand-mark {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 14px;
   display: grid;
   place-items: center;
-  color: #fff;
-  background: linear-gradient(145deg, #6a62ff, #4f83ff);
-  box-shadow: 0 16px 26px rgba(87, 96, 240, 0.28);
+}
+
+.brand-mark-icon {
+  width: 42px;
+  height: 42px;
+  display: block;
 }
 
 .brand-copy {
@@ -2705,17 +2708,14 @@ body::after {
 .auth-brand-icon-wrap {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, #f4f8ff, #e6eefc);
-  box-shadow: inset 0 0 0 1px rgba(150, 169, 202, 0.18);
 }
 
-.auth-brand-icon {
-  width: 22px;
-  height: 22px;
+.auth-brand-icon-svg {
+  width: 42px;
+  height: 42px;
   display: block;
 }
 
@@ -3251,11 +3251,6 @@ body.dark-theme .auth-copy-v2 h1,
 body.dark-theme .auth-tabs-v2 a.active,
 body.dark-theme .auth-tabs-v2 span.active {
   color: #eef4ff;
-}
-
-body.dark-theme .auth-brand-icon-wrap {
-  background: linear-gradient(145deg, #1a2740, #152033);
-  box-shadow: inset 0 0 0 1px rgba(94, 120, 160, 0.24);
 }
 
 body.dark-theme .auth-brand-subtitle {

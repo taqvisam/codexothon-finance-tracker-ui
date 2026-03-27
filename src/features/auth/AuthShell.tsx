@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { BrandIcon } from "../../components/BrandIcon";
 
 interface AuthShellProps {
   mode: "login" | "signup" | "forgot" | "reset";
@@ -61,7 +62,7 @@ export function AuthShell({
         <section className="auth-form-panel">
           <div className="auth-brand-v2">
             <span className="auth-brand-icon-wrap" aria-hidden="true">
-              <img src="/favicon.svg" alt="" className="auth-brand-icon" />
+              <BrandIcon className="auth-brand-icon-svg" />
             </span>
             <span className="auth-brand-copy">
               <span className="auth-brand-title">Personal Finance</span>

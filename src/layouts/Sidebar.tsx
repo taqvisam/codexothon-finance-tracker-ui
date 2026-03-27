@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { BrandIcon } from "../components/BrandIcon";
 
 function NavIcon({ path }: { path: string }) {
   return (
@@ -52,7 +53,9 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
     <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
       <div className="brand-block">
         <div className="brand-main">
-          <div className="brand-mark" aria-hidden="true">◎</div>
+          <div className="brand-mark" aria-hidden="true">
+            <BrandIcon className="brand-mark-icon" />
+          </div>
           <div className="brand-copy">
             <div className="brand-text">Personal Finance</div>
             <div className="brand-subtext">Tracker V2</div>
