@@ -33,12 +33,10 @@ export function UserMenu({ displayName, profileImageUrl, onProfile, onLogout }: 
         <div className="user-menu">
           <button onClick={() => { setOpen(false); onProfile(); }}>My Profile</button>
           <div className="user-menu-row">
-            <div className="user-menu-meta">
-              <div className="user-menu-label">Dark mode</div>
-            </div>
+            <span className="user-menu-label">Dark mode</span>
             <button
               type="button"
-              className={`settings-switch ${theme === "dark" ? "on" : ""}`}
+              className={`user-menu-switch ${theme === "dark" ? "on" : ""}`}
               role="switch"
               aria-checked={theme === "dark"}
               aria-label="Toggle dark mode"
