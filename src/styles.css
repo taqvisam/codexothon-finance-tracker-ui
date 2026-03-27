@@ -2854,6 +2854,7 @@ body::after {
   flex-direction: column;
   justify-content: space-between;
   background: linear-gradient(180deg, #3d95ef 0%, #3e87e6 100%);
+  transition: background 260ms ease;
 }
 
 .auth-visual-panel::before {
@@ -2922,6 +2923,7 @@ body::after {
   margin: 34px auto 0;
   width: min(470px, 100%);
   height: 318px;
+  transition: transform 220ms ease;
 }
 
 .auth-screen-shadow {
@@ -2961,6 +2963,7 @@ body::after {
   flex: 1;
   border-radius: 8px 8px 0 0;
   background: linear-gradient(180deg, rgba(92, 131, 241, 0.18), rgba(92, 131, 241, 0.74));
+  transition: height 260ms ease, background 260ms ease;
 }
 
 .auth-monitor-bars span:nth-child(1) { height: 30px; }
@@ -2988,6 +2991,7 @@ body::after {
   inset: 0;
   background: linear-gradient(90deg, transparent 0%, #4f8fe8 12%, #7fb1ff 32%, #8fd1d4 52%, #9cc86c 72%, #f2cc63 100%);
   clip-path: polygon(0 76%, 12% 68%, 24% 72%, 38% 54%, 48% 58%, 60% 40%, 72% 42%, 84% 22%, 100% 8%, 100% 20%, 84% 34%, 72% 52%, 60% 50%, 48% 68%, 38% 64%, 24% 82%, 12% 78%, 0 88%);
+  transition: clip-path 260ms ease, background 260ms ease;
 }
 
 .auth-monitor-stand {
@@ -3085,15 +3089,63 @@ body::after {
   margin-top: 24px;
 }
 
-.auth-visual-dots span {
+.auth-visual-dots button {
   width: 34px;
   height: 4px;
+  border: 0;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.34);
+  padding: 0;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
 }
 
-.auth-visual-dots span.active {
+.auth-visual-dots button.active {
   background: rgba(255, 255, 255, 0.96);
+}
+
+.auth-visual-dots button:hover {
+  transform: scaleX(1.06);
+}
+
+.auth-visual-panel.slide-forecast {
+  background: linear-gradient(180deg, #2f88e5 0%, #2f73d5 100%);
+}
+
+.auth-visual-panel.slide-insights {
+  background: linear-gradient(180deg, #3277db 0%, #2c61bc 100%);
+}
+
+.auth-device-scene.slide-forecast .auth-monitor-bars span:nth-child(1) { height: 22px; }
+.auth-device-scene.slide-forecast .auth-monitor-bars span:nth-child(2) { height: 38px; }
+.auth-device-scene.slide-forecast .auth-monitor-bars span:nth-child(3) { height: 66px; }
+.auth-device-scene.slide-forecast .auth-monitor-bars span:nth-child(4) { height: 82px; }
+.auth-device-scene.slide-forecast .auth-monitor-bars span:nth-child(5) { height: 76px; }
+.auth-device-scene.slide-forecast .auth-monitor-bars span:nth-child(6) { height: 104px; }
+
+.auth-device-scene.slide-forecast .auth-monitor-bars span {
+  background: linear-gradient(180deg, rgba(125, 186, 255, 0.2), rgba(125, 186, 255, 0.78));
+}
+
+.auth-device-scene.slide-forecast .auth-monitor-chart span::before {
+  background: linear-gradient(90deg, transparent 0%, #8dc8ff 16%, #7be0c1 42%, #b2f071 68%, #f6d36e 100%);
+  clip-path: polygon(0 82%, 10% 78%, 22% 64%, 34% 68%, 46% 48%, 58% 44%, 72% 28%, 84% 32%, 100% 12%, 100% 24%, 84% 46%, 72% 42%, 58% 58%, 46% 62%, 34% 82%, 22% 78%, 10% 92%, 0 92%);
+}
+
+.auth-device-scene.slide-insights .auth-monitor-bars span:nth-child(1) { height: 50px; }
+.auth-device-scene.slide-insights .auth-monitor-bars span:nth-child(2) { height: 72px; }
+.auth-device-scene.slide-insights .auth-monitor-bars span:nth-child(3) { height: 58px; }
+.auth-device-scene.slide-insights .auth-monitor-bars span:nth-child(4) { height: 90px; }
+.auth-device-scene.slide-insights .auth-monitor-bars span:nth-child(5) { height: 68px; }
+.auth-device-scene.slide-insights .auth-monitor-bars span:nth-child(6) { height: 88px; }
+
+.auth-device-scene.slide-insights .auth-monitor-bars span {
+  background: linear-gradient(180deg, rgba(154, 201, 255, 0.2), rgba(110, 158, 255, 0.76));
+}
+
+.auth-device-scene.slide-insights .auth-monitor-chart span::before {
+  background: linear-gradient(90deg, transparent 0%, #6da5ff 18%, #74b9ff 38%, #8fd0ff 58%, #8ee6c3 78%, #f2dd7e 100%);
+  clip-path: polygon(0 72%, 14% 58%, 28% 66%, 42% 40%, 54% 54%, 68% 30%, 82% 18%, 100% 26%, 100% 38%, 82% 30%, 68% 42%, 54% 66%, 42% 52%, 28% 78%, 14% 70%, 0 84%);
 }
 
 .import-modal-backdrop {
@@ -3230,6 +3282,14 @@ body.dark-theme .auth-shell-v2 .auth-form-grid .input {
 
 body.dark-theme .auth-visual-panel {
   background: linear-gradient(180deg, #2468bf 0%, #285aa7 100%);
+}
+
+body.dark-theme .auth-visual-panel.slide-forecast {
+  background: linear-gradient(180deg, #225dac 0%, #244f93 100%);
+}
+
+body.dark-theme .auth-visual-panel.slide-insights {
+  background: linear-gradient(180deg, #234f9d 0%, #203f7f 100%);
 }
 
 body.dark-theme .auth-visual-panel::before {
