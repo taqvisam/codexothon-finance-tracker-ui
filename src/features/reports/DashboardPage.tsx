@@ -308,6 +308,48 @@ export function DashboardPage() {
     return last - first;
   }, [forecastDailyQuery.data]);
 
+  const pulseMatrix = useMemo(() => {
+    return forecastDailyQuery.data.slice(0, 12).map((point, index, list) => {
+      const previousBalance = index === 0 ? forecastMonthQuery.data?.currentBalance ?? point.projectedBalance : list[index - 1]?.projectedBalance ?? point.projectedBalance;
+      const change = point.projectedBalance - previousBalance;
+      const intensity = Math.min(100, Math.round((Math.abs(change) / Math.max(Math.abs(previousBalance), 1)) * 1600));
+      const tone =
+        point.projectedBalance < 0 ? "critical" :
+        change >= 0 ? "positive" :
+        Math.abs(change) < 75 ? "steady" :
+        "negative";
+
+      return {
+        date: point.date,
+        label: new Date(point.date).toLocaleDateString(undefined, { day: "numeric", month: "short" }),
+        balance: point.projectedBalance,
+        change,
+        intensity,
+        tone
+      };
+    });
+  }, [forecastDailyQuery.data, forecastMonthQuery.data?.currentBalance]);
+
+  const pulseSummary = useMemo(() => {
+    if (!pulseMatrix.length) {
+      return {
+        stableDays: 0,
+        pressureDays: 0,
+        growthDays: 0
+      };
+    }
+
+    return pulseMatrix.reduce(
+      (acc, point) => {
+        if (point.tone === "positive") acc.growthDays += 1;
+        if (point.tone === "negative" || point.tone === "critical") acc.pressureDays += 1;
+        if (point.tone === "steady") acc.stableDays += 1;
+        return acc;
+      },
+      { stableDays: 0, pressureDays: 0, growthDays: 0 }
+    );
+  }, [pulseMatrix]);
+
   return (
     <>
       <MobileSection title="Quick Actions & Alerts" isMobile={isMobile}>
@@ -494,6 +536,51 @@ export function DashboardPage() {
                 </div>
               </div>
             ) : null}
+          </ChartCard>
+        </MobileSection>
+        <MobileSection title="Money Pulse Matrix" isMobile={isMobile}>
+          <ChartCard title="Money Pulse Matrix">
+            {pulseMatrix.length === 0 ? (
+              <p className="muted">No forecast pulse available yet.</p>
+            ) : (
+              <>
+                <div className="pulse-matrix">
+                  {pulseMatrix.map((point) => (
+                    <div
+                      key={point.date}
+                      className={`pulse-cell pulse-${point.tone}`}
+                      style={{ opacity: Math.max(0.35, point.intensity / 100) }}
+                      title={`${point.label} | Balance ${currency(point.balance)} | Change ${point.change >= 0 ? "+" : ""}${currency(point.change)}`}
+                    >
+                      <span>{point.label}</span>
+                      <strong>{point.change >= 0 ? "+" : ""}{currency(point.change)}</strong>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pulse-summary">
+                  <div className="pulse-summary-card">
+                    <span className="muted">Growth days</span>
+                    <strong>{pulseSummary.growthDays}</strong>
+                  </div>
+                  <div className="pulse-summary-card">
+                    <span className="muted">Stable days</span>
+                    <strong>{pulseSummary.stableDays}</strong>
+                  </div>
+                  <div className="pulse-summary-card">
+                    <span className="muted">Pressure days</span>
+                    <strong>{pulseSummary.pressureDays}</strong>
+                  </div>
+                </div>
+
+                <div className="pulse-legend">
+                  <span className="pulse-legend-item"><i className="pulse-dot pulse-positive" /> Rising balance</span>
+                  <span className="pulse-legend-item"><i className="pulse-dot pulse-steady" /> Stable</span>
+                  <span className="pulse-legend-item"><i className="pulse-dot pulse-negative" /> Cash pressure</span>
+                  <span className="pulse-legend-item"><i className="pulse-dot pulse-critical" /> Below zero</span>
+                </div>
+              </>
+            )}
           </ChartCard>
         </MobileSection>
       </section>
