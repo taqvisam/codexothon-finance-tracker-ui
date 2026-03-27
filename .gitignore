@@ -12,6 +12,9 @@ dist
 dist-ssr
 coverage
 *.local
+playwright-report/
+test-results/
+tmp/
 
 # Editor directories and files
 .vscode/*

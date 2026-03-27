@@ -30,6 +30,28 @@ Frontend web app for Personal Finance Tracker.
 ## Tests
 - Component tests: `npm run test`
 - Playwright e2e tests: `npm run test:e2e`
+- Playwright smoke suite: `npm run test:smoke`
+
+### Smoke Test Modes
+- Local UI with local backend:
+  - `npm run test:smoke`
+- Deployed UI / backend:
+  - `$env:PLAYWRIGHT_BASE_URL='https://lively-tree-0520a0f00.6.azurestaticapps.net/'`
+  - `$env:PLAYWRIGHT_SKIP_WEBSERVER='true'`
+  - `npm run test:smoke`
+- Existing user instead of fresh signup:
+  - `$env:PLAYWRIGHT_SMOKE_AUTH_MODE='login'`
+  - `$env:PLAYWRIGHT_SMOKE_EMAIL='user@example.com'`
+  - `$env:PLAYWRIGHT_SMOKE_PASSWORD='YourPassword@123'`
+  - `npm run test:smoke`
+
+The smoke suite covers:
+- signup or login
+- onboarding workbook import
+- dashboard and major V2 pages
+- transactions import modal
+- settings delete-account modal
+- backend 5xx detection during the browser flow
 
 ## Demo Credentials
 - test@amiti.in / Test@123
@@ -39,4 +61,3 @@ Frontend web app for Personal Finance Tracker.
 
 ## Deployed URL
 - UI: `https://lively-tree-0520a0f00.6.azurestaticapps.net/`
-
