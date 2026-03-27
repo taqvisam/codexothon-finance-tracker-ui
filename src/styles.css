@@ -619,21 +619,66 @@ a {
   align-items: center;
 }
 
+.budgets-card {
+  padding: 16px;
+}
+
+.budget-overview-summary {
+  display: grid;
+  gap: 6px;
+}
+
+.budget-overview-progress {
+  display: grid;
+  gap: 10px;
+  align-content: center;
+}
+
+.budget-overview-caption {
+  text-align: right;
+}
+
+.budget-overview-caption-bottom {
+  margin-top: -2px;
+}
+
 .budget-row {
   display: grid;
-  grid-template-columns: minmax(140px, 200px) 1fr auto;
-  gap: 12px;
+  grid-template-columns: minmax(180px, 240px) minmax(260px, 1fr) auto;
+  gap: 18px;
   align-items: center;
-  padding: 12px;
+  padding: 16px;
   border: 1px solid rgba(198, 217, 242, 0.72);
-  border-radius: 10px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.46);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 .budget-row + .budget-row {
-  margin-top: 8px;
+  margin-top: 12px;
+}
+
+.budget-row-meta {
+  display: grid;
+  gap: 4px;
+}
+
+.budget-row-progress {
+  display: grid;
+  gap: 8px;
+}
+
+.budget-list {
+  margin-top: 12px;
+}
+
+.budgets-form {
+  margin-top: 10px;
+}
+
+.budgets-form-actions {
+  margin-top: 6px;
 }
 
 .insights-grid {
@@ -1833,6 +1878,11 @@ body.dark-theme .user-menu button:hover {
 
   .budget-row {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .budget-overview-caption {
+    text-align: left;
   }
 
   .forecast-header {

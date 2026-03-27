@@ -136,7 +136,7 @@ export function BudgetsPage() {
 
   return (
     <>
-      <section className="card">
+      <section className="card budgets-card">
         <div className="card-head">
           <h3 style={{ marginBottom: 0 }}>Monthly Budget</h3>
           <span className="muted">
@@ -144,25 +144,26 @@ export function BudgetsPage() {
           </span>
         </div>
         <div className="budget-overview">
-          <div>
+          <div className="budget-overview-summary">
             <div className="muted">Total Monthly Budget</div>
             <div className="big">{currency(monthBudgetTotal)}</div>
           </div>
-          <div>
-            <div className="muted" style={{ textAlign: "right" }}>
+          <div className="budget-overview-progress">
+            <div className="muted budget-overview-caption">
               {currency(monthSpentTotal)} on {currency(monthBudgetTotal)} budget
             </div>
             <ProgressBar value={monthUsagePercent} />
-            <div className="muted" style={{ textAlign: "right", marginTop: 4 }}>
+            <div className="muted budget-overview-caption budget-overview-caption-bottom">
               {Math.round(monthUsagePercent)}% utilized
             </div>
           </div>
         </div>
       </section>
 
-      <section className="card">
+      <section className="card budgets-card">
         <h3>{editId ? "Edit Budget" : "Create Budget"}</h3>
         <form
+          className="budgets-form"
           onSubmit={handleSubmit((data) => {
             if (!data.categoryId) {
               notify("Please select a category", "error");
@@ -203,7 +204,7 @@ export function BudgetsPage() {
             <TextInput label="Budget Year" type="number" min={2000} {...register("year", { valueAsNumber: true })} />
             <TextInput label="Budget Amount" type="number" min={0} step="0.01" {...register("amount", { valueAsNumber: true })} />
           </div>
-          <div className="form-actions">
+          <div className="form-actions budgets-form-actions">
             <button className="btn" type="submit">{editId ? "Update Budget" : "Create Budget"}</button>
             <button
               className="btn ghost"
@@ -228,12 +229,12 @@ export function BudgetsPage() {
         </form>
       </section>
 
-      <section className="card">
+      <section className="card budgets-card">
         <div className="card-head">
           <h3 style={{ marginBottom: 0 }}>Category-wise Budgets</h3>
           <span className="muted">{budgetsQuery.data.length} categories</span>
         </div>
-        <div style={{ marginTop: 8 }}>
+        <div className="budget-list">
           {budgetsQuery.isError && <p className="error">API unavailable.</p>}
           {!budgetsQuery.isError && budgetsQuery.data.length === 0 && (
             <p className="muted">No budgets yet. Suggest budget creation.</p>
@@ -247,12 +248,12 @@ export function BudgetsPage() {
             const statusTone = percent >= 120 ? "budget-danger" : percent >= 100 ? "budget-warn" : "budget-ok";
             return (
               <article className="budget-row" key={budget.id}>
-                <div>
+                <div className="budget-row-meta">
                   <strong>{categoryName}</strong>
                   <div className="muted">{currency(budget.spentAmount)} / {currency(budget.amount)}</div>
                   <div className="muted">{accountName}</div>
                 </div>
-                <div>
+                <div className="budget-row-progress">
                   <ProgressBar value={percent} />
                   <div className={`muted ${statusTone}`} style={{ marginTop: 4 }}>
                     {Math.round(percent)}% used
