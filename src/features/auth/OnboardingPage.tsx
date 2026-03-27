@@ -316,6 +316,7 @@ export function OnboardingPage() {
   const [setupMode, setSetupMode] = useState<"manual" | "import">("import");
   const [importFile, setImportFile] = useState<File | null>(null);
   const [showV2Intro, setShowV2Intro] = useState(false);
+  const [dismissedV2Intro, setDismissedV2Intro] = useState(false);
   const { register, handleSubmit, setValue, watch } = useForm<OnboardingInput>({
     defaultValues: {
       accountType: "Bank",
@@ -428,17 +429,22 @@ export function OnboardingPage() {
 
   useEffect(() => {
     const introIdentity = (authEmail ?? profileQuery.data?.email ?? "").trim().toLowerCase();
-    if (!introIdentity || accountsQuery.isFetching || profileQuery.isFetching || accountsQuery.data.length > 0) {
+    const seenPersisted = introIdentity
+      ? localStorage.getItem(`v2-intro-seen:${introIdentity}`) === "true"
+      : false;
+
+    if (accountsQuery.isFetching || accountsQuery.data.length > 0) {
+      setShowV2Intro(false);
       return;
     }
 
-    const seenKey = `v2-intro-seen:${introIdentity}`;
-    if (localStorage.getItem(seenKey) === "true") {
+    if (dismissedV2Intro || seenPersisted) {
+      setShowV2Intro(false);
       return;
     }
 
     setShowV2Intro(true);
-  }, [accountsQuery.data.length, accountsQuery.isFetching, authEmail, profileQuery.data?.email, profileQuery.isFetching]);
+  }, [accountsQuery.data.length, accountsQuery.isFetching, authEmail, dismissedV2Intro, profileQuery.data?.email]);
 
   const onboardingHighlights = useMemo(() => ([
     { value: "6 months", label: "recent cash-flow history" },
@@ -528,6 +534,7 @@ export function OnboardingPage() {
     if (introIdentity) {
       localStorage.setItem(`v2-intro-seen:${introIdentity}`, "true");
     }
+    setDismissedV2Intro(true);
     setShowV2Intro(false);
   };
 
