@@ -101,6 +101,9 @@ export function TransactionsPage() {
   const [selectedAccount, setSelectedAccount] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importAccountId, setImportAccountId] = useState("");
 
   const { register, handleSubmit, reset, setValue, watch } = useForm<Input>({
     resolver: zodResolver(schema),
@@ -241,6 +244,9 @@ export function TransactionsPage() {
       await queryClient.invalidateQueries({ queryKey: ["transactions"] });
       notify(`Imported ${result.importedCount} transactions`);
       result.alerts.forEach((message) => notify(message, "warning"));
+      setIsImportModalOpen(false);
+      setImportFile(null);
+      setImportAccountId("");
     },
     onError: (error) => {
       const message = (
@@ -321,7 +327,7 @@ export function TransactionsPage() {
     return cells;
   };
 
-  const handleImportFile = async (file: File) => {
+  const handleImportFile = async (file: File, selectedImportAccountId: string) => {
     const text = await file.text();
     const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
     if (lines.length < 2) {
@@ -334,7 +340,7 @@ export function TransactionsPage() {
       const values = parseCsvLine(line);
       const get = (name: string) => values[header.indexOf(name)] ?? "";
       return {
-        accountId: get("accountid"),
+        accountId: selectedImportAccountId,
         categoryId: get("categoryid") || undefined,
         transferAccountId: get("transferaccountid") || undefined,
         type: (get("type") || "Expense") as Input["type"],
@@ -348,6 +354,26 @@ export function TransactionsPage() {
     });
 
     importMutation.mutate(rows);
+  };
+
+  const closeImportModal = () => {
+    setIsImportModalOpen(false);
+    setImportFile(null);
+    setImportAccountId("");
+  };
+
+  const submitImport = async () => {
+    if (!importFile) {
+      notify("Please select a CSV file to import.", "error");
+      return;
+    }
+
+    if (!importAccountId) {
+      notify("Please select the account to use for imported transactions.", "error");
+      return;
+    }
+
+    await handleImportFile(importFile, importAccountId);
   };
 
   return (
@@ -406,7 +432,15 @@ export function TransactionsPage() {
           </div>
           <div className="form-actions">
             <Button type="submit">{editId ? "Update Transaction" : "+ Add Transaction"}</Button>
-            <Button type="button" variant="secondary" onClick={() => importInputRef.current?.click()}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setIsImportModalOpen(true);
+                setImportFile(null);
+                setImportAccountId("");
+              }}
+            >
               Import CSV
             </Button>
             {editId ? (
@@ -422,21 +456,56 @@ export function TransactionsPage() {
               </Button>
             ) : null}
           </div>
-          <input
-            ref={importInputRef}
-            type="file"
-            accept=".csv,text/csv"
-            style={{ display: "none" }}
-            onChange={async (event) => {
-              const file = event.target.files?.[0];
-              if (file) {
-                await handleImportFile(file);
-              }
-              event.target.value = "";
-            }}
-          />
         </form>
       </section>
+
+      {isImportModalOpen ? (
+        <div className="import-modal-backdrop" onClick={closeImportModal}>
+          <div className="import-modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="card-head">
+              <h3 style={{ marginBottom: 0 }}>Import Transactions</h3>
+            </div>
+            <p className="muted import-modal-copy">
+              Select a CSV file, then choose which account the imported transactions should be added to.
+            </p>
+            <div className="import-modal-form">
+              <div>
+                <label className="input-label" htmlFor="transaction-import-file">CSV File</label>
+                <input
+                  id="transaction-import-file"
+                  ref={importInputRef}
+                  className="input import-file-input"
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] ?? null;
+                    setImportFile(file);
+                  }}
+                />
+                {importFile ? <div className="muted import-file-name">Selected: {importFile.name}</div> : null}
+              </div>
+              <Dropdown
+                label="Account"
+                options={[{ value: "", label: "Select Account" }, ...accountsQuery.data.map((a) => ({ value: a.id, label: a.name }))]}
+                value={importAccountId}
+                onChange={(event) => setImportAccountId(event.target.value)}
+              />
+            </div>
+            <div className="form-actions import-modal-actions">
+              <Button type="button" variant="secondary" onClick={closeImportModal}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => void submitImport()}
+                disabled={importMutation.isPending}
+              >
+                {importMutation.isPending ? "Importing..." : "Import Transactions"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <section className="v2-page-grid">
         <article className="card">

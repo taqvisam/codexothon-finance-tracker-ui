@@ -2644,11 +2644,62 @@ body::after {
   padding: 7px 10px;
 }
 
+.import-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 25, 42, 0.42);
+  display: grid;
+  place-items: center;
+  z-index: 320;
+  padding: 16px;
+}
+
+.import-modal-card {
+  width: min(520px, 100%);
+  background: #ffffff;
+  border: 1px solid #dbe4f2;
+  border-radius: 16px;
+  box-shadow: 0 22px 54px rgba(16, 30, 52, 0.24);
+  padding: 18px;
+}
+
+.import-modal-copy {
+  margin: 4px 0 14px;
+}
+
+.import-modal-form {
+  display: grid;
+  gap: 12px;
+}
+
+.import-file-input {
+  padding: 10px 12px;
+}
+
+.import-file-name {
+  margin-top: 8px;
+}
+
+.import-modal-actions {
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
 body.dark-theme .goal-modal-backdrop {
   background: rgba(4, 10, 20, 0.62);
 }
 
 body.dark-theme .goal-modal-card {
+  background: #182335;
+  border-color: #2f3d54;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
+}
+
+body.dark-theme .import-modal-backdrop {
+  background: rgba(4, 10, 20, 0.66);
+}
+
+body.dark-theme .import-modal-card {
   background: #182335;
   border-color: #2f3d54;
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
