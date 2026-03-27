@@ -160,7 +160,8 @@ export function SettingsPage() {
     }
   });
 
-  const resolvedAvatar = profileImageUrl?.trim() ? profileImageUrl : "/default-avatar.svg";
+  const hasProfileImage = Boolean(profileImageUrl?.trim());
+  const avatarInitial = (fullName.trim().charAt(0) || "U").toUpperCase();
 
   const setPref = <K extends keyof PreferenceState>(key: K, value: PreferenceState[K]) => {
     setPrefs((prev) => ({ ...prev, [key]: value }));
@@ -172,6 +173,11 @@ export function SettingsPage() {
 
   const onPickImage = () => {
     fileInputRef.current?.click();
+  };
+
+  const removeProfileImage = () => {
+    setProfileImageUrl(null);
+    notify("Profile image removed. Click Save Changes to persist.");
   };
 
   const onImageSelected = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -256,9 +262,20 @@ export function SettingsPage() {
           <div className="settings-divider" />
           <div className="settings-avatar-wrap">
             <div className="settings-avatar">
-              <img src={resolvedAvatar} alt={fullName || "Profile"} className="settings-avatar-img" />
+              {hasProfileImage ? (
+                <img src={profileImageUrl ?? ""} alt={fullName || "Profile"} className="settings-avatar-img" />
+              ) : (
+                <span className="settings-avatar-fallback">{avatarInitial}</span>
+              )}
             </div>
-            <button type="button" className="btn settings-change-btn" onClick={onPickImage}>Change</button>
+            <div className="settings-avatar-actions">
+              <button type="button" className="btn settings-change-btn" onClick={onPickImage}>Change</button>
+              {hasProfileImage ? (
+                <button type="button" className="btn ghost settings-remove-btn" onClick={removeProfileImage}>
+                  Remove
+                </button>
+              ) : null}
+            </div>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onImageSelected} />
           </div>
           <div className="settings-form">
