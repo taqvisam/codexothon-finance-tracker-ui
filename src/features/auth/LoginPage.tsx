@@ -31,6 +31,7 @@ export function LoginPage() {
         email: string;
         displayName: string;
         profileImageUrl?: string | null;
+        showWelcomeBackMessage?: boolean;
       };
     },
     onSuccess: (data) => {

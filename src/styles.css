@@ -2670,6 +2670,37 @@ body::after {
   padding: 7px 10px;
 }
 
+.welcome-back-card {
+  width: min(420px, 100%);
+}
+
+.welcome-back-actions {
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.delete-account-modal {
+  width: min(520px, 100%);
+}
+
+.delete-account-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  color: #243754;
+  font-weight: 600;
+}
+
+.delete-account-checkbox input {
+  width: 16px;
+  height: 16px;
+}
+
+.delete-account-note {
+  margin: 12px 0 0;
+}
+
 .auth-shell-v2 {
   min-height: 100vh;
   padding: 42px 24px;
@@ -3380,6 +3411,10 @@ body.dark-theme .goal-hold-badge {
   color: #ffdca1;
   background: rgba(82, 61, 24, 0.72);
   border-color: rgba(133, 99, 41, 0.92);
+}
+
+body.dark-theme .delete-account-checkbox {
+  color: #dbe6f8;
 }
 
 body.dark-theme .auth-shell-v2 {

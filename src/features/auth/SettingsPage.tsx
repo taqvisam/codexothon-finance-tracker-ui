@@ -60,6 +60,8 @@ export function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteData, setDeleteData] = useState(false);
   const [prefs, setPrefs] = useState<PreferenceState>({
     emailNotifications: true,
     pushNotifications: true,
@@ -207,19 +209,32 @@ export function SettingsPage() {
     }
   };
 
-  const deleteAccount = async () => {
-    const ok = window.confirm("Delete account permanently? This action cannot be undone.");
-    if (!ok) return;
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () =>
+      (
+        await apiClient.delete<{ message: string }>("/profile", {
+          data: { deleteData }
+        })
+      ).data,
+    onSuccess: async (result) => {
+      try {
+        await apiClient.post("/auth/logout");
+      } catch {
+      }
 
-    try {
-      await apiClient.post("/auth/logout");
-    } catch {
+      logout();
+      notify(result.message, deleteData ? "warning" : "success");
+      setShowDeleteModal(false);
+      setDeleteData(false);
+      navigate("/login");
+    },
+    onError: (error) => {
+      const message = (
+        error as { response?: { data?: { error?: string } } }
+      ).response?.data?.error ?? "Failed to delete account.";
+      notify(message, "error");
     }
-
-    logout();
-    notify("Account removed locally. Contact support for permanent backend deletion.", "warning");
-    navigate("/signup");
-  };
+  });
 
   const changePassword = () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -311,12 +326,56 @@ export function SettingsPage() {
             <p className="muted">
               Once you delete your account, there is no going back. Please be certain.
             </p>
-            <button type="button" className="btn settings-danger-btn" onClick={deleteAccount}>
+            <button type="button" className="btn settings-danger-btn" onClick={() => setShowDeleteModal(true)}>
               Delete Account
             </button>
           </article>
         </aside>
       </div>
+
+      {showDeleteModal ? (
+        <div className="goal-modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowDeleteModal(false)}>
+          <div className="goal-modal-card delete-account-modal" onClick={(event) => event.stopPropagation()}>
+            <h3>Delete account</h3>
+            <p className="muted">
+              If you continue without deleting data, we will keep your accounts, transactions, budgets, and goals in case you come back later.
+            </p>
+            <label className="delete-account-checkbox">
+              <input
+                type="checkbox"
+                checked={deleteData}
+                onChange={(event) => setDeleteData(event.target.checked)}
+              />
+              <span>Delete my data permanently</span>
+            </label>
+            <p className="muted delete-account-note">
+              {deleteData
+                ? "This will permanently remove your user profile, accounts, transactions, budgets, goals, recurring items, and related records."
+                : "Your profile will be removed from the app for now, but your data will be restored if you sign in again later."}
+            </p>
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteData(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => deleteAccountMutation.mutate()}
+                disabled={deleteAccountMutation.isPending}
+              >
+                {deleteAccountMutation.isPending ? "Deleting..." : "Delete Account"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

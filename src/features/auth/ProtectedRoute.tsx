@@ -19,6 +19,9 @@ function isJwtValid(token: string): boolean {
 export function ProtectedRoute() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const refreshToken = useAuthStore((s) => s.refreshToken);
+  const displayName = useAuthStore((s) => s.displayName);
+  const showWelcomeBackMessage = useAuthStore((s) => s.showWelcomeBackMessage);
+  const consumeWelcomeBackMessage = useAuthStore((s) => s.consumeWelcomeBackMessage);
   const setAuth = useAuthStore((s) => s.setAuth);
   const logout = useAuthStore((s) => s.logout);
   const [status, setStatus] = useState<"checking" | "allowed" | "denied">("checking");
@@ -39,6 +42,8 @@ export function ProtectedRoute() {
           refreshToken?: string;
           email: string;
           displayName: string;
+          profileImageUrl?: string | null;
+          showWelcomeBackMessage?: boolean;
         }>("/auth/refresh", payload);
         setAuth(data);
         if (!cancelled) setStatus("allowed");
@@ -62,5 +67,25 @@ export function ProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      {showWelcomeBackMessage ? (
+        <div className="goal-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="goal-modal-card welcome-back-card">
+            <h3>Welcome back</h3>
+            <p className="muted">
+              {displayName ? `${displayName}, ` : ""}
+              we kept everything exactly as you left it.
+            </p>
+            <div className="form-actions welcome-back-actions">
+              <button className="btn" type="button" onClick={consumeWelcomeBackMessage}>
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
 }

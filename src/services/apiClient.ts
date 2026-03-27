@@ -52,6 +52,7 @@ apiClient.interceptors.response.use(
         email: string;
         displayName: string;
         profileImageUrl?: string | null;
+        showWelcomeBackMessage?: boolean;
       };
 
       state.setAuth(auth);
