@@ -23,6 +23,8 @@ export function Topbar() {
     "/goals": "Goals",
     "/reports": "Reports",
     "/insights": "Insights",
+    "/rules": "Rules Engine",
+    "/shared-accounts": "Shared Accounts",
     "/recurring": "Recurring",
     "/settings": "Settings"
   };

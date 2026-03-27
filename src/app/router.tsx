@@ -17,6 +17,8 @@ import { ReportsPage } from "../features/reports/ReportsPage";
 import { InsightsPage } from "../features/reports/InsightsPage";
 import { RecurringPage } from "../features/recurring/RecurringPage";
 import { AccountsPage } from "../features/accounts/AccountsPage";
+import { RulesPage } from "../features/rules/RulesPage";
+import { SharedAccountsPage } from "../features/shared/SharedAccountsPage";
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +45,8 @@ export const router = createBrowserRouter([
               { path: "goals", element: <GoalsPage /> },
               { path: "reports", element: <ReportsPage /> },
               { path: "insights", element: <InsightsPage /> },
+              { path: "rules", element: <RulesPage /> },
+              { path: "shared-accounts", element: <SharedAccountsPage /> },
               { path: "recurring", element: <RecurringPage /> },
               { path: "accounts", element: <AccountsPage /> },
               { path: "settings", element: <SettingsPage /> }

@@ -8,6 +8,7 @@ import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
 import { Dropdown } from "../../components/Dropdown";
 import { TextInput } from "../../components/TextInput";
+import { SharedAccountPanel } from "./SharedAccountPanel";
 import {
   CUSTOM_INSTITUTION_VALUE,
   INSTITUTION_OPTIONS,
@@ -263,6 +264,10 @@ export function AccountsPage() {
             ]}
           />
         )}
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <SharedAccountPanel accounts={accountsQuery.data.map((account) => ({ id: account.id, name: account.name }))} />
       </div>
     </section>
   );

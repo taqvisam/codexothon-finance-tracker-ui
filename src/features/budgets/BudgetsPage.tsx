@@ -11,6 +11,7 @@ import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
 
 interface Input {
+  accountId?: string;
   categoryId: string;
   month: number;
   year: number;
@@ -22,6 +23,11 @@ interface CategoryItem {
   id: string;
   name: string;
   type: "Income" | "Expense";
+}
+
+interface AccountItem {
+  id: string;
+  name: string;
 }
 
 const MONTH_OPTIONS = [
@@ -46,6 +52,7 @@ export function BudgetsPage() {
   const [selectedYear, selectedMonth] = selectedPeriod.split("-").map(Number);
   const [editId, setEditId] = useState<string | null>(null);
   const budgetDefaults = useMemo<Input>(() => ({
+    accountId: "",
     categoryId: "",
     month: selectedMonth,
     year: selectedYear,
@@ -75,12 +82,22 @@ export function BudgetsPage() {
     initialData: []
   });
 
+  const accountsQuery = useQuery({
+    queryKey: ["budget-accounts"],
+    queryFn: async () => (await apiClient.get<AccountItem[]>("/accounts")).data,
+    initialData: []
+  });
+
   const createMutation = useMutation({
     mutationFn: async (input: Input) => {
+      const payload = {
+        ...input,
+        accountId: input.accountId?.trim() ? input.accountId : undefined
+      };
       if (editId) {
-        return apiClient.put(`/budgets/${editId}`, input);
+        return apiClient.put(`/budgets/${editId}`, payload);
       }
-      return apiClient.post("/budgets", input);
+      return apiClient.post("/budgets", payload);
     },
     onSuccess: () => {
       notify(editId ? "Budget updated" : "Budget created");
@@ -158,6 +175,15 @@ export function BudgetsPage() {
           <input type="hidden" {...register("month", { valueAsNumber: true })} />
           <div className="form-grid">
             <Dropdown
+              label="Account Scope"
+              options={[
+                { value: "", label: "Personal budget (all personal accounts)" },
+                ...accountsQuery.data.map((account) => ({ value: account.id, label: `Shared/Specific: ${account.name}` }))
+              ]}
+              value={watch("accountId") ?? ""}
+              onChange={(event) => setValue("accountId", event.target.value)}
+            />
+            <Dropdown
               label="Category"
               options={[
                 { value: "", label: "Select expense category" },
@@ -214,6 +240,9 @@ export function BudgetsPage() {
           )}
           {budgetsQuery.data.map((budget) => {
             const categoryName = categoriesQuery.data.find((category) => category.id === budget.categoryId)?.name ?? budget.categoryId;
+            const accountName = budget.accountId
+              ? accountsQuery.data.find((account) => account.id === budget.accountId)?.name ?? "Shared Account"
+              : "Personal";
             const percent = budget.amount ? (budget.spentAmount / budget.amount) * 100 : 0;
             const statusTone = percent >= 120 ? "budget-danger" : percent >= 100 ? "budget-warn" : "budget-ok";
             return (
@@ -221,6 +250,7 @@ export function BudgetsPage() {
                 <div>
                   <strong>{categoryName}</strong>
                   <div className="muted">{currency(budget.spentAmount)} / {currency(budget.amount)}</div>
+                  <div className="muted">{accountName}</div>
                 </div>
                 <div>
                   <ProgressBar value={percent} />
@@ -234,6 +264,7 @@ export function BudgetsPage() {
                     label="Edit budget"
                     onClick={() => {
                       setEditId(budget.id);
+                      setValue("accountId", budget.accountId ?? "");
                       setValue("categoryId", budget.categoryId);
                       setValue("month", budget.month);
                       setValue("year", budget.year);

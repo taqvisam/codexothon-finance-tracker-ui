@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { z } from "zod";
@@ -93,6 +93,7 @@ export function TransactionsPage() {
   const currency = useCurrency();
   const { dateFrom, dateTo, notify } = useUiStore();
   const todayIso = new Date().toISOString().slice(0, 10);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [search, setSearch] = useState("");
@@ -180,13 +181,14 @@ export function TransactionsPage() {
       };
 
       if (editId) {
-        return apiClient.put(`/transactions/${editId}`, payload);
+        return (await apiClient.put<TransactionItem>(`/transactions/${editId}`, payload)).data;
       }
-      return apiClient.post("/transactions", payload);
+      return (await apiClient.post<TransactionItem & { alerts?: string[] }>("/transactions", payload)).data;
     },
-    onSuccess: async () => {
+    onSuccess: async (savedTransaction) => {
       await queryClient.invalidateQueries({ queryKey: ["transactions"] });
       notify(editId ? "Transaction updated" : "Transaction saved successfully");
+      (savedTransaction.alerts ?? []).forEach((message) => notify(message, "warning"));
       setEditId(null);
       setPage(1);
       setSelectedType("");
@@ -206,6 +208,40 @@ export function TransactionsPage() {
         setEditId(null);
         resetTransactionForm();
       }
+    }
+  });
+
+  const importMutation = useMutation({
+    mutationFn: async (items: Input[]) =>
+      (
+        await apiClient.post<{ importedCount: number; alerts: string[] }>("/transactions/import", {
+          items: items.map((item) => ({
+            accountId: item.accountId,
+            categoryId: item.categoryId || undefined,
+            transferAccountId: item.transferAccountId || undefined,
+            type: item.type,
+            amount: item.amount,
+            date: item.date,
+            merchant: item.merchant,
+            note: item.note,
+            paymentMethod: item.paymentMethod,
+            tags: (item.tags ?? "")
+              .split(",")
+              .map((x) => x.trim())
+              .filter(Boolean)
+          }))
+        })
+      ).data,
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      notify(`Imported ${result.importedCount} transactions`);
+      result.alerts.forEach((message) => notify(message, "warning"));
+    },
+    onError: (error) => {
+      const message = (
+        error as { response?: { data?: { error?: string } } }
+      ).response?.data?.error ?? "Import failed.";
+      notify(message, "error");
     }
   });
 
@@ -257,6 +293,56 @@ export function TransactionsPage() {
     }
 
     notify("Please complete required transaction fields", "error");
+  };
+
+  const parseCsvLine = (line: string) => {
+    const cells: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const ch = line[i];
+      if (ch === "\"") {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (ch === "," && !inQuotes) {
+        cells.push(current.trim());
+        current = "";
+        continue;
+      }
+      current += ch;
+    }
+    cells.push(current.trim());
+    return cells;
+  };
+
+  const handleImportFile = async (file: File) => {
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
+    if (lines.length < 2) {
+      notify("CSV must include header and at least one row.", "error");
+      return;
+    }
+
+    const header = parseCsvLine(lines[0]).map((cell) => cell.toLowerCase());
+    const rows = lines.slice(1).map((line) => {
+      const values = parseCsvLine(line);
+      const get = (name: string) => values[header.indexOf(name)] ?? "";
+      return {
+        accountId: get("accountid"),
+        categoryId: get("categoryid") || undefined,
+        transferAccountId: get("transferaccountid") || undefined,
+        type: (get("type") || "Expense") as Input["type"],
+        amount: Number(get("amount")),
+        date: get("date"),
+        merchant: get("merchant") || undefined,
+        note: get("note") || undefined,
+        paymentMethod: get("paymentmethod") || undefined,
+        tags: get("tags") || undefined
+      } satisfies Input;
+    });
+
+    importMutation.mutate(rows);
   };
 
   return (
@@ -315,6 +401,9 @@ export function TransactionsPage() {
           </div>
           <div className="form-actions">
             <Button type="submit">{editId ? "Update Transaction" : "+ Add Transaction"}</Button>
+            <Button type="button" variant="secondary" onClick={() => importInputRef.current?.click()}>
+              Import CSV
+            </Button>
             {editId ? (
               <Button
                 type="button"
@@ -328,6 +417,19 @@ export function TransactionsPage() {
               </Button>
             ) : null}
           </div>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            style={{ display: "none" }}
+            onChange={async (event) => {
+              const file = event.target.files?.[0];
+              if (file) {
+                await handleImportFile(file);
+              }
+              event.target.value = "";
+            }}
+          />
         </form>
       </section>
 
