@@ -113,6 +113,18 @@ function toIsoDate(value: unknown) {
   return Number.isNaN(parsed.getTime()) ? text : parsed.toISOString().slice(0, 10);
 }
 
+function formatFileSize(bytes: number) {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return "0 KB";
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 102.4) / 10)} KB`;
+  }
+
+  return `${Math.round((bytes / (1024 * 1024)) * 10) / 10} MB`;
+}
+
 function mapRows(sheet: XLSX.WorkSheet | undefined) {
   if (!sheet) {
     return [];
@@ -318,21 +330,93 @@ export function OnboardingPage() {
     }
   }, [accountsQuery.data.length, navigate, ONBOARDING_SKIP_KEY]);
 
-  const importSummary = useMemo(() => (
-    [
-      "Accounts sheet: name, type, opening balance, institution",
-      "Budgets sheet: category, amount, month, year, optional account",
-      "Goals sheet: name, target amount, current amount, target date, linked account",
-      "Transactions sheet: account, type, amount, date, category, merchant, note, payment method, tags"
-    ]
-  ), []);
+  const onboardingHighlights = useMemo(() => ([
+    { value: "6 months", label: "recent cash-flow history" },
+    { value: "4 sheets", label: "human-readable workbook tabs" },
+    { value: "0 IDs", label: "database values needed" }
+  ]), []);
+
+  const importSheets = useMemo(() => ([
+    {
+      title: "Accounts",
+      description: "Bank, credit, savings, and wallet balances with provider names.",
+      fields: "name, type, opening balance, institution"
+    },
+    {
+      title: "Budgets",
+      description: "Monthly caps for core categories so health score and alerts feel real immediately.",
+      fields: "category, amount, month, year, optional account"
+    },
+    {
+      title: "Goals",
+      description: "Long-term savings targets with progress and linked accounts.",
+      fields: "name, target amount, current amount, target date, linked account"
+    },
+    {
+      title: "Transactions",
+      description: "Income, expenses, and transfers across the last six months.",
+      fields: "account, type, amount, date, category, merchant, note, payment method, tags"
+    }
+  ]), []);
+
+  const onboardingBenefits = useMemo(() => ([
+    "Forecasts get useful immediately with recent transaction patterns.",
+    "Insights highlights light up with month-over-month changes.",
+    "Budgets, goals, and balances land in the app already connected."
+  ]), []);
+
+  const selectedFileSummary = useMemo(() => {
+    if (!importFile) {
+      return null;
+    }
+
+    return {
+      name: importFile.name,
+      size: formatFileSize(importFile.size)
+    };
+  }, [importFile]);
 
   return (
     <section className="card onboarding-card">
-      <h3>Welcome! Let&apos;s set up your workspace</h3>
-      <p className="muted">
-        Start manually or load a ready-made workbook with accounts, budgets, goals, and six months of transactions.
-      </p>
+      <div className="onboarding-hero">
+        <div className="onboarding-hero-copy">
+          <span className="onboarding-eyebrow">First-run setup</span>
+          <h3>Load a rich finance history in one move</h3>
+          <p className="muted">
+            Start with a workbook that brings in accounts, budgets, goals, and recent transactions so the dashboard feels alive from the first screen.
+          </p>
+          <div className="onboarding-highlight-row">
+            {onboardingHighlights.map((item) => (
+              <div key={item.label} className="onboarding-highlight-chip">
+                <strong>{item.value}</strong>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="onboarding-hero-preview" aria-hidden="true">
+          <div className="onboarding-preview-card">
+            <span className="onboarding-preview-kicker">What lands instantly</span>
+            <div className="onboarding-preview-metric">
+              <strong>Forecasts + Insights</strong>
+              <span>ready from day one</span>
+            </div>
+            <div className="onboarding-preview-bars">
+              <span className="onboarding-preview-bar preview-bar-1" />
+              <span className="onboarding-preview-bar preview-bar-2" />
+              <span className="onboarding-preview-bar preview-bar-3" />
+              <span className="onboarding-preview-bar preview-bar-4" />
+              <span className="onboarding-preview-bar preview-bar-5" />
+            </div>
+            <div className="onboarding-preview-points">
+              <span className="preview-point active" />
+              <span className="preview-point" />
+              <span className="preview-point" />
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="onboarding-mode-switch">
         <button
@@ -352,7 +436,16 @@ export function OnboardingPage() {
       </div>
 
       {setupMode === "manual" ? (
-        <form onSubmit={handleSubmit((data) => createMutation.mutate(data))}>
+        <form className="onboarding-manual-form" onSubmit={handleSubmit((data) => createMutation.mutate(data))}>
+          <div className="onboarding-manual-intro">
+            <div>
+              <h4>Manual setup</h4>
+              <p className="muted">
+                Best when you want to add one account and maybe a single monthly budget, then build the rest inside the app.
+              </p>
+            </div>
+            <div className="onboarding-manual-badge">Simple start</div>
+          </div>
           <div className="form-grid">
             <TextInput label="Account Name" {...register("accountName")} />
             <Dropdown
@@ -398,12 +491,12 @@ export function OnboardingPage() {
             <TextInput label="Budget Amount" type="number" step="0.01" {...register("budgetAmount", { valueAsNumber: true })} />
           </div>
 
-          <div className="form-actions">
-            <button className="btn" type="submit" disabled={createMutation.isPending}>
+          <div className="form-actions onboarding-actions">
+            <button className="btn onboarding-primary-action" type="submit" disabled={createMutation.isPending}>
               {createMutation.isPending ? "Saving..." : "Finish Onboarding"}
             </button>
             <button
-              className="btn ghost"
+              className="btn ghost onboarding-secondary-action"
               type="button"
               onClick={() => {
                 localStorage.setItem(ONBOARDING_SKIP_KEY, "true");
@@ -416,28 +509,56 @@ export function OnboardingPage() {
         </form>
       ) : (
         <div className="onboarding-import-grid">
-          <article className="onboarding-import-card">
-            <h4>Bulk import from workbook</h4>
+          <article className="onboarding-import-card onboarding-import-primary">
+            <div className="onboarding-import-head">
+              <div>
+                <span className="onboarding-inline-kicker">Recommended</span>
+                <h4>Bulk import from workbook</h4>
+              </div>
+              <div className="onboarding-inline-badge">Fastest setup</div>
+            </div>
             <p className="muted">
-              Upload a single Excel workbook and let the backend create the right records and balances for you.
+              Upload a single Excel workbook and let the backend create the right records, balances, categories, and trends for you.
             </p>
+
             <div className="onboarding-template-links">
               <a className="btn onboarding-template-download" href="/sample-onboarding-import.xlsx" download>
                 Download sample workbook
               </a>
+              <p className="muted onboarding-template-caption">
+                Includes accounts, budgets, goals, and rich six-month transaction history tuned for dashboard and Insights signals.
+              </p>
             </div>
-            <label className="input-label" htmlFor="onboarding-import-file">Excel file</label>
+
+            <label className="onboarding-file-drop" htmlFor="onboarding-import-file">
+              <span className="onboarding-file-drop-kicker">Excel workbook</span>
+              <strong>{selectedFileSummary ? selectedFileSummary.name : "Choose a workbook to import"}</strong>
+              <span className="muted">
+                {selectedFileSummary
+                  ? `${selectedFileSummary.size} selected. Ready to create your workspace.`
+                  : "Supports .xlsx and .xls. Use your own file or start from the sample."}
+              </span>
+              <span className="onboarding-file-drop-action">
+                {selectedFileSummary ? "Change file" : "Select file"}
+              </span>
+            </label>
             <input
               id="onboarding-import-file"
-              className="input import-file-input"
+              className="onboarding-file-input"
               type="file"
               accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               onChange={(event) => setImportFile(event.target.files?.[0] ?? null)}
             />
-            {importFile ? <div className="muted import-file-name">Selected: {importFile.name}</div> : null}
-            <div className="form-actions">
+
+            <div className="onboarding-import-benefits">
+              {onboardingBenefits.map((benefit) => (
+                <div key={benefit} className="onboarding-benefit-pill">{benefit}</div>
+              ))}
+            </div>
+
+            <div className="form-actions onboarding-actions">
               <button
-                className="btn"
+                className="btn onboarding-primary-action"
                 type="button"
                 disabled={!importFile || importMutation.isPending}
                 onClick={() => importFile && importMutation.mutate(importFile)}
@@ -445,7 +566,7 @@ export function OnboardingPage() {
                 {importMutation.isPending ? "Processing workbook..." : "Load workbook and continue"}
               </button>
               <button
-                className="btn ghost"
+                className="btn ghost onboarding-secondary-action"
                 type="button"
                 onClick={() => {
                   localStorage.setItem(ONBOARDING_SKIP_KEY, "true");
@@ -468,10 +589,19 @@ export function OnboardingPage() {
           </article>
 
           <article className="onboarding-import-card subtle">
-            <h4>Workbook structure</h4>
-            <div className="onboarding-import-list">
-              {importSummary.map((line) => (
-                <div key={line} className="onboarding-import-list-item">{line}</div>
+            <div className="onboarding-import-head compact">
+              <div>
+                <span className="onboarding-inline-kicker">Workbook map</span>
+                <h4>What the import creates</h4>
+              </div>
+            </div>
+            <div className="onboarding-sheet-grid">
+              {importSheets.map((sheet) => (
+                <div key={sheet.title} className="onboarding-sheet-card">
+                  <strong>{sheet.title}</strong>
+                  <p>{sheet.description}</p>
+                  <span>{sheet.fields}</span>
+                </div>
               ))}
             </div>
             <p className="muted onboarding-import-note">
