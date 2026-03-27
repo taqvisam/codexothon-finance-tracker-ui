@@ -464,6 +464,7 @@ a {
   color: #2e3f5a;
   font-weight: 600;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .logout-action {
