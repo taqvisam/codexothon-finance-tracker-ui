@@ -98,6 +98,8 @@ export function SharedAccountPanel({ accounts }: Props) {
     }
   });
 
+  const memberRows = Array.isArray(membersQuery.data) ? membersQuery.data : [];
+  const activityRows = Array.isArray(activityQuery.data) ? activityQuery.data : [];
   const normalizedSearch = topbarSearch.trim().toLowerCase();
   const filteredAccounts = useMemo(() => {
     if (!normalizedSearch) {
@@ -109,25 +111,25 @@ export function SharedAccountPanel({ accounts }: Props) {
 
   const filteredMembers = useMemo(() => {
     if (!normalizedSearch) {
-      return membersQuery.data;
+      return memberRows;
     }
 
-    return membersQuery.data.filter((member) =>
+    return memberRows.filter((member) =>
       [member.displayName, member.email, member.role, member.isOwner ? "owner" : "collaborator"]
         .some((value) => value.toLowerCase().includes(normalizedSearch))
     );
-  }, [membersQuery.data, normalizedSearch]);
+  }, [memberRows, normalizedSearch]);
 
   const filteredActivity = useMemo(() => {
     if (!normalizedSearch) {
-      return activityQuery.data;
+      return activityRows;
     }
 
-    return activityQuery.data.filter((activity) =>
+    return activityRows.filter((activity) =>
       [activity.actorName, activity.entityType, activity.action, activity.description]
         .some((value) => value.toLowerCase().includes(normalizedSearch))
     );
-  }, [activityQuery.data, normalizedSearch]);
+  }, [activityRows, normalizedSearch]);
 
   return (
     <section className="card">
@@ -156,7 +158,7 @@ export function SharedAccountPanel({ accounts }: Props) {
         <>
           <div style={{ marginTop: 12 }}>
             <h4 style={{ marginBottom: 8 }}>Members</h4>
-            {membersQuery.data.length === 0 ? (
+            {memberRows.length === 0 ? (
               <p className="muted">No members yet.</p>
             ) : filteredMembers.length === 0 ? (
               <p className="muted">No members match your search.</p>
@@ -193,7 +195,7 @@ export function SharedAccountPanel({ accounts }: Props) {
 
           <div style={{ marginTop: 16 }}>
             <h4 style={{ marginBottom: 8 }}>Recent Activity</h4>
-            {activityQuery.data.length === 0 ? (
+            {activityRows.length === 0 ? (
               <p className="muted">No shared account activity yet.</p>
             ) : filteredActivity.length === 0 ? (
               <p className="muted">No activity matches your search.</p>

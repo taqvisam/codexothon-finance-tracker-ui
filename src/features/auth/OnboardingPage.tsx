@@ -784,18 +784,15 @@ export function OnboardingPage() {
                 Recommended next step: start with the sample workbook if you want dashboards, insights, rules, and recurring data populated immediately.
               </div>
               <div className="form-actions onboarding-actions v2-intro-actions">
-                <button className="btn onboarding-primary-action" type="button" onClick={dismissV2Intro}>
-                  Start with V2
-                </button>
                 <button
-                  className="btn ghost onboarding-secondary-action"
+                  className="btn onboarding-primary-action"
                   type="button"
                   onClick={() => {
-                    setSetupMode("manual");
+                    setSetupMode("import");
                     dismissV2Intro();
                   }}
                 >
-                  Go manual instead
+                  Experience V2
                 </button>
               </div>
             </div>

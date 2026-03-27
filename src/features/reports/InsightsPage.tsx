@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bar,
@@ -9,7 +10,6 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { useMemo, useState } from "react";
 import { useUiStore } from "../../store/uiStore";
 import { apiClient } from "../../services/apiClient";
 import { Dropdown } from "../../components/Dropdown";
@@ -54,6 +54,25 @@ export function InsightsPage() {
   const { dateFrom, dateTo, topbarSearch } = useUiStore();
   const [accountId, setAccountId] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 720px)");
+    const sync = (event: MediaQueryListEvent | MediaQueryList) => {
+      setIsMobile(event.matches);
+    };
+
+    sync(media);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", sync);
+      return () => media.removeEventListener("change", sync);
+    }
+
+    media.addListener(sync);
+    return () => media.removeListener(sync);
+  }, []);
+
   const accountsQuery = useQuery({
     queryKey: ["insights-accounts"],
     queryFn: async () => (await apiClient.get<AccountItem[]>("/accounts")).data,
@@ -222,26 +241,42 @@ export function InsightsPage() {
           {healthScoreQuery.isLoading ? (
             <p className="muted">Loading score details...</p>
           ) : filteredBreakdown.length ? (
-            <div className="table-wrap">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Factor</th>
-                    <th>Score</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredBreakdown.map((factor) => (
-                    <tr key={factor.name}>
-                      <td data-label="Factor">{factor.name}</td>
-                      <td data-label="Score">{Math.round(factor.score)}</td>
-                      <td data-label="Description">{factor.description}</td>
+            isMobile ? (
+              <div className="dashboard-mobile-list">
+                {filteredBreakdown.map((factor) => (
+                  <article key={factor.name} className="dashboard-mobile-list-item">
+                    <div className="dashboard-mobile-list-head">
+                      <strong>{factor.name}</strong>
+                      <span className="dashboard-mobile-list-value">{Math.round(factor.score)}</span>
+                    </div>
+                    <div className="dashboard-mobile-list-meta">
+                      <span>{factor.description}</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Factor</th>
+                      <th>Score</th>
+                      <th>Description</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredBreakdown.map((factor) => (
+                      <tr key={factor.name}>
+                        <td data-label="Factor">{factor.name}</td>
+                        <td data-label="Score">{Math.round(factor.score)}</td>
+                        <td data-label="Description">{factor.description}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
           ) : (
             <p className="muted">No breakdown data available.</p>
           )}

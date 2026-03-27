@@ -514,7 +514,7 @@ export function DashboardPage() {
             ) : null}
           </ChartCard>
         </MobileSection>
-        <MobileSection title="Spending by Category" isMobile={isMobile}>
+        <MobileSection title="Money Pulse Matrix" isMobile={isMobile}>
           <ChartCard title="Money Pulse Matrix">
             {pulseMatrix.length === 0 ? (
               <p className="muted">No forecast pulse available yet.</p>
@@ -648,55 +648,91 @@ export function DashboardPage() {
       </section>
 
       <section className="two-col">
-        <article className="card">
-          <h4>Recent Transactions</h4>
-          {transactionsQuery.data.length === 0 ? (
-            <p className="muted">No transactions yet. Add your first transaction.</p>
-          ) : filteredRecentTransactions.length === 0 ? (
-            <p className="muted">No recent transactions match your search.</p>
-          ) : (
-            <>
-              <DataTable
-                rows={filteredRecentTransactions}
-                columns={[
-                  { key: "merchant", title: "Description", render: (r) => r.merchant ?? "-" },
-                  { key: "date", title: "Date", render: (r) => r.date },
-                  { key: "amount", title: "Amount", render: (r) => currency(r.amount) }
-                ]}
-              />
-              <div className="section-link-row">
-                <button
-                  type="button"
-                  onClick={() => navigate("/transactions")}
-                  style={{
-                    border: 0,
-                    background: "transparent",
-                    color: "#2f6fbe",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    padding: 0
-                  }}
-                >
-                  View more
-                </button>
-              </div>
-            </>
-          )}
-        </article>
+        <MobileSection title="Recent Transactions" isMobile={isMobile}>
+          <article className="card">
+            <h4>Recent Transactions</h4>
+            {transactionsQuery.data.length === 0 ? (
+              <p className="muted">No transactions yet. Add your first transaction.</p>
+            ) : filteredRecentTransactions.length === 0 ? (
+              <p className="muted">No recent transactions match your search.</p>
+            ) : (
+              <>
+                {isMobile ? (
+                  <div className="dashboard-mobile-list">
+                    {filteredRecentTransactions.map((transaction) => (
+                      <article key={transaction.id} className="dashboard-mobile-list-item">
+                        <div className="dashboard-mobile-list-head">
+                          <strong>{transaction.merchant ?? "Untitled transaction"}</strong>
+                          <span className="dashboard-mobile-list-value">{currency(transaction.amount)}</span>
+                        </div>
+                        <div className="dashboard-mobile-list-meta">
+                          <span>{transaction.date}</span>
+                          <span>{transaction.type}</span>
+                          {transaction.note ? <span>{transaction.note}</span> : null}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <DataTable
+                    rows={filteredRecentTransactions}
+                    columns={[
+                      { key: "merchant", title: "Description", render: (r) => r.merchant ?? "-" },
+                      { key: "date", title: "Date", render: (r) => r.date },
+                      { key: "amount", title: "Amount", render: (r) => currency(r.amount) }
+                    ]}
+                  />
+                )}
+                <div className="section-link-row">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/transactions")}
+                    style={{
+                      border: 0,
+                      background: "transparent",
+                      color: "#2f6fbe",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      padding: 0
+                    }}
+                  >
+                    View more
+                  </button>
+                </div>
+              </>
+            )}
+          </article>
+        </MobileSection>
         <MobileSection title="Upcoming Recurring Payments" isMobile={isMobile}>
           <article className="card">
             <h4>Upcoming Recurring Payments</h4>
             {filteredRecurringPayments.length === 0 ? (
               <p className="muted">No recurring payments match your search.</p>
             ) : (
-              <DataTable
-                rows={filteredRecurringPayments}
-                columns={[
-                  { key: "name", title: "Bill", render: (r) => r.name },
-                  { key: "amount", title: "Amount", render: (r) => currency(r.amount) },
-                  { key: "due", title: "Due", render: (r) => r.due }
-                ]}
-              />
+              isMobile ? (
+                <div className="dashboard-mobile-list">
+                  {filteredRecurringPayments.map((payment) => (
+                    <article key={`${payment.name}-${payment.due}`} className="dashboard-mobile-list-item">
+                      <div className="dashboard-mobile-list-head">
+                        <strong>{payment.name}</strong>
+                        <span className="dashboard-mobile-list-value">{currency(payment.amount)}</span>
+                      </div>
+                      <div className="dashboard-mobile-list-meta">
+                        <span>Due on {payment.due}</span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <DataTable
+                  rows={filteredRecurringPayments}
+                  columns={[
+                    { key: "name", title: "Bill", render: (r) => r.name },
+                    { key: "amount", title: "Amount", render: (r) => currency(r.amount) },
+                    { key: "due", title: "Due", render: (r) => r.due }
+                  ]}
+                />
+              )
             )}
           </article>
         </MobileSection>
@@ -711,18 +747,20 @@ export function DashboardPage() {
             ) : filteredBudgetCards.length === 0 ? (
               <p className="muted">No budget cards match your search.</p>
             ) : (
-              filteredBudgetCards.map((budget) => (
-                <div key={budget.id} style={{ marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <strong>{budget.categoryName}</strong>
-                    <span>{Math.round(budget.percent)}%</span>
+              <div className="dashboard-progress-list">
+                {filteredBudgetCards.map((budget) => (
+                  <div key={budget.id} className="dashboard-progress-item">
+                    <div className="dashboard-progress-head">
+                      <strong>{budget.categoryName}</strong>
+                      <span>{Math.round(budget.percent)}%</span>
+                    </div>
+                    <ProgressBar value={budget.percent} />
+                    <span className={`muted budget-${budget.level}`}>
+                      {currency(budget.spentAmount)} / {currency(budget.amount)}
+                    </span>
                   </div>
-                  <ProgressBar value={budget.percent} />
-                  <span className={`muted budget-${budget.level}`}>
-                    {currency(budget.spentAmount)} / {currency(budget.amount)}
-                  </span>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </article>
         </MobileSection>
@@ -735,15 +773,17 @@ export function DashboardPage() {
             ) : filteredGoalCards.length === 0 ? (
               <p className="muted">No goals match your search.</p>
             ) : (
-              filteredGoalCards.map((goal) => (
-                <div key={goal.id} style={{ marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <strong>{goal.name}</strong>
-                    <span className="muted">{Math.round(goal.progressPercent)}%</span>
+              <div className="dashboard-progress-list">
+                {filteredGoalCards.map((goal) => (
+                  <div key={goal.id} className="dashboard-progress-item">
+                    <div className="dashboard-progress-caption">
+                      <strong>{goal.name}</strong>
+                      <span>{Math.round(goal.progressPercent)}%</span>
+                    </div>
+                    <ProgressBar value={goal.progressPercent} />
                   </div>
-                  <ProgressBar value={goal.progressPercent} />
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </article>
         </MobileSection>

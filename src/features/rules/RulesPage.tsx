@@ -20,6 +20,30 @@ interface RuleItem {
   isActive: boolean;
 }
 
+function normalizeRule(rule: Partial<RuleItem> & Record<string, unknown>): RuleItem {
+  const fallbackConditionField = (rule.matchField ?? rule.field ?? "Merchant") as RuleField;
+  const fallbackConditionOperator = (rule.matchOperator ?? rule.operator ?? "Contains") as RuleOperator;
+  const fallbackConditionValue = String(rule.matchValue ?? rule.conditionValue ?? rule.value ?? "");
+  const fallbackActionType = (rule.actionType ?? rule.type ?? "SetCategory") as RuleActionType;
+  const fallbackActionValue = String(rule.actionValue ?? rule.tagValue ?? rule.alertMessage ?? rule.valueText ?? "");
+
+  return {
+    id: String(rule.id ?? ""),
+    name: String(rule.name ?? "Untitled Rule"),
+    condition: {
+      field: rule.condition?.field ?? fallbackConditionField,
+      operator: rule.condition?.operator ?? fallbackConditionOperator,
+      value: rule.condition?.value ?? fallbackConditionValue
+    },
+    action: {
+      type: rule.action?.type ?? fallbackActionType,
+      value: rule.action?.value ?? fallbackActionValue
+    },
+    priority: Number(rule.priority ?? 0),
+    isActive: Boolean(rule.isActive ?? rule.isEnabled ?? true)
+  };
+}
+
 const defaultRule = {
   name: "",
   conditionField: "Merchant" as RuleField,
@@ -101,12 +125,17 @@ export function RulesPage() {
   });
 
   const normalizedSearch = topbarSearch.trim().toLowerCase();
+  const ruleRows = useMemo(
+    () => (Array.isArray(rulesQuery.data) ? rulesQuery.data : []).map((rule) => normalizeRule(rule as Partial<RuleItem> & Record<string, unknown>)),
+    [rulesQuery.data]
+  );
+
   const filteredRules = useMemo(() => {
     if (!normalizedSearch) {
-      return rulesQuery.data;
+      return ruleRows;
     }
 
-    return rulesQuery.data.filter((rule) =>
+    return ruleRows.filter((rule) =>
       [
         rule.name,
         rule.condition.field,
@@ -118,7 +147,7 @@ export function RulesPage() {
         rule.isActive ? "enabled" : "disabled"
       ].some((value) => value.toLowerCase().includes(normalizedSearch))
     );
-  }, [normalizedSearch, rulesQuery.data]);
+  }, [normalizedSearch, ruleRows]);
 
   return (
     <>
@@ -198,7 +227,7 @@ export function RulesPage() {
           <h3 style={{ marginBottom: 0 }}>Rules</h3>
           <span className="muted">{filteredRules.length} total</span>
         </div>
-        {rulesQuery.data.length === 0 ? (
+        {ruleRows.length === 0 ? (
           <p className="muted">No rules yet. Create one to auto-categorize, tag, or alert.</p>
         ) : filteredRules.length === 0 ? (
           <p className="muted">No rules match your search.</p>
