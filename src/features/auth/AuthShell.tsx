@@ -24,7 +24,15 @@ export function AuthShell({
     <main className="auth-shell auth-shell-v2">
       <div className="auth-panel-v2">
         <section className="auth-form-panel">
-          <div className="auth-brand-v2">FNCE.</div>
+          <div className="auth-brand-v2">
+            <span className="auth-brand-icon-wrap" aria-hidden="true">
+              <img src="/favicon.svg" alt="" className="auth-brand-icon" />
+            </span>
+            <span className="auth-brand-copy">
+              <span className="auth-brand-title">Personal Finance</span>
+              <span className="auth-brand-subtitle">Tracker V2</span>
+            </span>
+          </div>
 
           {showAuthTabs ? (
             <div className="auth-tabs-v2">

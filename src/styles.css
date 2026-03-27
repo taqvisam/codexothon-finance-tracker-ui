@@ -2677,10 +2677,45 @@ body::after {
 }
 
 .auth-brand-v2 {
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: 0.4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   color: #1d2436;
+}
+
+.auth-brand-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #f4f8ff, #e6eefc);
+  box-shadow: inset 0 0 0 1px rgba(150, 169, 202, 0.18);
+}
+
+.auth-brand-icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.auth-brand-copy {
+  display: grid;
+  gap: 1px;
+}
+
+.auth-brand-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.auth-brand-subtitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.28px;
+  color: #8a96aa;
 }
 
 .auth-tabs-v2 {
@@ -3147,6 +3182,15 @@ body.dark-theme .auth-tabs-v2 span.active {
   color: #eef4ff;
 }
 
+body.dark-theme .auth-brand-icon-wrap {
+  background: linear-gradient(145deg, #1a2740, #152033);
+  box-shadow: inset 0 0 0 1px rgba(94, 120, 160, 0.24);
+}
+
+body.dark-theme .auth-brand-subtitle {
+  color: #94a6c2;
+}
+
 body.dark-theme .auth-tabs-v2 a,
 body.dark-theme .auth-tabs-v2 span,
 body.dark-theme .auth-copy-v2 p,
@@ -3256,7 +3300,7 @@ body.dark-theme .auth-monitor-stand::after {
   }
 
   .auth-brand-v2 {
-    font-size: 17px;
+    gap: 10px;
   }
 
   .auth-tabs-v2 {
