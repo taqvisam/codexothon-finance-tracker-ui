@@ -383,9 +383,18 @@ export function DashboardPage() {
         <SummaryCard
           title="Projected Balance"
           value={forecastMonthQuery.data?.forecastedEndBalance ?? summary.balance}
+          infoText="Calculated as current balance plus projected income minus projected expense and upcoming known expenses for the rest of the month."
         />
         <article className="card">
-          <h4>Financial Health Score</h4>
+          <div className="summary-card-head">
+            <h4>Financial Health Score</h4>
+            <span className="summary-info-wrap" tabIndex={0} aria-label="Financial Health Score calculation info">
+              <span className="summary-info-icon" aria-hidden="true">i</span>
+              <span className="summary-info-tooltip" role="tooltip">
+                Score is calculated from savings rate, expense stability, budget adherence, and cash buffer, normalized to a 0 to 100 scale.
+              </span>
+            </span>
+          </div>
           <div className="big">{Math.round(healthScoreQuery.data?.score ?? 0)}</div>
           <button className="btn ghost" type="button" onClick={() => navigate("/insights")}>
             View breakdown
