@@ -24,6 +24,14 @@ export function ForgotPasswordPage() {
   return (
     <main className="auth-shell forgot-shell">
       <div className="auth-frame forgot-frame">
+        <div className="auth-window-bar">
+          <div className="auth-window-dots" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="auth-window-pill">finotic.com</div>
+        </div>
         <section className="forgot-visual">
           <div className="auth-logo">
             <span className="auth-logo-mark">◉</span>
@@ -40,6 +48,7 @@ export function ForgotPasswordPage() {
         </section>
 
         <section className="auth-form forgot-form">
+          <div className="auth-form-inner">
           <h2>Forgot Password</h2>
           <p className="muted">No worries. We&apos;ll help you recover your account.</p>
           <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>
@@ -65,6 +74,7 @@ export function ForgotPasswordPage() {
           <p className="muted forgot-links">
             <Link to="/login">Back to login</Link>
           </p>
+          </div>
         </section>
       </div>
     </main>

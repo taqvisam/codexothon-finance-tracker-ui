@@ -44,6 +44,14 @@ export function SignupPage() {
   return (
     <main className="auth-shell">
       <div className="auth-frame">
+        <div className="auth-window-bar">
+          <div className="auth-window-dots" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="auth-window-pill">finotic.com</div>
+        </div>
         <section className="auth-visual">
           <div className="auth-logo">
             <span className="auth-logo-mark">◉</span>
@@ -71,6 +79,7 @@ export function SignupPage() {
         </section>
 
         <section className="auth-form">
+          <div className="auth-form-inner">
           <h2>Create Account</h2>
           <p className="muted">Sign up to manage income, expenses, budgets and goals</p>
           <form onSubmit={handleSubmit((data) => signupMutation.mutate(data))}>
@@ -108,6 +117,7 @@ export function SignupPage() {
           </p>
 
           <p className="auth-footer">© 2026 ALL RIGHTS RESERVED</p>
+          </div>
         </section>
       </div>
     </main>

@@ -27,6 +27,14 @@ export function ResetPasswordPage() {
   return (
     <main className="auth-shell reset-shell">
       <div className="auth-frame reset-frame">
+        <div className="auth-window-bar">
+          <div className="auth-window-dots" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="auth-window-pill">finotic.com</div>
+        </div>
         <section className="reset-visual">
           <div className="auth-logo">
             <span className="auth-logo-mark">◉</span>
@@ -42,6 +50,7 @@ export function ResetPasswordPage() {
         </section>
 
         <section className="auth-form reset-form">
+          <div className="auth-form-inner">
           <h2>Reset Password</h2>
           <p className="muted">Use the token from your email to set a new password.</p>
           <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>
@@ -72,6 +81,7 @@ export function ResetPasswordPage() {
           <p className="muted reset-links">
             <Link to="/login">Back to login</Link>
           </p>
+          </div>
         </section>
       </div>
     </main>
