@@ -453,6 +453,51 @@ export function DashboardPage() {
           </ChartCard>
         </MobileSection>
         <MobileSection title="Spending by Category" isMobile={isMobile}>
+          <ChartCard title="Money Pulse Matrix">
+            {pulseMatrix.length === 0 ? (
+              <p className="muted">No forecast pulse available yet.</p>
+            ) : (
+              <>
+                <div className="pulse-matrix">
+                  {pulseMatrix.map((point) => (
+                    <div
+                      key={point.date}
+                      className={`pulse-cell pulse-${point.tone}`}
+                      style={{ opacity: Math.max(0.35, point.intensity / 100) }}
+                      title={`${point.label} | Balance ${currency(point.balance)} | Change ${point.change >= 0 ? "+" : ""}${currency(point.change)}`}
+                    >
+                      <span>{point.label}</span>
+                      <strong>{point.change >= 0 ? "+" : ""}{currency(point.change)}</strong>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pulse-summary">
+                  <div className="pulse-summary-card">
+                    <span className="muted">Growth days</span>
+                    <strong>{pulseSummary.growthDays}</strong>
+                  </div>
+                  <div className="pulse-summary-card">
+                    <span className="muted">Stable days</span>
+                    <strong>{pulseSummary.stableDays}</strong>
+                  </div>
+                  <div className="pulse-summary-card">
+                    <span className="muted">Pressure days</span>
+                    <strong>{pulseSummary.pressureDays}</strong>
+                  </div>
+                </div>
+
+                <div className="pulse-legend">
+                  <span className="pulse-legend-item"><i className="pulse-dot pulse-positive" /> Rising balance</span>
+                  <span className="pulse-legend-item"><i className="pulse-dot pulse-steady" /> Stable</span>
+                  <span className="pulse-legend-item"><i className="pulse-dot pulse-negative" /> Cash pressure</span>
+                  <span className="pulse-legend-item"><i className="pulse-dot pulse-critical" /> Below zero</span>
+                </div>
+              </>
+            )}
+          </ChartCard>
+        </MobileSection>
+        <MobileSection title="Spending by Category" isMobile={isMobile}>
           <ChartCard title="Spending by Category">
             <div style={{ height: 220 }}>
               {categoryData.length === 0 ? (
@@ -536,51 +581,6 @@ export function DashboardPage() {
                 </div>
               </div>
             ) : null}
-          </ChartCard>
-        </MobileSection>
-        <MobileSection title="Money Pulse Matrix" isMobile={isMobile}>
-          <ChartCard title="Money Pulse Matrix">
-            {pulseMatrix.length === 0 ? (
-              <p className="muted">No forecast pulse available yet.</p>
-            ) : (
-              <>
-                <div className="pulse-matrix">
-                  {pulseMatrix.map((point) => (
-                    <div
-                      key={point.date}
-                      className={`pulse-cell pulse-${point.tone}`}
-                      style={{ opacity: Math.max(0.35, point.intensity / 100) }}
-                      title={`${point.label} | Balance ${currency(point.balance)} | Change ${point.change >= 0 ? "+" : ""}${currency(point.change)}`}
-                    >
-                      <span>{point.label}</span>
-                      <strong>{point.change >= 0 ? "+" : ""}{currency(point.change)}</strong>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="pulse-summary">
-                  <div className="pulse-summary-card">
-                    <span className="muted">Growth days</span>
-                    <strong>{pulseSummary.growthDays}</strong>
-                  </div>
-                  <div className="pulse-summary-card">
-                    <span className="muted">Stable days</span>
-                    <strong>{pulseSummary.stableDays}</strong>
-                  </div>
-                  <div className="pulse-summary-card">
-                    <span className="muted">Pressure days</span>
-                    <strong>{pulseSummary.pressureDays}</strong>
-                  </div>
-                </div>
-
-                <div className="pulse-legend">
-                  <span className="pulse-legend-item"><i className="pulse-dot pulse-positive" /> Rising balance</span>
-                  <span className="pulse-legend-item"><i className="pulse-dot pulse-steady" /> Stable</span>
-                  <span className="pulse-legend-item"><i className="pulse-dot pulse-negative" /> Cash pressure</span>
-                  <span className="pulse-legend-item"><i className="pulse-dot pulse-critical" /> Below zero</span>
-                </div>
-              </>
-            )}
           </ChartCard>
         </MobileSection>
       </section>
