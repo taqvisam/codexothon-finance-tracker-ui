@@ -2065,3 +2065,281 @@ body.dark-theme .goal-hold-badge {
   background: rgba(82, 61, 24, 0.72);
   border-color: rgba(133, 99, 41, 0.92);
 }
+
+/* Final dark-theme readability pass */
+body:not(.dark-theme) {
+  color-scheme: light;
+}
+
+body.dark-theme {
+  color-scheme: dark;
+  --surface: #162133;
+  --surface-soft: #1b2940;
+  --line: #30415c;
+  --line-strong: #476182;
+  --text: #edf3ff;
+  --muted: #b4c0d4;
+  background:
+    radial-gradient(74% 68% at 12% 10%, rgba(62, 110, 184, 0.22), transparent 64%),
+    radial-gradient(70% 66% at 88% 12%, rgba(78, 93, 164, 0.18), transparent 60%),
+    linear-gradient(160deg, #0c1421 0%, #101b2b 54%, #122033 100%);
+  color: var(--text);
+}
+
+body.dark-theme .sidebar,
+body.dark-theme .topbar,
+body.dark-theme .card,
+body.dark-theme .summary-card,
+body.dark-theme .user-chip,
+body.dark-theme .user-menu,
+body.dark-theme .mobile-collapse,
+body.dark-theme .settings-card,
+body.dark-theme .settings-toggle-card,
+body.dark-theme .settings-danger-card,
+body.dark-theme .auth-frame,
+body.dark-theme .forgot-frame,
+body.dark-theme .reset-frame,
+body.dark-theme .goal-modal-card {
+  background: #162133;
+  border-color: #30415c;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+}
+
+body.dark-theme .auth-visual,
+body.dark-theme .forgot-visual,
+body.dark-theme .reset-visual,
+body.dark-theme .sidebar {
+  background: linear-gradient(180deg, #121c2c, #162235);
+}
+
+body.dark-theme .brand-text,
+body.dark-theme .sidebar-foot,
+body.dark-theme .topbar-title-block h2,
+body.dark-theme .user-chip,
+body.dark-theme .card h3,
+body.dark-theme .card h4,
+body.dark-theme .big,
+body.dark-theme .forecast-kpi strong,
+body.dark-theme .auth-form h2,
+body.dark-theme .auth-visual h2,
+body.dark-theme .auth-logo,
+body.dark-theme .settings-danger-title {
+  color: #edf3ff;
+}
+
+body.dark-theme .card h4,
+body.dark-theme .topbar-title-block .muted,
+body.dark-theme .muted,
+body.dark-theme .table th,
+body.dark-theme .table td::before,
+body.dark-theme .auth-sep,
+body.dark-theme .auth-balance-card small,
+body.dark-theme .auth-add-card small,
+body.dark-theme .auth-donut-card span,
+body.dark-theme .settings-tab,
+body.dark-theme .logout-icon {
+  color: #b4c0d4;
+}
+
+body.dark-theme .topbar-search,
+body.dark-theme .input,
+body.dark-theme .select,
+body.dark-theme .btn.ghost,
+body.dark-theme .settings-tab.active,
+body.dark-theme .action-icon-btn,
+body.dark-theme .goal-icon-btn {
+  background: #0f1928;
+  border-color: #354966;
+  color: #edf3ff;
+}
+
+body.dark-theme .input::placeholder {
+  color: #8ea1bc;
+}
+
+body.dark-theme .select option {
+  background: #101b2b;
+  color: #edf3ff;
+}
+
+body.dark-theme .input:focus,
+body.dark-theme .select:focus {
+  border-color: #6b8fbe;
+  box-shadow: 0 0 0 3px rgba(93, 141, 214, 0.22);
+}
+
+body.dark-theme .btn.ghost:hover,
+body.dark-theme .action-icon-btn:hover,
+body.dark-theme .goal-icon-btn:hover,
+body.dark-theme .settings-tab:hover {
+  background: #1a2740;
+  color: #f5f8ff;
+}
+
+body.dark-theme .nav-link {
+  background: transparent;
+  border-color: transparent;
+  color: #afbed5;
+}
+
+body.dark-theme .nav-link:hover {
+  background: #18263c;
+  border-color: #3e5576;
+  color: #edf3ff;
+}
+
+body.dark-theme .nav-link.active {
+  background: linear-gradient(180deg, #233757, #1d2f4d);
+  border-color: #5c80b5;
+  color: #f3f7ff;
+  box-shadow: 0 10px 22px rgba(9, 17, 31, 0.38);
+}
+
+body.dark-theme .sidebar-toggle-btn {
+  background: linear-gradient(180deg, #152135, #10192a);
+  border-color: #3a5375;
+  color: #d3dff3;
+}
+
+body.dark-theme .insight-pill,
+body.dark-theme .forecast-chip,
+body.dark-theme .goal-achieved-badge,
+body.dark-theme .goal-hold-badge {
+  font-weight: 700;
+}
+
+body.dark-theme .insight-pill {
+  background: rgba(68, 117, 194, 0.26);
+  border-color: rgba(103, 147, 216, 0.6);
+  color: #cfe0ff;
+}
+
+body.dark-theme .insight-item,
+body.dark-theme .recurring-row,
+body.dark-theme .settings-divider,
+body.dark-theme .mobile-collapse-body,
+body.dark-theme .table th,
+body.dark-theme .table td {
+  border-color: #2a3952;
+}
+
+body.dark-theme .budget-row,
+body.dark-theme .forecast-kpi,
+body.dark-theme .forecast-chart-wrap,
+body.dark-theme .alert-banner,
+body.dark-theme .mobile-collapse,
+body.dark-theme .table tr {
+  background: #182538;
+  border-color: #30415c;
+}
+
+body.dark-theme .forecast-chip {
+  background: #142033;
+  border-color: #3d5576;
+  color: #d6e3f7;
+}
+
+body.dark-theme .forecast-chip.ok {
+  background: rgba(25, 74, 54, 0.72);
+  border-color: rgba(68, 135, 101, 0.88);
+  color: #aee6c8;
+}
+
+body.dark-theme .forecast-chip.danger {
+  background: rgba(78, 33, 45, 0.74);
+  border-color: rgba(150, 82, 100, 0.88);
+  color: #ffc9d2;
+}
+
+body.dark-theme .alert-banner {
+  color: #e2ebfa;
+}
+
+body.dark-theme .alert-warning {
+  background: rgba(79, 61, 24, 0.82);
+  border-color: rgba(151, 118, 53, 0.9);
+  color: #ffe0a2;
+}
+
+body.dark-theme .alert-danger {
+  background: rgba(90, 36, 49, 0.82);
+  border-color: rgba(154, 76, 94, 0.9);
+  color: #ffd0d8;
+}
+
+body.dark-theme .progress {
+  background: rgba(95, 118, 153, 0.34);
+}
+
+body.dark-theme .table {
+  color: #e6eefb;
+}
+
+body.dark-theme .table th {
+  background: #142033;
+  color: #c3d0e6;
+}
+
+body.dark-theme .table tbody tr:hover,
+body.dark-theme .table tbody tr:nth-child(even) {
+  background: #1d2b42;
+}
+
+body.dark-theme .table td {
+  color: #e9f0fb;
+}
+
+body.dark-theme .user-menu button {
+  background: #162133;
+  color: #edf3ff;
+}
+
+body.dark-theme .user-menu button:hover {
+  background: #1e2d45;
+}
+
+body.dark-theme .logout-action {
+  color: #ffb3bf;
+}
+
+body.dark-theme .logout-icon {
+  background: rgba(255, 110, 140, 0.12);
+}
+
+body.dark-theme .auth-right-link a,
+body.dark-theme .auth-signup-link a,
+body.dark-theme .forgot-links a,
+body.dark-theme .reset-links a {
+  color: #8db5ff;
+}
+
+body.dark-theme .forgot-success {
+  background: rgba(22, 69, 47, 0.76);
+  border-color: rgba(61, 127, 89, 0.88);
+  color: #aee2bf;
+}
+
+body.dark-theme .settings-switch {
+  background: #42546f;
+}
+
+body.dark-theme .settings-switch.on,
+body.dark-theme .mini-switch.on {
+  background: #2d9c73;
+}
+
+body.dark-theme .mini-switch,
+body.dark-theme .settings-switch {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
+body.dark-theme .table td::before {
+  color: #c3d0e6;
+}
+
+@media (max-width: 430px) {
+  body.dark-theme .table tr {
+    background: #182538;
+    border-color: #31445f;
+  }
+}
