@@ -919,6 +919,10 @@ a {
   gap: 12px;
 }
 
+.insights-filter-shell {
+  margin-bottom: 12px;
+}
+
 .insights-filter-card {
   position: relative;
   overflow: hidden;
@@ -941,12 +945,23 @@ a {
   margin-top: 12px;
 }
 
+.insights-top-grid,
+.insights-chart-grid {
+  align-items: stretch;
+}
+
 .insights-score-card,
 .insights-suggestions-card,
 .insights-highlights-card,
 .insights-chart-card,
 .insights-breakdown-card {
   min-width: 0;
+}
+
+.insights-suggestions-card,
+.insights-chart-card {
+  display: flex;
+  flex-direction: column;
 }
 
 .insights-hero-card {
@@ -977,6 +992,12 @@ a {
 .insights-card-headline h4,
 .insights-hero-copy h4 {
   margin-bottom: 6px;
+}
+
+.insights-card-headline {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
 }
 
 .insights-section-kicker {
@@ -1101,6 +1122,12 @@ a {
     radial-gradient(circle at right center, rgba(46, 160, 95, 0.12), transparent 30%);
 }
 
+.insights-action-shell {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
 .insights-suggestion-list {
   margin: 0;
   padding: 0;
@@ -1116,6 +1143,11 @@ a {
   color: #3f526d;
   position: relative;
   z-index: 1;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(196, 212, 236, 0.7);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(240, 247, 255, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .insights-suggestion-index {
@@ -1174,6 +1206,7 @@ a {
 }
 
 .insights-area-chart {
+  flex: 1;
   height: 300px;
   border-radius: 16px;
   padding: 8px 6px 0;
@@ -1217,7 +1250,9 @@ a {
 
 .insights-savings-gauge-wrap {
   display: grid;
+  grid-template-rows: auto auto minmax(112px, 1fr);
   gap: 14px;
+  flex: 1;
 }
 
 .insights-savings-gauge {
@@ -1274,7 +1309,9 @@ a {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   align-items: end;
-  min-height: 104px;
+  min-height: 120px;
+  padding: 10px 12px 0;
+  border-top: 1px solid rgba(215, 226, 244, 0.82);
 }
 
 .insights-mini-bar-item {
@@ -1284,6 +1321,7 @@ a {
 }
 
 .insights-mini-bar {
+  display: block;
   width: 100%;
   max-width: 36px;
   border-radius: 999px 999px 12px 12px;
@@ -1303,6 +1341,7 @@ a {
 .insight-highlight-card {
   position: relative;
   overflow: hidden;
+  min-height: 152px;
 }
 
 .insight-highlight-card::before {
@@ -1345,8 +1384,59 @@ a {
 }
 
 .insight-highlight-change {
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(170, 194, 226, 0.72);
+  background: rgba(255, 255, 255, 0.42);
+  font-size: 11px;
   font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.insight-highlight-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+}
+
+.insight-highlight-copy {
+  min-width: 0;
+}
+
+.insight-highlight-copy h4 {
+  margin-bottom: 8px;
+}
+
+.insight-highlight-copy p {
+  margin: 0;
+  max-width: 56ch;
+}
+
+.insight-highlight-metric {
+  display: grid;
+  gap: 6px;
+  align-content: end;
+  justify-items: end;
+  padding-left: 16px;
+  border-left: 1px solid rgba(194, 209, 232, 0.82);
+  text-align: right;
+}
+
+.insight-highlight-metric strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.insight-highlight-metric span {
+  color: #697d98;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .chart-card {
@@ -2999,6 +3089,12 @@ body.dark-theme .insights-suggestion-index {
   box-shadow: 0 12px 22px rgba(86, 151, 255, 0.22);
 }
 
+body.dark-theme .insights-suggestion-list li {
+  border-color: #334863;
+  background: linear-gradient(180deg, rgba(23, 35, 54, 0.94), rgba(18, 28, 43, 0.88));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
 body.dark-theme .insights-chart-kpi,
 body.dark-theme .insights-savings-stat {
   background: linear-gradient(180deg, rgba(22, 34, 52, 0.96), rgba(18, 28, 44, 0.92));
@@ -3024,6 +3120,24 @@ body.dark-theme .insight-highlight-warning {
 body.dark-theme .insight-highlight-info {
   border-color: rgba(108, 158, 227, 0.34);
   background: linear-gradient(180deg, rgba(20, 33, 55, 0.96), rgba(18, 28, 43, 0.9));
+}
+
+body.dark-theme .insight-highlight-change {
+  border-color: rgba(95, 123, 164, 0.72);
+  background: rgba(18, 28, 43, 0.48);
+}
+
+body.dark-theme .insight-highlight-metric {
+  border-left-color: rgba(70, 96, 130, 0.84);
+  border-top-color: rgba(70, 96, 130, 0.84);
+}
+
+body.dark-theme .insight-highlight-metric span {
+  color: #9fb3d0;
+}
+
+body.dark-theme .insights-mini-bars {
+  border-top-color: #2f455f;
 }
 
 body.dark-theme .account-balance-tile {
@@ -5919,6 +6033,20 @@ body.dark-theme .table td::before {
 
   .insights-savings-gauge {
       height: 220px;
+    }
+
+  .insight-highlight-body {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+  .insight-highlight-metric {
+      justify-items: start;
+      text-align: left;
+      padding-left: 0;
+      padding-top: 12px;
+      border-left: 0;
+      border-top: 1px solid rgba(194, 209, 232, 0.82);
     }
 
   .settings-card,

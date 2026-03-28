@@ -213,7 +213,7 @@ export function InsightsPage() {
 
   return (
     <section className="insights-page">
-      <div className="card insights-filter-card" style={{ marginBottom: 12 }}>
+      <div className="card insights-filter-card insights-filter-shell">
         <div className="form-grid">
           <Dropdown
             label="Account"
@@ -263,14 +263,16 @@ export function InsightsPage() {
             <h4>Suggestions</h4>
           </div>
           {filteredSuggestions.length ? (
-            <ul className="insights-suggestion-list">
+            <div className="insights-action-shell">
+              <ul className="insights-suggestion-list">
               {filteredSuggestions.map((suggestion, index) => (
                 <li key={suggestion}>
                   <span className="insights-suggestion-index" aria-hidden="true">{index + 1}</span>
                   <span>{suggestion}</span>
                 </li>
               ))}
-            </ul>
+              </ul>
+            </div>
           ) : (
             <p className="muted">No suggestions available.</p>
           )}
@@ -291,11 +293,21 @@ export function InsightsPage() {
                 <div className="insight-highlight-head">
                   <span className="insight-highlight-period">{item.periodLabel}</span>
                   <span className={`insight-highlight-change ${item.severity === "success" ? "health-score-good" : item.severity === "warning" ? "health-score-warn" : ""}`}>
-                    {Math.round(item.changePercent)}%
+                    {item.severity === "success" ? "Positive" : item.severity === "warning" ? "Watch" : "Signal"}
                   </span>
                 </div>
-                <h4>{item.title}</h4>
-                <p className="muted">{item.message}</p>
+                <div className="insight-highlight-body">
+                  <div className="insight-highlight-copy">
+                    <h4>{item.title}</h4>
+                    <p className="muted">{item.message}</p>
+                  </div>
+                  <div className="insight-highlight-metric">
+                    <strong className={item.severity === "success" ? "health-score-good" : item.severity === "warning" ? "health-score-warn" : ""}>
+                      {Math.round(item.changePercent)}%
+                    </strong>
+                    <span>vs previous period</span>
+                  </div>
+                </div>
               </article>
             ))}
           </div>
