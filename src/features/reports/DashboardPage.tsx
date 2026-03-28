@@ -32,6 +32,7 @@ interface AccountItem {
   currentBalance: number;
   creditLimit?: number | null;
   availableCredit?: number | null;
+  isShared: boolean;
 }
 
 interface CategorySpend {
@@ -618,6 +619,21 @@ export function DashboardPage() {
                     <div>
                       <strong>{account.name}</strong>
                       <span>{typeLabel}</span>
+                      {account.isShared ? (
+                        <span className="account-shared-badge">
+                          <svg viewBox="0 0 24 24" aria-hidden="true" className="account-shared-badge-icon">
+                            <path
+                              d="M15 18v-1a3 3 0 0 1 3-3h1a3 3 0 0 1 3 3v1M17.5 9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM2 18v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          Shared
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                   <div className={`account-balance-tile-amount ${getAccountAmountTone(account)}`}>
