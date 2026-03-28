@@ -54,6 +54,29 @@ interface CategoryItem {
   name: string;
 }
 
+function getHealthScoreLabel(score: number) {
+  if (score >= 80) {
+    return "Excellent";
+  }
+
+  if (score >= 55) {
+    return "Stable";
+  }
+
+  return "At Risk";
+}
+
+function getHighlightToneClass(severity: InsightHighlight["severity"]) {
+  switch (severity) {
+    case "success":
+      return "insight-highlight-success";
+    case "warning":
+      return "insight-highlight-warning";
+    default:
+      return "insight-highlight-info";
+  }
+}
+
 export function InsightsPage() {
   const { dateFrom, dateTo, topbarSearch } = useUiStore();
   const [accountId, setAccountId] = useState("");
@@ -185,10 +208,12 @@ export function InsightsPage() {
 
   const savingsGaugeValue = Math.max(0, Math.min(100, latestSavingsRate?.rate ?? 0));
   const savingsGaugeColor = getHealthScoreColor(savingsGaugeValue);
+  const scoreAccent = getHealthScoreColor(score);
+  const scoreLabel = getHealthScoreLabel(score);
 
   return (
-    <section>
-      <div className="card" style={{ marginBottom: 12 }}>
+    <section className="insights-page">
+      <div className="card insights-filter-card" style={{ marginBottom: 12 }}>
         <div className="form-grid">
           <Dropdown
             label="Account"
@@ -206,21 +231,42 @@ export function InsightsPage() {
       </div>
 
       <div className="insights-top-grid">
-        <article className="card insights-score-card">
-          <h4>Financial Health Score</h4>
-          <div className={`big ${getHealthScoreToneClass(score)}`}>{roundedScore} / 100</div>
-          <p className="muted" style={{ marginTop: 8 }}>
-            Weighted from savings rate, expense stability, budget adherence, and cash buffer.
-          </p>
+        <article className="card insights-score-card insights-hero-card">
+          <div className="insights-hero-copy">
+            <span className="insights-section-kicker">Finance signal</span>
+            <h4>Financial Health Score</h4>
+            <div className="insights-hero-status-row">
+              <span className={`insights-hero-status ${getHealthScoreToneClass(score)}`}>{scoreLabel}</span>
+              <span className="muted">Weighted from savings rate, expense stability, budget adherence, and cash buffer.</span>
+            </div>
+            <div className="insights-factor-strip">
+              {(healthScoreQuery.data?.breakdown ?? []).slice(0, 4).map((factor) => (
+                <div key={factor.name} className="insights-factor-pill">
+                  <span>{factor.name}</span>
+                  <strong className={getHealthScoreToneClass(factor.score)}>{Math.round(factor.score)}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="insights-score-orbit" style={{ ["--score-accent" as string]: scoreAccent, ["--score-angle" as string]: `${Math.max(8, Math.min(360, Math.round(score * 3.6)))}deg` }}>
+            <div className="insights-score-orbit-core">
+              <strong className={getHealthScoreToneClass(score)}>{roundedScore}</strong>
+              <span>/ 100</span>
+            </div>
+          </div>
         </article>
 
-        <article className="card insights-suggestions-card">
-          <h4>Suggestions</h4>
+        <article className="card insights-suggestions-card insights-action-card">
+          <div className="insights-card-headline">
+            <span className="insights-section-kicker">Action queue</span>
+            <h4>Suggestions</h4>
+          </div>
           {filteredSuggestions.length ? (
             <ul className="insights-suggestion-list">
-              {filteredSuggestions.map((suggestion) => (
+              {filteredSuggestions.map((suggestion, index) => (
                 <li key={suggestion}>
-                  <span className="insights-suggestion-dot" aria-hidden="true" />
+                  <span className="insights-suggestion-index" aria-hidden="true">{index + 1}</span>
                   <span>{suggestion}</span>
                 </li>
               ))}
@@ -232,17 +278,23 @@ export function InsightsPage() {
       </div>
 
       <article className="card insights-highlights-card">
-        <h4>Insight Highlights</h4>
+        <div className="insights-card-headline">
+          <span className="insights-section-kicker">Pattern watch</span>
+          <h4>Insight Highlights</h4>
+        </div>
         {filteredHighlights.length === 0 ? (
           <p className="muted">No highlight cards available for this period.</p>
         ) : (
-          <div className="card-grid">
+          <div className="card-grid insights-highlight-grid">
             {filteredHighlights.map((item) => (
-              <article key={`${item.title}-${item.periodLabel}`} className="card summary-card">
-                <h4>{item.title}</h4>
-                <div className={`big ${item.severity === "success" ? "health-score-good" : item.severity === "warning" ? "health-score-warn" : ""}`}>
-                  {Math.round(item.changePercent)}%
+              <article key={`${item.title}-${item.periodLabel}`} className={`card summary-card insight-highlight-card ${getHighlightToneClass(item.severity)}`}>
+                <div className="insight-highlight-head">
+                  <span className="insight-highlight-period">{item.periodLabel}</span>
+                  <span className={`insight-highlight-change ${item.severity === "success" ? "health-score-good" : item.severity === "warning" ? "health-score-warn" : ""}`}>
+                    {Math.round(item.changePercent)}%
+                  </span>
                 </div>
+                <h4>{item.title}</h4>
                 <p className="muted">{item.message}</p>
               </article>
             ))}
@@ -254,6 +306,7 @@ export function InsightsPage() {
         <article className="card insights-chart-card insights-chart-card-wide">
           <div className="insights-chart-head">
             <div>
+              <span className="insights-section-kicker">Cash movement</span>
               <h4>Income vs Expense Flow</h4>
               <p className="muted">Use the full period to compare earnings, outflow, and net momentum.</p>
             </div>
@@ -314,6 +367,7 @@ export function InsightsPage() {
         <article className="card insights-chart-card insights-chart-card-compact">
           <div className="insights-chart-head compact">
             <div>
+              <span className="insights-section-kicker">Reserve strength</span>
               <h4>Savings Rate Pulse</h4>
               <p className="muted">Latest savings performance with recent-period context.</p>
             </div>
@@ -379,7 +433,10 @@ export function InsightsPage() {
       </div>
 
       <article className="card insights-breakdown-card">
-        <h4>Score Breakdown</h4>
+        <div className="insights-card-headline">
+          <span className="insights-section-kicker">Signal decomposition</span>
+          <h4>Score Breakdown</h4>
+        </div>
         {healthScoreQuery.isLoading ? (
           <p className="muted">Loading score details...</p>
         ) : filteredBreakdown.length ? (
