@@ -1210,15 +1210,21 @@ a {
   padding-bottom: 6px;
   scroll-snap-type: x proximity;
   scrollbar-width: thin;
-  scrollbar-color: #7eaef7 rgba(209, 220, 238, 0.7);
+  scrollbar-color: #7eaef7 transparent;
 }
 
 .account-tile-strip::-webkit-scrollbar {
   height: 10px;
 }
 
+.account-tile-strip::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .account-tile-strip::-webkit-scrollbar-track {
-  background: linear-gradient(180deg, rgba(224, 232, 245, 0.86), rgba(214, 224, 240, 0.76));
+  background: transparent;
   border-radius: 999px;
 }
 
@@ -2442,11 +2448,11 @@ body.dark-theme .account-balance-tile-meta span {
 }
 
 body.dark-theme .account-tile-strip {
-  scrollbar-color: #8ab6ff rgba(41, 55, 78, 0.9);
+  scrollbar-color: #8ab6ff transparent;
 }
 
 body.dark-theme .account-tile-strip::-webkit-scrollbar-track {
-  background: linear-gradient(180deg, rgba(34, 48, 71, 0.96), rgba(28, 41, 60, 0.92));
+  background: transparent;
 }
 
 body.dark-theme .account-tile-strip::-webkit-scrollbar-thumb {
