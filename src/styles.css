@@ -1274,6 +1274,10 @@ a {
   gap: 10px;
 }
 
+.account-balance-tile-copy {
+  min-width: 0;
+}
+
 .account-balance-tile-head strong {
   display: block;
   color: #183153;
@@ -1281,7 +1285,7 @@ a {
   line-height: 1.2;
 }
 
-.account-balance-tile-head span {
+.account-balance-tile-copy span {
   display: block;
   margin-top: 5px;
   color: #647791;
@@ -1290,18 +1294,20 @@ a {
 }
 
 .account-shared-badge {
-  width: fit-content;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 8px;
-  padding: 5px 9px;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(47, 123, 226, 0.12);
-  color: #245eb8;
+  background: linear-gradient(135deg, rgba(27, 156, 140, 0.16), rgba(47, 123, 226, 0.14));
+  border: 1px solid rgba(60, 151, 178, 0.26);
+  color: #1d7182;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.04em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .account-shared-badge-icon {
@@ -2498,13 +2504,14 @@ body.dark-theme .account-balance-tile-amount.credit-danger {
   color: #ff8f9c;
 }
 
-body.dark-theme .account-balance-tile-head span {
+body.dark-theme .account-balance-tile-copy span {
   color: #98acc9;
 }
 
 body.dark-theme .account-shared-badge {
-  background: rgba(96, 149, 241, 0.18);
-  color: #d7e8ff;
+  background: linear-gradient(135deg, rgba(44, 146, 134, 0.22), rgba(72, 117, 214, 0.2));
+  border-color: rgba(104, 177, 197, 0.22);
+  color: #d7f1f4;
 }
 
 body.dark-theme .account-balance-pill {
