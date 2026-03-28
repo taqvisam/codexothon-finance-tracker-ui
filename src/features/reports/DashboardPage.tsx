@@ -619,9 +619,6 @@ export function DashboardPage() {
                       <strong>{account.name}</strong>
                       <span>{typeLabel}</span>
                     </div>
-                  <span className={`account-balance-pill ${account.type === "CreditCard" ? "credit" : ""}`}>
-                      {account.type === "CreditCard" ? "Card" : "Account"}
-                    </span>
                   </div>
                   <div className={`account-balance-tile-amount ${getAccountAmountTone(account)}`}>
                     {currency(account.currentBalance)}

@@ -215,9 +215,6 @@ export function AccountsPage() {
                     <strong>{account.name}</strong>
                     <span>{institution ? `${institution} / ${typeLabel}` : typeLabel}</span>
                   </div>
-                  <span className={`account-balance-pill ${account.type === "CreditCard" ? "credit" : ""}`}>
-                    {account.type === "CreditCard" ? "Card" : "Account"}
-                  </span>
                 </div>
                 <div className={`account-balance-tile-amount ${getAccountAmountTone(account)}`}>
                   {currency(account.currentBalance)}
