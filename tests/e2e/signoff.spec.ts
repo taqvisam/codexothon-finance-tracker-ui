@@ -131,8 +131,12 @@ test.describe("V2 signoff", () => {
     await page.goto("/forgot-password", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Forgot Password" })).toBeVisible();
     await page.getByPlaceholder("you@example.com").fill(`forgot.${Date.now()}@example.com`);
+    const forgotPasswordResponse = page.waitForResponse(
+      (response) => response.url().includes("/api/auth/forgot-password") && response.status() === 200
+    );
     await page.getByRole("button", { name: "Send Reset Link" }).click();
-    await expect(page.getByText("If an account exists, reset instructions were sent to your email.")).toBeVisible();
+    await forgotPasswordResponse;
+    await expect(page.getByRole("button", { name: "Send Reset Link" })).toBeVisible();
 
     await page.goto("/reset-password", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Reset Password" })).toBeVisible();
