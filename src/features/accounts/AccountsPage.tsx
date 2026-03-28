@@ -170,6 +170,38 @@ export function AccountsPage() {
   return (
     <section className="card">
       <h3>Accounts</h3>
+      {filteredAccounts.length > 0 ? (
+        <div className="account-tile-strip" aria-label="Account balance overview">
+          {filteredAccounts.map((account) => {
+            const institution = (account.institutionName ?? "").trim();
+            const typeLabel = formatAccountTypeLabel(account.type);
+            return (
+              <article key={account.id} className="account-balance-tile">
+                <div className="account-balance-tile-head">
+                  <div>
+                    <strong>{account.name}</strong>
+                    <span>{institution ? `${institution} / ${typeLabel}` : typeLabel}</span>
+                  </div>
+                  <span className={`account-balance-pill ${account.type === "CreditCard" ? "credit" : ""}`}>
+                    {account.type === "CreditCard" ? "Card" : "Account"}
+                  </span>
+                </div>
+                <div className="account-balance-tile-amount">{currency(account.currentBalance)}</div>
+                {account.type === "CreditCard" ? (
+                  <div className="account-balance-tile-meta">
+                    <span>Limit {currency(account.creditLimit ?? 0)}</span>
+                    <span>Available {currency(account.availableCredit ?? 0)}</span>
+                  </div>
+                ) : (
+                  <div className="account-balance-tile-meta">
+                    <span>Opening {currency(account.openingBalance)}</span>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      ) : null}
       <form onSubmit={handleSubmit((d) => createMutation.mutate(d))}>
         <div className="form-grid">
           <TextInput label="Account Name" placeholder="Account Name" {...register("name")} />
