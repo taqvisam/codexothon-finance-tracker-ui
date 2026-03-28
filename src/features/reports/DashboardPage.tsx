@@ -87,6 +87,7 @@ interface DashboardAlert {
   type: "info" | "warning" | "danger";
   message: string;
   dismissible?: boolean;
+  dismissScope?: "persistent" | "session";
 }
 
 const chartColors = ["#2f6fbe", "#ee9a2f", "#36a269", "#dd5757", "#697b96", "#2f97d8"];
@@ -159,6 +160,7 @@ function getAccountAmountTone(account: AccountItem): string {
 
 export function DashboardPage() {
   const DISMISSED_ALERTS_KEY = "pft-dashboard-dismissed-alerts";
+  const SESSION_DISMISSED_ALERTS_KEY = "pft-dashboard-session-dismissed-alerts";
   const navigate = useNavigate();
   const currency = useCurrency();
   const { dateFrom, dateTo, selectedPeriod, topbarSearch } = useUiStore();
@@ -166,6 +168,16 @@ export function DashboardPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [dismissedAlerts, setDismissedAlerts] = useState<string[]>(() => {
     const raw = localStorage.getItem(DISMISSED_ALERTS_KEY);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw) as string[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const [sessionDismissedAlerts, setSessionDismissedAlerts] = useState<string[]>(() => {
+    const raw = sessionStorage.getItem(SESSION_DISMISSED_ALERTS_KEY);
     if (!raw) return [];
     try {
       const parsed = JSON.parse(raw) as string[];
@@ -367,11 +379,13 @@ export function DashboardPage() {
         account.name.toLowerCase().includes("pocket cash") &&
         account.currentBalance < LOW_BALANCE_THRESHOLD
       )
+      .filter((account) => !sessionDismissedAlerts.includes(`low-cash:${account.id}:${account.currentBalance.toFixed(2)}`))
       .map((account) => ({
-        key: `low-cash:${account.id}`,
+        key: `low-cash:${account.id}:${account.currentBalance.toFixed(2)}`,
         type: account.currentBalance < 500 ? "danger" : "warning",
         message: `You are running low on ${account.name}. Only ${currency(account.currentBalance)} left.`,
-        dismissible: false
+        dismissible: true,
+        dismissScope: "session"
       }));
 
     const dismissibleAlerts = [...budgetAlerts, ...recurringAlerts, ...forecastWarnings].filter(
@@ -386,7 +400,8 @@ export function DashboardPage() {
     dateFrom,
     dismissedAlerts,
     forecastMonthQuery.data?.riskWarnings,
-    recurringQuery.data
+    recurringQuery.data,
+    sessionDismissedAlerts
   ]);
 
   const dismissAlert = (key: string) => {
@@ -394,6 +409,15 @@ export function DashboardPage() {
       if (prev.includes(key)) return prev;
       const next = [...prev, key];
       localStorage.setItem(DISMISSED_ALERTS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const dismissSessionAlert = (key: string) => {
+    setSessionDismissedAlerts((prev) => {
+      if (prev.includes(key)) return prev;
+      const next = [...prev, key];
+      sessionStorage.setItem(SESSION_DISMISSED_ALERTS_KEY, JSON.stringify(next));
       return next;
     });
   };
@@ -534,7 +558,11 @@ export function DashboardPage() {
                   key={`${idx}-${alert.key}`}
                   type={alert.type}
                   message={alert.message}
-                  onDismiss={alert.dismissible === false ? undefined : () => dismissAlert(alert.key)}
+                  onDismiss={
+                    alert.dismissible === false
+                      ? undefined
+                      : () => (alert.dismissScope === "session" ? dismissSessionAlert(alert.key) : dismissAlert(alert.key))
+                  }
                 />
               ))}
             </div>
