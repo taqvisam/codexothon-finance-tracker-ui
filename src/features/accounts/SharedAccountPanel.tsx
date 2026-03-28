@@ -68,7 +68,7 @@ export function SharedAccountPanel({ accounts }: Props) {
   const activityQuery = useQuery({
     queryKey: ["shared-activity", selectedAccountId],
     queryFn: async () => (await apiClient.get<AccountActivity[]>(`/accounts/${selectedAccountId}/activity`)).data,
-    enabled: Boolean(selectedAccountId && queryReady),
+    enabled: Boolean(selectedAccountId && queryReady && !membersQuery.isFetching),
     initialData: []
   });
 
