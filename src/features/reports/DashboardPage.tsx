@@ -130,6 +130,33 @@ function isLowBalanceAccount(account: AccountItem): boolean {
   return account.type !== "CreditCard" && account.currentBalance < LOW_BALANCE_THRESHOLD;
 }
 
+function getCreditUsagePercent(account: AccountItem): number {
+  if (account.type !== "CreditCard" || !account.creditLimit || account.creditLimit <= 0) {
+    return 0;
+  }
+
+  const availableCredit = account.availableCredit ?? (account.creditLimit + account.currentBalance);
+  const usedAmount = Math.max(0, account.creditLimit - availableCredit);
+  return (usedAmount / account.creditLimit) * 100;
+}
+
+function getAccountAmountTone(account: AccountItem): string {
+  if (account.type === "CreditCard") {
+    const usagePercent = getCreditUsagePercent(account);
+    if (usagePercent >= 80) {
+      return "credit-danger";
+    }
+
+    if (usagePercent >= 30) {
+      return "credit-warn";
+    }
+
+    return "credit-good";
+  }
+
+  return isLowBalanceAccount(account) ? "low-balance" : "";
+}
+
 export function DashboardPage() {
   const DISMISSED_ALERTS_KEY = "pft-dashboard-dismissed-alerts";
   const navigate = useNavigate();
@@ -568,7 +595,7 @@ export function DashboardPage() {
                       {account.type === "CreditCard" ? "Card" : "Account"}
                     </span>
                   </div>
-                  <div className={`account-balance-tile-amount ${isLowBalanceAccount(account) ? "low-balance" : ""}`}>
+                  <div className={`account-balance-tile-amount ${getAccountAmountTone(account)}`}>
                     {currency(account.currentBalance)}
                   </div>
                   {account.type === "CreditCard" ? (

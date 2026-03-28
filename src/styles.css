@@ -1299,6 +1299,18 @@ a {
   color: #d74d57;
 }
 
+.account-balance-tile-amount.credit-good {
+  color: #2f9d68;
+}
+
+.account-balance-tile-amount.credit-warn {
+  color: #d78a1f;
+}
+
+.account-balance-tile-amount.credit-danger {
+  color: #d74d57;
+}
+
 .account-balance-tile-meta {
   display: flex;
   flex-wrap: wrap;
@@ -2432,6 +2444,18 @@ body.dark-theme .account-balance-tile-amount {
 }
 
 body.dark-theme .account-balance-tile-amount.low-balance {
+  color: #ff8f9c;
+}
+
+body.dark-theme .account-balance-tile-amount.credit-good {
+  color: #63d49a;
+}
+
+body.dark-theme .account-balance-tile-amount.credit-warn {
+  color: #ffbf63;
+}
+
+body.dark-theme .account-balance-tile-amount.credit-danger {
   color: #ff8f9c;
 }
 
