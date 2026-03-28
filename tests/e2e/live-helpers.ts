@@ -117,7 +117,7 @@ export async function signupFreshUser(
   await page.getByPlaceholder("you@example.com").fill(email);
   await page.getByPlaceholder("At least 8 characters").fill(password);
   await page.getByRole("button", { name: "Create Account" }).click();
-  await page.waitForURL((url) => url.pathname === "/onboarding" || url.pathname === "/", { timeout: 60_000 });
+  await waitForPostAuthLanding(page);
 
   return { email, password, displayName };
 }
@@ -127,7 +127,7 @@ export async function loginUser(page: Page, user: TestUser) {
   await page.getByPlaceholder("you@example.com").fill(user.email);
   await page.getByPlaceholder("At least 8 characters").fill(user.password);
   await page.getByRole("button", { name: "Login" }).click();
-  await page.waitForURL((url) => url.pathname === "/onboarding" || url.pathname === "/", { timeout: 60_000 });
+  await waitForPostAuthLanding(page);
   await dismissV2IntroIfPresent(page);
   if (page.url().includes("/onboarding")) {
     await page.waitForURL((url) => url.pathname === "/", { timeout: 60_000 });
@@ -302,4 +302,12 @@ function authHeaders(token?: string) {
     "ngrok-skip-browser-warning": "true",
     ...(token ? { Authorization: `Bearer ${token}` } : {})
   };
+}
+
+async function waitForPostAuthLanding(page: Page) {
+  await Promise.race([
+    page.waitForURL((url) => url.pathname === "/onboarding" || url.pathname === "/", { timeout: 60_000 }),
+    page.getByRole("button", { name: "Experience V2" }).waitFor({ state: "visible", timeout: 60_000 }),
+    page.getByText("Cash Flow Forecast Engine", { exact: false }).first().waitFor({ state: "visible", timeout: 60_000 })
+  ]);
 }
