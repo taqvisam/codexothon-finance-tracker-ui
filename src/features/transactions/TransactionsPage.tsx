@@ -16,6 +16,7 @@ import { ActionIconButton } from "../../components/ActionIconButton";
 interface AccountItem {
   id: string;
   name: string;
+  type?: "Bank" | "CreditCard" | "CashWallet" | "Savings";
 }
 
 interface CategoryItem {
@@ -210,6 +211,12 @@ export function TransactionsPage() {
       setSelectedCategory("");
       setSearch("");
       resetTransactionForm();
+    },
+    onError: (error) => {
+      const message = (
+        error as { response?: { data?: { error?: string } } }
+      ).response?.data?.error ?? "Transaction failed.";
+      notify(message, "error");
     }
   });
 

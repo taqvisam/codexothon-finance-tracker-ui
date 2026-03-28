@@ -110,6 +110,12 @@ export function AccountsPage() {
       reset(accountDefaults);
       setEditId(null);
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+    },
+    onError: (error) => {
+      const message = (
+        error as { response?: { data?: { error?: string } } }
+      ).response?.data?.error ?? "Account save failed.";
+      notify(message, "error");
     }
   });
 
@@ -119,6 +125,12 @@ export function AccountsPage() {
       notify("Transfer completed");
       transferForm.reset(transferDefaults);
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+    },
+    onError: (error) => {
+      const message = (
+        error as { response?: { data?: { error?: string } } }
+      ).response?.data?.error ?? "Transfer failed.";
+      notify(message, "error");
     }
   });
 
@@ -176,6 +188,7 @@ export function AccountsPage() {
             label="Opening Balance"
             type="number"
             step="0.01"
+            min="0"
             placeholder="Opening Balance"
             {...register("openingBalance", { valueAsNumber: true })}
           />

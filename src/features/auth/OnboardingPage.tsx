@@ -628,7 +628,7 @@ export function OnboardingPage() {
                 value={watch("accountType")}
                 onChange={(e) => setValue("accountType", e.target.value as OnboardingInput["accountType"])}
               />
-              <TextInput label="Opening Balance" type="number" step="0.01" {...register("openingBalance", { valueAsNumber: true })} />
+              <TextInput label="Opening Balance" type="number" step="0.01" min="0" {...register("openingBalance", { valueAsNumber: true })} />
               {watch("accountType") === "CreditCard" ? (
                 <TextInput
                   label="Credit Limit"
