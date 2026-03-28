@@ -350,6 +350,8 @@ a {
 
 .content {
   padding: 12px 16px 18px;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .topbar {
@@ -630,6 +632,9 @@ a {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
   padding: 12px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
 }
@@ -657,6 +662,10 @@ a {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
+}
+
+.card-head > div {
+  min-width: 0;
 }
 
 .summary-card {
@@ -1205,9 +1214,13 @@ a {
   grid-auto-flow: column;
   grid-auto-columns: calc((100% - 30px) / 4);
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   margin: 12px 0 18px;
   padding-bottom: 6px;
+  overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
   scrollbar-width: thin;
   scrollbar-color: #7eaef7 transparent;
@@ -1238,6 +1251,7 @@ a {
 }
 
 .account-balance-tile {
+  width: 100%;
   min-width: 0;
   padding: 16px;
   border-radius: 18px;
