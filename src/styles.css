@@ -995,6 +995,12 @@ a {
   margin-bottom: 12px;
 }
 
+.insights-card-headline h4,
+.insights-hero-copy > h4,
+.insights-chart-head > div > h4 {
+  display: none;
+}
+
 .insights-section-kicker {
   display: inline-flex;
   align-items: center;
