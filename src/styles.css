@@ -1209,6 +1209,27 @@ a {
   margin: 12px 0 18px;
   padding-bottom: 6px;
   scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: #7eaef7 rgba(209, 220, 238, 0.7);
+}
+
+.account-tile-strip::-webkit-scrollbar {
+  height: 10px;
+}
+
+.account-tile-strip::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(224, 232, 245, 0.86), rgba(214, 224, 240, 0.76));
+  border-radius: 999px;
+}
+
+.account-tile-strip::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #5c93e4, #84b8ff);
+  border-radius: 999px;
+  border: 2px solid rgba(230, 237, 247, 0.95);
+}
+
+.account-tile-strip::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #467fd5, #72abfb);
 }
 
 .account-balance-tile {
@@ -2418,6 +2439,23 @@ body.dark-theme .account-balance-pill.credit {
 body.dark-theme .account-balance-tile-meta span {
   background: rgba(57, 75, 103, 0.6);
   color: #d2ddef;
+}
+
+body.dark-theme .account-tile-strip {
+  scrollbar-color: #8ab6ff rgba(41, 55, 78, 0.9);
+}
+
+body.dark-theme .account-tile-strip::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(34, 48, 71, 0.96), rgba(28, 41, 60, 0.92));
+}
+
+body.dark-theme .account-tile-strip::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #6095f1, #8ab6ff);
+  border-color: rgba(28, 41, 60, 0.95);
+}
+
+body.dark-theme .account-tile-strip::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #76a7fb, #9ac0ff);
 }
 
 body.dark-theme .credit-limit-kicker {
