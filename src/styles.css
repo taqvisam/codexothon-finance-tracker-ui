@@ -1351,6 +1351,68 @@ a {
   text-decoration: underline;
 }
 
+.credit-limit-overview-card {
+  margin-top: 14px;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.credit-limit-overview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.credit-limit-overview-head h3 {
+  margin: 4px 0 0;
+}
+
+.credit-limit-kicker {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(47, 123, 226, 0.12);
+  color: #245eb8;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.credit-limit-total {
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 800;
+  color: #163152;
+  line-height: 1;
+}
+
+.credit-limit-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.credit-limit-metric {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid #d8e2f1;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.credit-limit-metric strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+  color: #173150;
+}
+
+.credit-limit-caption {
+  margin: -4px 0 0;
+}
+
 .progress {
   width: 100%;
   height: 8px;
@@ -2240,6 +2302,21 @@ body.dark-theme .summary-card-link {
 
 body.dark-theme .summary-card-link:hover {
   color: #b5d1ff;
+}
+
+body.dark-theme .credit-limit-kicker {
+  background: rgba(96, 149, 241, 0.18);
+  color: #d7e8ff;
+}
+
+body.dark-theme .credit-limit-total,
+body.dark-theme .credit-limit-metric strong {
+  color: #edf3ff;
+}
+
+body.dark-theme .credit-limit-metric {
+  border-color: #2f3d54;
+  background: rgba(20, 31, 48, 0.88);
 }
 
 body.dark-theme .user-menu-row {
@@ -4250,6 +4327,10 @@ body.dark-theme .onboarding-spinner {
   .onboarding-highlight-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .credit-limit-metrics {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -4259,6 +4340,11 @@ body.dark-theme .onboarding-spinner {
 
   .onboarding-highlight-row {
     grid-template-columns: 1fr;
+  }
+
+  .credit-limit-overview-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .onboarding-mode-switch {

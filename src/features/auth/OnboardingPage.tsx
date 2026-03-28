@@ -33,6 +33,7 @@ interface OnboardingInput {
   accountName: string;
   accountType: "Bank" | "CreditCard" | "CashWallet" | "Savings";
   openingBalance: number;
+  creditLimit?: number;
   institutionName?: string;
   customInstitution?: string;
   budgetCategoryId?: string;
@@ -43,6 +44,7 @@ interface WorkbookAccountRow {
   name: string;
   type: string;
   openingBalance: number;
+  creditLimit?: number;
   institutionName?: string;
 }
 
@@ -199,6 +201,7 @@ function parseWorkbook(file: File): Promise<WorkbookImportPayload> {
         name: String(normalized.accountname ?? normalized.name ?? "").trim(),
         type: String(normalized.accounttype ?? normalized.type ?? "Bank").trim(),
         openingBalance: toNumber(normalized.openingbalance),
+        creditLimit: toText(normalized.creditlimit ?? normalized.limit) ? toNumber(normalized.creditlimit ?? normalized.limit) : undefined,
         institutionName: toText(normalized.institution ?? normalized.institutionname ?? normalized.provider)
       } satisfies WorkbookAccountRow;
     }).filter((row) => row.name);
@@ -321,6 +324,7 @@ export function OnboardingPage() {
     defaultValues: {
       accountType: "Bank",
       openingBalance: 0,
+      creditLimit: undefined,
       customInstitution: "",
       budgetCategoryId: "",
       budgetAmount: 0
@@ -360,10 +364,12 @@ export function OnboardingPage() {
   const createMutation = useMutation({
     mutationFn: async (data: OnboardingInput) => {
       const institution = resolveInstitutionName(data.institutionName ?? "", data.customInstitution ?? "");
+      const creditLimit = Number.isFinite(data.creditLimit) ? data.creditLimit : undefined;
       await apiClient.post("/accounts", {
         name: data.accountName,
         type: data.accountType,
         openingBalance: data.openingBalance,
+        creditLimit: data.accountType === "CreditCard" ? creditLimit : undefined,
         institutionName: institution || undefined
       });
 
@@ -455,8 +461,8 @@ export function OnboardingPage() {
   const importSheets = useMemo(() => ([
     {
       title: "Accounts",
-      description: "Bank, credit, savings, and wallet balances with provider names.",
-      fields: "name, type, opening balance, institution"
+      description: "Bank, credit, savings, and wallet balances with provider names and credit-card limits.",
+      fields: "name, type, opening balance, credit limit, institution"
     },
     {
       title: "Budgets",
@@ -623,6 +629,16 @@ export function OnboardingPage() {
                 onChange={(e) => setValue("accountType", e.target.value as OnboardingInput["accountType"])}
               />
               <TextInput label="Opening Balance" type="number" step="0.01" {...register("openingBalance", { valueAsNumber: true })} />
+              {watch("accountType") === "CreditCard" ? (
+                <TextInput
+                  label="Credit Limit"
+                  type="number"
+                  step="0.01"
+                  {...register("creditLimit", {
+                    setValueAs: (value) => value === "" ? undefined : Number(value)
+                  })}
+                />
+              ) : null}
               <Dropdown
                 label="Institution / Provider"
                 options={[
@@ -689,7 +705,7 @@ export function OnboardingPage() {
                   Download sample workbook
                 </a>
                 <p className="muted onboarding-template-caption">
-                  Includes accounts, budgets, goals, recurring items, rules, and rich six-month transaction history tuned for dashboard and Insights signals.
+                  Includes accounts, credit-card limits, budgets, goals, recurring items, rules, and rich six-month transaction history tuned for dashboard and Insights signals.
                 </p>
               </div>
 
@@ -771,7 +787,7 @@ export function OnboardingPage() {
                 Use human-readable values only. No database IDs are needed. Categories and account mappings are resolved automatically during import.
               </p>
               <p className="muted onboarding-import-note">
-                The sample workbook is tuned to populate dashboard forecasts, financial health trends, recurring cash flows, rule automation, and Insights highlights with recent six-month data.
+                The sample workbook is tuned to populate dashboard forecasts, credit-limit tracking, financial health trends, recurring cash flows, rule automation, and Insights highlights with recent six-month data.
               </p>
             </article>
           </div>

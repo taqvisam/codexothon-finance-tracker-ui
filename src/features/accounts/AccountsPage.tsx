@@ -20,7 +20,10 @@ interface Account {
   id: string;
   name: string;
   type: string;
+  openingBalance: number;
   currentBalance: number;
+  creditLimit?: number | null;
+  availableCredit?: number | null;
   institutionName?: string;
 }
 
@@ -28,6 +31,7 @@ interface Input {
   name: string;
   type: "Bank" | "CreditCard" | "CashWallet" | "Savings";
   openingBalance: number;
+  creditLimit?: number;
   institutionName?: string;
   customInstitution?: string;
 }
@@ -60,6 +64,7 @@ export function AccountsPage() {
     name: "",
     type: "Bank",
     openingBalance: 0,
+    creditLimit: undefined,
     institutionName: "",
     customInstitution: ""
   };
@@ -86,10 +91,12 @@ export function AccountsPage() {
   const createMutation = useMutation({
     mutationFn: async (payload: Input) => {
       const institution = resolveInstitutionName(payload.institutionName ?? "", payload.customInstitution ?? "");
+      const creditLimit = Number.isFinite(payload.creditLimit) ? payload.creditLimit : undefined;
       const requestPayload = {
         name: payload.name,
         type: payload.type,
         openingBalance: payload.openingBalance,
+        creditLimit: payload.type === "CreditCard" ? creditLimit : undefined,
         institutionName: institution || undefined
       };
 
@@ -139,10 +146,14 @@ export function AccountsPage() {
         account.name,
         formatAccountTypeLabel(account.type),
         institution,
-        String(account.currentBalance)
+        String(account.currentBalance),
+        String(account.creditLimit ?? ""),
+        String(account.availableCredit ?? "")
       ].some((value) => value.toLowerCase().includes(normalizedSearch));
     });
   }, [accountsQuery.data, normalizedSearch]);
+
+  const selectedType = watch("type");
 
   return (
     <section className="card">
@@ -164,9 +175,21 @@ export function AccountsPage() {
           <TextInput
             label="Opening Balance"
             type="number"
+            step="0.01"
             placeholder="Opening Balance"
             {...register("openingBalance", { valueAsNumber: true })}
           />
+          {selectedType === "CreditCard" ? (
+            <TextInput
+              label="Credit Limit"
+              type="number"
+              step="0.01"
+              placeholder="Credit Limit"
+              {...register("creditLimit", {
+                setValueAs: (value) => value === "" ? undefined : Number(value)
+              })}
+            />
+          ) : null}
           <Dropdown
             label="Institution / Provider"
             options={[
@@ -248,7 +271,21 @@ export function AccountsPage() {
                   return institution ? `${institution}/${typeLabel}` : typeLabel;
                 }
               },
-              { key: "bal", title: "Current Balance", render: (r) => currency(r.currentBalance) },
+              {
+                key: "bal",
+                title: "Current Balance",
+                render: (r) => currency(r.currentBalance)
+              },
+              {
+                key: "creditLimit",
+                title: "Credit Limit",
+                render: (r) => r.type === "CreditCard" ? currency(r.creditLimit ?? 0) : "—"
+              },
+              {
+                key: "availableCredit",
+                title: "Available Credit",
+                render: (r) => r.type === "CreditCard" ? currency(r.availableCredit ?? 0) : "—"
+              },
               {
                 key: "actions",
                 title: "Actions",
@@ -261,7 +298,8 @@ export function AccountsPage() {
                         setEditId(r.id);
                         setValue("name", r.name);
                         setValue("type", r.type as Input["type"]);
-                        setValue("openingBalance", r.currentBalance);
+                        setValue("openingBalance", r.openingBalance);
+                        setValue("creditLimit", r.creditLimit ?? undefined);
                         const institution = splitInstitutionName(r.institutionName);
                         setValue("institutionName", institution.selectedInstitution);
                         setValue("customInstitution", institution.customInstitution);

@@ -27,7 +27,11 @@ import { AlertBanner } from "../../components/AlertBanner";
 interface AccountItem {
   id: string;
   name: string;
+  type: string;
+  openingBalance: number;
   currentBalance: number;
+  creditLimit?: number | null;
+  availableCredit?: number | null;
 }
 
 interface CategorySpend {
@@ -232,6 +236,28 @@ export function DashboardPage() {
     const savings = goalsQuery.data.reduce((sum, goal) => sum + goal.currentAmount, 0);
     return { balance, income, expense, savings };
   }, [accountsQuery.data, goalsQuery.data, trendQuery.data]);
+
+  const creditLimitSummary = useMemo(() => {
+    const creditCards = accountsQuery.data.filter(
+      (account) => account.type === "CreditCard" && (account.creditLimit ?? 0) > 0
+    );
+
+    const totalLimit = creditCards.reduce((sum, account) => sum + (account.creditLimit ?? 0), 0);
+    const available = creditCards.reduce(
+      (sum, account) => sum + (account.availableCredit ?? ((account.creditLimit ?? 0) + account.currentBalance)),
+      0
+    );
+    const used = Math.max(0, totalLimit - available);
+    const utilizationPercent = totalLimit > 0 ? (used / totalLimit) * 100 : 0;
+
+    return {
+      cardCount: creditCards.length,
+      totalLimit,
+      available,
+      used,
+      utilizationPercent
+    };
+  }, [accountsQuery.data]);
 
   const categoryNameById = useMemo(
     () => new Map(categoriesQuery.data.map((category) => [category.id, category.name])),
@@ -454,6 +480,38 @@ export function DashboardPage() {
           </div>
         </article>
       </section>
+
+      {creditLimitSummary.cardCount > 0 ? (
+        <section className="card credit-limit-overview-card">
+          <div className="credit-limit-overview-head">
+            <div>
+              <span className="credit-limit-kicker">Credit cards</span>
+              <h3>Combined Credit Limit</h3>
+            </div>
+            <div className="credit-limit-total">{currency(creditLimitSummary.totalLimit)}</div>
+          </div>
+
+          <div className="credit-limit-metrics">
+            <div className="credit-limit-metric">
+              <span className="muted">Available now</span>
+              <strong>{currency(creditLimitSummary.available)}</strong>
+            </div>
+            <div className="credit-limit-metric">
+              <span className="muted">Used</span>
+              <strong>{currency(creditLimitSummary.used)}</strong>
+            </div>
+            <div className="credit-limit-metric">
+              <span className="muted">Cards tracked</span>
+              <strong>{creditLimitSummary.cardCount}</strong>
+            </div>
+          </div>
+
+          <ProgressBar value={creditLimitSummary.utilizationPercent} barColor="#2f7be2" />
+          <p className="muted credit-limit-caption">
+            Available credit refreshes automatically whenever a credit-card bill payment posts to the card account.
+          </p>
+        </section>
+      ) : null}
 
       <section className="two-col">
         <MobileSection title="Forecast (Daily Projection)" isMobile={isMobile}>

@@ -38,6 +38,7 @@ const accounts = [
     name: "Atlas Credit Card",
     type: "CreditCard",
     openingBalance: -4500,
+    creditLimit: 90000,
     institutionName: "Axis Bank"
   },
   {
