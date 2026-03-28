@@ -95,6 +95,17 @@ function normalizeCategoryName(value: string | null | undefined): string {
   return (value ?? "").trim().toLowerCase();
 }
 
+function getTransactionAmountClass(type: Input["type"]): string {
+  switch (type) {
+    case "Income":
+      return "transaction-amount transaction-amount-income";
+    case "Expense":
+      return "transaction-amount transaction-amount-expense";
+    default:
+      return "transaction-amount transaction-amount-transfer";
+  }
+}
+
 export function TransactionsPage() {
   const queryClient = useQueryClient();
   const currency = useCurrency();
@@ -638,7 +649,15 @@ export function TransactionsPage() {
                     { key: "date", title: "Date", render: (r) => r.date },
                     { key: "merchant", title: "Merchant/Description", render: (r) => r.merchant ?? "-" },
                     { key: "type", title: "Category", render: (r) => r.type },
-                    { key: "amount", title: "Amount", render: (r) => currency(r.amount) },
+                    {
+                      key: "amount",
+                      title: "Amount",
+                      render: (r) => (
+                        <span className={getTransactionAmountClass(r.type)}>
+                          {currency(r.amount)}
+                        </span>
+                      )
+                    },
                     {
                       key: "actions",
                       title: "Actions",
