@@ -1389,6 +1389,21 @@ a {
   color: #4f6485;
 }
 
+.dashboard-mobile-list-value.transaction-amount-income,
+.summary-card .transaction-amount-income {
+  color: #2ea05f;
+}
+
+.dashboard-mobile-list-value.transaction-amount-expense,
+.summary-card .transaction-amount-expense {
+  color: #d74d57;
+}
+
+.dashboard-mobile-list-value.transaction-amount-transfer,
+.summary-card .transaction-amount-transfer {
+  color: #4f6485;
+}
+
 .table {
   width: 100%;
   border-collapse: separate;
@@ -2554,6 +2569,21 @@ body.dark-theme .transaction-amount-expense {
 }
 
 body.dark-theme .transaction-amount-transfer {
+  color: #cad7eb;
+}
+
+body.dark-theme .dashboard-mobile-list-value.transaction-amount-income,
+body.dark-theme .summary-card .transaction-amount-income {
+  color: #6ad89c;
+}
+
+body.dark-theme .dashboard-mobile-list-value.transaction-amount-expense,
+body.dark-theme .summary-card .transaction-amount-expense {
+  color: #ff8f9c;
+}
+
+body.dark-theme .dashboard-mobile-list-value.transaction-amount-transfer,
+body.dark-theme .summary-card .transaction-amount-transfer {
   color: #cad7eb;
 }
 

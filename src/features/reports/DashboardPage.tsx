@@ -19,7 +19,7 @@ import { DataTable } from "../../components/DataTable";
 import { ProgressBar } from "../../components/ProgressBar";
 import { SummaryCard } from "../../components/SummaryCard";
 import { apiClient } from "../../services/apiClient";
-import type { BudgetItem, GoalItem, SummaryMetrics, TransactionItem } from "../../types";
+import type { BudgetItem, GoalItem, SummaryMetrics, TransactionItem, TransactionType } from "../../types";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
 import { AlertBanner } from "../../components/AlertBanner";
@@ -157,6 +157,17 @@ function getAccountAmountTone(account: AccountItem): string {
   }
 
   return isLowBalanceAccount(account) ? "low-balance" : "";
+}
+
+function getTransactionAmountClass(type: TransactionType): string {
+  switch (type) {
+    case "Income":
+      return "transaction-amount transaction-amount-income";
+    case "Expense":
+      return "transaction-amount transaction-amount-expense";
+    default:
+      return "transaction-amount transaction-amount-transfer";
+  }
 }
 
 export function DashboardPage() {
@@ -573,8 +584,16 @@ export function DashboardPage() {
 
       <section className="card-grid dashboard-summary-grid">
         <SummaryCard title="Balance" value={summary.balance} />
-        <SummaryCard title="Current Month Income" value={summary.income} />
-        <SummaryCard title="Current Month Expense" value={summary.expense} />
+        <SummaryCard
+          title="Current Month Income"
+          value={summary.income}
+          valueClassName="transaction-amount transaction-amount-income"
+        />
+        <SummaryCard
+          title="Current Month Expense"
+          value={summary.expense}
+          valueClassName="transaction-amount transaction-amount-expense"
+        />
         <SummaryCard title="Savings" value={summary.savings} />
         <SummaryCard
           title="Projected Balance"
@@ -896,7 +915,9 @@ export function DashboardPage() {
                       <article key={transaction.id} className="dashboard-mobile-list-item">
                         <div className="dashboard-mobile-list-head">
                           <strong>{transaction.merchant ?? "Untitled transaction"}</strong>
-                          <span className="dashboard-mobile-list-value">{currency(transaction.amount)}</span>
+                          <span className={`dashboard-mobile-list-value ${getTransactionAmountClass(transaction.type)}`}>
+                            {currency(transaction.amount)}
+                          </span>
                         </div>
                         <div className="dashboard-mobile-list-meta">
                           <span>{transaction.date}</span>
@@ -912,7 +933,15 @@ export function DashboardPage() {
                     columns={[
                       { key: "merchant", title: "Description", render: (r) => r.merchant ?? "-" },
                       { key: "date", title: "Date", render: (r) => r.date },
-                      { key: "amount", title: "Amount", render: (r) => currency(r.amount) }
+                      {
+                        key: "amount",
+                        title: "Amount",
+                        render: (r) => (
+                          <span className={getTransactionAmountClass(r.type)}>
+                            {currency(r.amount)}
+                          </span>
+                        )
+                      }
                     ]}
                   />
                 )}

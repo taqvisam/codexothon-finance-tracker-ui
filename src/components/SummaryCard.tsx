@@ -4,9 +4,10 @@ interface Props {
   title: string;
   value: number;
   infoText?: string;
+  valueClassName?: string;
 }
 
-export function SummaryCard({ title, value, infoText }: Props) {
+export function SummaryCard({ title, value, infoText, valueClassName = "" }: Props) {
   const currency = useCurrency();
   return (
     <article className="card summary-card">
@@ -19,7 +20,7 @@ export function SummaryCard({ title, value, infoText }: Props) {
           </span>
         ) : null}
       </div>
-      <div className="big">{currency(value)}</div>
+      <div className={`big ${valueClassName}`.trim()}>{currency(value)}</div>
     </article>
   );
 }
