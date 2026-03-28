@@ -30,6 +30,7 @@ interface AccountItem {
   name: string;
   type: string;
   openingBalance: number;
+  balanceAtPeriodStart: number;
   currentBalance: number;
   creditLimit?: number | null;
   availableCredit?: number | null;
@@ -104,6 +105,15 @@ function formatAccountTypeLabel(type: string): string {
     default:
       return type;
   }
+}
+
+function formatPeriodStartLabel(from: string): string {
+  const parsed = new Date(`${from}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return "Start";
+  }
+
+  return `Start ${parsed.toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
 }
 
 function MobileSection({
@@ -229,8 +239,8 @@ export function DashboardPage() {
   });
 
   const accountsQuery = useQuery({
-    queryKey: ["dashboard-accounts"],
-    queryFn: async () => (await apiClient.get<AccountItem[]>("/accounts")).data,
+    queryKey: ["dashboard-accounts", dateFrom],
+    queryFn: async () => (await apiClient.get<AccountItem[]>("/accounts", { params: { from: dateFrom } })).data,
     initialData: []
   });
 
@@ -668,7 +678,7 @@ export function DashboardPage() {
                     </div>
                   ) : (
                     <div className="account-balance-tile-meta">
-                      <span>Opening {currency(account.openingBalance)}</span>
+                      <span>{formatPeriodStartLabel(dateFrom)} {currency(account.balanceAtPeriodStart)}</span>
                     </div>
                   )}
                 </article>

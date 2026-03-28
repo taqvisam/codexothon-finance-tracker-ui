@@ -22,6 +22,7 @@ interface Account {
   name: string;
   type: string;
   openingBalance: number;
+  balanceAtPeriodStart: number;
   currentBalance: number;
   creditLimit?: number | null;
   availableCredit?: number | null;
@@ -59,6 +60,15 @@ function formatAccountTypeLabel(type: string): string {
   }
 }
 
+function formatPeriodStartLabel(from: string): string {
+  const parsed = new Date(`${from}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return "Start";
+  }
+
+  return `Start ${parsed.toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
+}
+
 function isLowBalanceAccount(account: Account): boolean {
   return account.type !== "CreditCard" && account.currentBalance < LOW_BALANCE_THRESHOLD;
 }
@@ -93,7 +103,7 @@ function getAccountAmountTone(account: Account): string {
 export function AccountsPage() {
   const currency = useCurrency();
   const queryClient = useQueryClient();
-  const { notify, topbarSearch } = useUiStore();
+  const { notify, topbarSearch, dateFrom } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
   const accountDefaults: Input = {
     name: "",
@@ -118,8 +128,8 @@ export function AccountsPage() {
   });
 
   const accountsQuery = useQuery({
-    queryKey: ["accounts"],
-    queryFn: async () => (await apiClient.get<Account[]>("/accounts")).data,
+    queryKey: ["accounts", dateFrom],
+    queryFn: async () => (await apiClient.get<Account[]>("/accounts", { params: { from: dateFrom } })).data,
     initialData: []
   });
 
@@ -249,7 +259,7 @@ export function AccountsPage() {
                   </div>
                 ) : (
                   <div className="account-balance-tile-meta">
-                    <span>Opening {currency(account.openingBalance)}</span>
+                    <span>{formatPeriodStartLabel(dateFrom)} {currency(account.balanceAtPeriodStart)}</span>
                   </div>
                 )}
               </article>
