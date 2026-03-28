@@ -124,6 +124,7 @@ export function GoalsPage() {
   });
   const [actionState, setActionState] = useState<GoalActionState | null>(null);
   const [actionAmount, setActionAmount] = useState("");
+  const [actionAccountId, setActionAccountId] = useState("");
 
   const goalsQuery = useQuery({
     queryKey: ["goals"],
@@ -161,13 +162,25 @@ export function GoalsPage() {
   });
 
   const actionMutation = useMutation({
-    mutationFn: async ({ id, amount, action }: { id: string; amount: number; action: "contribute" | "withdraw" }) =>
-      apiClient.post(`/goals/${id}/${action}`, { amount }),
+    mutationFn: async ({
+      id,
+      amount,
+      action,
+      accountId
+    }: {
+      id: string;
+      amount: number;
+      action: "contribute" | "withdraw";
+      accountId?: string;
+    }) => apiClient.post(`/goals/${id}/${action}`, { amount, accountId }),
     onSuccess: (_, vars) => {
       notify(vars.action === "contribute" ? "Goal contribution saved" : "Goal withdrawal saved");
       setActionState(null);
       setActionAmount("");
+      setActionAccountId("");
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
     onError: (error) => {
       const message = (
@@ -245,6 +258,7 @@ export function GoalsPage() {
     const fallbackAmount = getMaxAllowed(goal, action);
     setActionState(nextState);
     setActionAmount(String(suggestions[0] ?? fallbackAmount));
+    setActionAccountId(goal.linkedAccountId ?? "");
   };
 
   const submitGoalAction = () => {
@@ -265,10 +279,22 @@ export function GoalsPage() {
       return;
     }
 
+    const selectedActionAccountId = actionState.goal.linkedAccountId ?? actionAccountId;
+    if (!selectedActionAccountId) {
+      notify(
+        actionState.action === "contribute"
+          ? "Select the account to fund this goal from."
+          : "Select the account to receive this withdrawal.",
+        "warning"
+      );
+      return;
+    }
+
     actionMutation.mutate({
       id: actionState.goal.id,
       amount,
-      action: actionState.action
+      action: actionState.action,
+      accountId: selectedActionAccountId
     });
   };
 
@@ -424,6 +450,22 @@ export function GoalsPage() {
             <p className="muted" style={{ marginTop: 0 }}>
               {actionState.goal.name} • Max {currency(getMaxAllowed(actionState.goal, actionState.action))}
             </p>
+            {!actionState.goal.linkedAccountId ? (
+              <Dropdown
+                label={actionState.action === "contribute" ? "Deduct From Account" : "Send To Account"}
+                options={[
+                  { value: "", label: actionState.action === "contribute" ? "Select source account" : "Select destination account" },
+                  ...accountsQuery.data.map((account) => ({ value: account.id, label: account.name }))
+                ]}
+                value={actionAccountId}
+                onChange={(event) => setActionAccountId(event.target.value)}
+              />
+            ) : (
+              <p className="muted" style={{ marginTop: 0 }}>
+                {actionState.action === "contribute" ? "Funding account" : "Destination account"}:{" "}
+                <strong>{accountsQuery.data.find((account) => account.id === actionState.goal.linkedAccountId)?.name ?? "Linked account"}</strong>
+              </p>
+            )}
             <input
               className="input"
               type="text"
@@ -452,6 +494,7 @@ export function GoalsPage() {
                 onClick={() => {
                   setActionState(null);
                   setActionAmount("");
+                  setActionAccountId("");
                 }}
               >
                 Cancel
