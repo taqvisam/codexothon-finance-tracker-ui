@@ -701,7 +701,7 @@ export function OnboardingPage() {
               </p>
 
               <div className="onboarding-template-links">
-                <a className="btn onboarding-template-download" href="/sample-onboarding-import.xlsx" download>
+                <a className="btn onboarding-template-download" href="/sample-onboarding-import-v2.xlsx" download>
                   Download sample workbook
                 </a>
                 <p className="muted onboarding-template-caption">

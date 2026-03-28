@@ -8,7 +8,9 @@ const rootDir = path.resolve(path.dirname(currentFile), "..", "..");
 const uiDir = path.resolve(rootDir, "codexothon-finance-tracker-ui");
 const outputTargets = [
   path.resolve(uiDir, "public", "sample-onboarding-import.xlsx"),
-  path.resolve(rootDir, "sample-data", "sample-onboarding-import.xlsx")
+  path.resolve(uiDir, "public", "sample-onboarding-import-v2.xlsx"),
+  path.resolve(rootDir, "sample-data", "sample-onboarding-import.xlsx"),
+  path.resolve(rootDir, "sample-data", "sample-onboarding-import-v2.xlsx")
 ];
 
 const now = new Date();
@@ -26,26 +28,29 @@ const accounts = [
     name: "Horizon Checking",
     type: "Bank",
     openingBalance: 42000,
-    institutionName: "HDFC Bank"
+    institutionName: "HDFC Bank",
+    limit: ""
   },
   {
     name: "Reserve Savings",
     type: "Savings",
     openingBalance: 65000,
-    institutionName: "ICICI Bank"
+    institutionName: "ICICI Bank",
+    limit: ""
   },
   {
     name: "Atlas Credit Card",
     type: "CreditCard",
     openingBalance: 0,
-    creditLimit: 90000,
+    limit: 90000,
     institutionName: "Axis Bank"
   },
   {
     name: "Pocket Cash",
     type: "CashWallet",
     openingBalance: 2500,
-    institutionName: "Wallet"
+    institutionName: "Wallet",
+    limit: ""
   }
 ];
 
