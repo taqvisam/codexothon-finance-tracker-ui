@@ -84,6 +84,17 @@ interface HealthScore {
 
 const chartColors = ["#2f6fbe", "#ee9a2f", "#36a269", "#dd5757", "#697b96", "#2f97d8"];
 
+function formatAccountTypeLabel(type: string): string {
+  switch (type) {
+    case "CreditCard":
+      return "Credit Card";
+    case "CashWallet":
+      return "Cash Wallet";
+    default:
+      return type;
+  }
+}
+
 function MobileSection({
   title,
   isMobile,
@@ -427,6 +438,23 @@ export function DashboardPage() {
     );
   }, [goalsQuery.data, normalizedSearch]);
 
+  const filteredAccounts = useMemo(() => {
+    if (!normalizedSearch) {
+      return accountsQuery.data;
+    }
+
+    return accountsQuery.data.filter((account) =>
+      [
+        account.name,
+        formatAccountTypeLabel(account.type),
+        String(account.currentBalance),
+        String(account.openingBalance),
+        String(account.creditLimit ?? ""),
+        String(account.availableCredit ?? "")
+      ].some((value) => value.toLowerCase().includes(normalizedSearch))
+    );
+  }, [accountsQuery.data, normalizedSearch]);
+
   return (
     <>
       <MobileSection title="Quick Actions & Alerts" isMobile={isMobile}>
@@ -480,6 +508,48 @@ export function DashboardPage() {
           </div>
         </article>
       </section>
+
+      {filteredAccounts.length > 0 ? (
+        <section className="card">
+          <div className="card-head">
+            <div>
+              <h3>Accounts at a Glance</h3>
+              <p className="muted" style={{ margin: "4px 0 0" }}>
+                Track balances and available credit without leaving the dashboard.
+              </p>
+            </div>
+          </div>
+          <div className="account-tile-strip" aria-label="Dashboard account balance overview">
+            {filteredAccounts.map((account) => {
+              const typeLabel = formatAccountTypeLabel(account.type);
+              return (
+                <article key={account.id} className="account-balance-tile">
+                  <div className="account-balance-tile-head">
+                    <div>
+                      <strong>{account.name}</strong>
+                      <span>{typeLabel}</span>
+                    </div>
+                    <span className={`account-balance-pill ${account.type === "CreditCard" ? "credit" : ""}`}>
+                      {account.type === "CreditCard" ? "Card" : "Account"}
+                    </span>
+                  </div>
+                  <div className="account-balance-tile-amount">{currency(account.currentBalance)}</div>
+                  {account.type === "CreditCard" ? (
+                    <div className="account-balance-tile-meta">
+                      <span>Limit {currency(account.creditLimit ?? 0)}</span>
+                      <span>Available {currency(account.availableCredit ?? 0)}</span>
+                    </div>
+                  ) : (
+                    <div className="account-balance-tile-meta">
+                      <span>Opening {currency(account.openingBalance)}</span>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       {creditLimitSummary.cardCount > 0 ? (
         <section className="card credit-limit-overview-card">
