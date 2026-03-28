@@ -82,6 +82,18 @@ export function BudgetsPage() {
     initialData: []
   });
 
+  const formAccountId = watch("accountId");
+  const formCategoriesQuery = useQuery({
+    queryKey: ["budget-form-categories", formAccountId || "editable"],
+    queryFn: async () =>
+      (
+        await apiClient.get<CategoryItem[]>("/categories", {
+          params: formAccountId ? { accountId: formAccountId } : { editableOnly: true }
+        })
+      ).data,
+    initialData: []
+  });
+
   const accountsQuery = useQuery({
     queryKey: ["budget-accounts"],
     queryFn: async () => (await apiClient.get<AccountItem[]>("/accounts")).data,
@@ -210,7 +222,7 @@ export function BudgetsPage() {
               label="Category"
               options={[
                 { value: "", label: "Select expense category" },
-                ...categoriesQuery.data
+                ...formCategoriesQuery.data
                   .filter((category) => category.type === "Expense")
                   .map((category) => ({ value: category.id, label: category.name }))
               ]}

@@ -73,9 +73,15 @@ export function RecurringPage() {
     initialData: []
   });
 
-  const categoriesQuery = useQuery({
-    queryKey: ["recurring-categories"],
-    queryFn: async () => (await apiClient.get<CategoryItem[]>("/categories")).data,
+  const selectedAccountId = watch("accountId");
+  const formCategoriesQuery = useQuery({
+    queryKey: ["recurring-form-categories", selectedAccountId || "editable"],
+    queryFn: async () =>
+      (
+        await apiClient.get<CategoryItem[]>("/categories", {
+          params: selectedAccountId ? { accountId: selectedAccountId } : { editableOnly: true }
+        })
+      ).data,
     initialData: []
   });
 
@@ -139,7 +145,7 @@ export function RecurringPage() {
   });
 
   const selectedType = watch("type");
-  const filteredCategories = categoriesQuery.data.filter((c) => c.type === selectedType);
+  const filteredCategories = formCategoriesQuery.data.filter((c) => c.type === selectedType);
   const monthRecurring = recurringQuery.data.filter((item) => item.nextRunDate >= dateFrom && item.nextRunDate <= dateTo);
   const normalizedSearch = topbarSearch.trim().toLowerCase();
   const filteredRecurring = useMemo(() => {

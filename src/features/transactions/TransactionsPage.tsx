@@ -144,6 +144,17 @@ export function TransactionsPage() {
     initialData: []
   });
 
+  const formCategoriesQuery = useQuery({
+    queryKey: ["txn-form-categories", accountIdValue || "editable"],
+    queryFn: async () =>
+      (
+        await apiClient.get<CategoryItem[]>("/categories", {
+          params: accountIdValue ? { accountId: accountIdValue } : { editableOnly: true }
+        })
+      ).data,
+    initialData: []
+  });
+
   const healthScoreQuery = useQuery({
     queryKey: ["txn-health-score"],
     queryFn: async () => (await apiClient.get<HealthScoreResponse>("/insights/health-score")).data
@@ -288,8 +299,8 @@ export function TransactionsPage() {
   });
 
   const filteredCategories = useMemo(
-    () => categoriesQuery.data.filter((c) => (typeValue === "Income" ? c.type === "Income" : c.type === "Expense")),
-    [categoriesQuery.data, typeValue]
+    () => formCategoriesQuery.data.filter((c) => (typeValue === "Income" ? c.type === "Income" : c.type === "Expense")),
+    [formCategoriesQuery.data, typeValue]
   );
 
   const transferDestinationOptions = useMemo(
@@ -349,9 +360,12 @@ export function TransactionsPage() {
     }
 
     const header = parseCsvLine(lines[0]).map((cell) => cell.toLowerCase());
-    const knownCategoryIds = new Set(categoriesQuery.data.map((category) => category.id));
+    const scopedCategories = (
+      await apiClient.get<CategoryItem[]>("/categories", { params: { accountId: selectedImportAccountId } })
+    ).data;
+    const knownCategoryIds = new Set(scopedCategories.map((category) => category.id));
     const categoryCatalog = new Map(
-      categoriesQuery.data.map((category) => [`${category.type}:${normalizeCategoryName(category.name)}`, category])
+      scopedCategories.map((category) => [`${category.type}:${normalizeCategoryName(category.name)}`, category])
     );
     const fallbackCategories = new Map<"Income" | "Expense", CategoryItem>();
 

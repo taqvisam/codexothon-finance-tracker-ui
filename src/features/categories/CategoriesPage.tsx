@@ -78,7 +78,7 @@ export function CategoriesPage() {
 
   const categoriesQuery = useQuery({
     queryKey: ["categories"],
-    queryFn: async () => (await apiClient.get<CategoryItem[]>("/categories")).data,
+    queryFn: async () => (await apiClient.get<CategoryItem[]>("/categories", { params: { editableOnly: true } })).data,
     initialData: []
   });
 
