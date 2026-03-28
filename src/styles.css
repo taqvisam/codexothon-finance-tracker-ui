@@ -3102,6 +3102,18 @@ body.dark-theme .health-score-danger {
   color: #ff8f9c;
 }
 
+body.dark-theme .big.health-score-good {
+  color: #6ad89c;
+}
+
+body.dark-theme .big.health-score-warn {
+  color: #ffbf63;
+}
+
+body.dark-theme .big.health-score-danger {
+  color: #ff8f9c;
+}
+
 body.dark-theme .dashboard-mobile-list-value.transaction-amount-income,
 body.dark-theme .summary-card .transaction-amount-income {
   color: #6ad89c;
