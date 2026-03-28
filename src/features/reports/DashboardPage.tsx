@@ -600,7 +600,7 @@ export function DashboardPage() {
       </section>
 
       {filteredAccounts.length > 0 ? (
-        <section className="card">
+        <section className="card dashboard-account-overview-card">
           <div className="card-head">
             <div>
               <h3>Accounts at a Glance</h3>
