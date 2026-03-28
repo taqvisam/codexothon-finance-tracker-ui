@@ -9,3 +9,15 @@ export function getHealthScoreToneClass(score: number): string {
 
   return "health-score-danger";
 }
+
+export function getHealthScoreColor(score: number): string {
+  if (score >= 80) {
+    return "#2ea05f";
+  }
+
+  if (score >= 55) {
+    return "#d78a1f";
+  }
+
+  return "#d74d57";
+}

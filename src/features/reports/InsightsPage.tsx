@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
+  CartesianGrid,
   Line,
-  LineChart,
+  PolarAngleAxis,
+  RadialBar,
+  RadialBarChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,7 +16,7 @@ import {
 import { useUiStore } from "../../store/uiStore";
 import { apiClient } from "../../services/apiClient";
 import { Dropdown } from "../../components/Dropdown";
-import { getHealthScoreToneClass } from "../../utils/healthScore";
+import { getHealthScoreColor, getHealthScoreToneClass } from "../../utils/healthScore";
 
 interface HealthScoreFactor {
   name: string;
@@ -142,6 +145,47 @@ export function InsightsPage() {
     return items.filter((suggestion) => suggestion.toLowerCase().includes(normalizedSearch));
   }, [healthScoreQuery.data?.suggestions, normalizedSearch]);
 
+  const incomeExpenseTrend = trendQuery.data?.incomeVsExpense ?? [];
+  const savingsRateTrend = trendQuery.data?.savingsRateTrend ?? [];
+
+  const latestIncomeExpense = useMemo(() => {
+    if (!incomeExpenseTrend.length) {
+      return null;
+    }
+
+    const latest = incomeExpenseTrend[incomeExpenseTrend.length - 1];
+    const previous = incomeExpenseTrend.length > 1 ? incomeExpenseTrend[incomeExpenseTrend.length - 2] : null;
+    const net = latest.income - latest.expense;
+    const previousNet = previous ? previous.income - previous.expense : 0;
+
+    return {
+      latest,
+      net,
+      netDelta: net - previousNet
+    };
+  }, [incomeExpenseTrend]);
+
+  const latestSavingsRate = useMemo(() => {
+    if (!savingsRateTrend.length) {
+      return null;
+    }
+
+    const latest = savingsRateTrend[savingsRateTrend.length - 1];
+    const previous = savingsRateTrend.length > 1 ? savingsRateTrend[savingsRateTrend.length - 2] : null;
+    const latestRate = latest.savingsRate;
+    const delta = previous ? latestRate - previous.savingsRate : 0;
+
+    return {
+      period: latest.period,
+      rate: latestRate,
+      delta,
+      previousRate: previous?.savingsRate ?? 0
+    };
+  }, [savingsRateTrend]);
+
+  const savingsGaugeValue = Math.max(0, Math.min(100, latestSavingsRate?.rate ?? 0));
+  const savingsGaugeColor = getHealthScoreColor(savingsGaugeValue);
+
   return (
     <section>
       <div className="card" style={{ marginBottom: 12 }}>
@@ -160,8 +204,9 @@ export function InsightsPage() {
           />
         </div>
       </div>
-      <div className="insights-grid">
-        <article className="card">
+
+      <div className="insights-top-grid">
+        <article className="card insights-score-card">
           <h4>Financial Health Score</h4>
           <div className={`big ${getHealthScoreToneClass(score)}`}>{roundedScore} / 100</div>
           <p className="muted" style={{ marginTop: 8 }}>
@@ -169,13 +214,14 @@ export function InsightsPage() {
           </p>
         </article>
 
-        <article className="card">
+        <article className="card insights-suggestions-card">
           <h4>Suggestions</h4>
           {filteredSuggestions.length ? (
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
+            <ul className="insights-suggestion-list">
               {filteredSuggestions.map((suggestion) => (
-                <li key={suggestion} className="muted" style={{ marginBottom: 6 }}>
-                  {suggestion}
+                <li key={suggestion}>
+                  <span className="insights-suggestion-dot" aria-hidden="true" />
+                  <span>{suggestion}</span>
                 </li>
               ))}
             </ul>
@@ -183,111 +229,204 @@ export function InsightsPage() {
             <p className="muted">No suggestions available.</p>
           )}
         </article>
+      </div>
 
-        <article className="card" style={{ gridColumn: "1 / -1" }}>
-          <h4>Insight Highlights</h4>
-          {filteredHighlights.length === 0 ? (
-            <p className="muted">No highlight cards available for this period.</p>
-          ) : (
-            <div className="card-grid">
-              {filteredHighlights.map((item) => (
-                <article key={`${item.title}-${item.periodLabel}`} className="card summary-card">
-                  <h4>{item.title}</h4>
-                  <div className="big">{Math.round(item.changePercent)}%</div>
-                  <p className="muted">{item.message}</p>
-                </article>
-              ))}
+      <article className="card insights-highlights-card">
+        <h4>Insight Highlights</h4>
+        {filteredHighlights.length === 0 ? (
+          <p className="muted">No highlight cards available for this period.</p>
+        ) : (
+          <div className="card-grid">
+            {filteredHighlights.map((item) => (
+              <article key={`${item.title}-${item.periodLabel}`} className="card summary-card">
+                <h4>{item.title}</h4>
+                <div className={`big ${item.severity === "success" ? "health-score-good" : item.severity === "warning" ? "health-score-warn" : ""}`}>
+                  {Math.round(item.changePercent)}%
+                </div>
+                <p className="muted">{item.message}</p>
+              </article>
+            ))}
+          </div>
+        )}
+      </article>
+
+      <div className="insights-chart-grid">
+        <article className="card insights-chart-card insights-chart-card-wide">
+          <div className="insights-chart-head">
+            <div>
+              <h4>Income vs Expense Flow</h4>
+              <p className="muted">Use the full period to compare earnings, outflow, and net momentum.</p>
             </div>
-          )}
-        </article>
+            {latestIncomeExpense ? (
+              <div className="insights-chart-kpis">
+                <div className="insights-chart-kpi">
+                  <span className="muted">Latest net</span>
+                  <strong className={latestIncomeExpense.net >= 0 ? "health-score-good" : "health-score-danger"}>
+                    {Math.round(latestIncomeExpense.net)}
+                  </strong>
+                </div>
+                <div className="insights-chart-kpi">
+                  <span className="muted">Net shift</span>
+                  <strong className={latestIncomeExpense.netDelta >= 0 ? "health-score-good" : "health-score-danger"}>
+                    {latestIncomeExpense.netDelta >= 0 ? "+" : ""}
+                    {Math.round(latestIncomeExpense.netDelta)}
+                  </strong>
+                </div>
+              </div>
+            ) : null}
+          </div>
 
-        <article className="card">
-          <h4>Income vs Expense Comparison</h4>
-          <div style={{ height: 240 }}>
-            {trendQuery.data?.incomeVsExpense?.length ? (
+          <div className="insights-area-chart">
+            {incomeExpenseTrend.length ? (
               <ResponsiveContainer>
-                <LineChart data={trendQuery.data.incomeVsExpense}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
+                <AreaChart data={incomeExpenseTrend} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#39b86b" stopOpacity={0.36} />
+                      <stop offset="100%" stopColor="#39b86b" stopOpacity={0.05} />
+                    </linearGradient>
+                    <linearGradient id="expenseFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#e16672" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#e16672" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(112, 138, 176, 0.18)" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                  <YAxis tickLine={false} axisLine={false} width={42} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="income" stroke="#2f6fbe" strokeWidth={2} />
-                  <Line type="monotone" dataKey="expense" stroke="#dd5757" strokeWidth={2} />
-                </LineChart>
+                  <Area type="monotone" dataKey="income" stroke="#2ea05f" fill="url(#incomeFill)" strokeWidth={3} />
+                  <Area type="monotone" dataKey="expense" stroke="#d74d57" fill="url(#expenseFill)" strokeWidth={3} />
+                  <Line type="monotone" dataKey={(point: TrendPoint) => point.income - point.expense} stroke="#2f6fbe" strokeWidth={2} dot={false} />
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
               <p className="muted">No comparison data available.</p>
             )}
           </div>
+
+          <div className="insights-chart-legend">
+            <span><i className="insights-legend-dot income" /> Income</span>
+            <span><i className="insights-legend-dot expense" /> Expense</span>
+            <span><i className="insights-legend-dot net" /> Net</span>
+          </div>
         </article>
 
-        <article className="card">
-          <h4>Savings Rate Comparison</h4>
-          <div style={{ height: 240 }}>
-            {trendQuery.data?.savingsRateTrend?.length ? (
-              <ResponsiveContainer>
-                <BarChart data={trendQuery.data.savingsRateTrend}>
-                  <XAxis dataKey="period" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="savingsRate" fill="#e2a43d" />
-                </BarChart>
-              </ResponsiveContainer>
+        <article className="card insights-chart-card insights-chart-card-compact">
+          <div className="insights-chart-head compact">
+            <div>
+              <h4>Savings Rate Pulse</h4>
+              <p className="muted">Latest savings performance with recent-period context.</p>
+            </div>
+          </div>
+
+          <div className="insights-savings-gauge-wrap">
+            {latestSavingsRate ? (
+              <>
+                <div className="insights-savings-gauge">
+                  <ResponsiveContainer>
+                    <RadialBarChart
+                      data={[{ name: "Savings Rate", value: savingsGaugeValue, fill: savingsGaugeColor }]}
+                      innerRadius="68%"
+                      outerRadius="100%"
+                      startAngle={205}
+                      endAngle={-25}
+                      barSize={18}
+                    >
+                      <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                      <RadialBar background dataKey="value" cornerRadius={999} />
+                    </RadialBarChart>
+                  </ResponsiveContainer>
+                  <div className="insights-savings-gauge-center">
+                    <strong className={getHealthScoreToneClass(latestSavingsRate.rate)}>{Math.round(latestSavingsRate.rate)}%</strong>
+                    <span>{latestSavingsRate.period}</span>
+                  </div>
+                </div>
+
+                <div className="insights-savings-stats">
+                  <div className="insights-savings-stat">
+                    <span className="muted">Previous</span>
+                    <strong>{Math.round(latestSavingsRate.previousRate)}%</strong>
+                  </div>
+                  <div className="insights-savings-stat">
+                    <span className="muted">Change</span>
+                    <strong className={latestSavingsRate.delta >= 0 ? "health-score-good" : "health-score-danger"}>
+                      {latestSavingsRate.delta >= 0 ? "+" : ""}
+                      {Math.round(latestSavingsRate.delta)} pts
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="insights-mini-bars">
+                  {savingsRateTrend.slice(-5).map((point) => (
+                    <div key={point.period} className="insights-mini-bar-item">
+                      <span
+                        className="insights-mini-bar"
+                        style={{
+                          height: `${Math.max(16, Math.min(100, point.savingsRate))}%`,
+                          background: getHealthScoreColor(point.savingsRate)
+                        }}
+                      />
+                      <small>{point.period}</small>
+                    </div>
+                  ))}
+                </div>
+              </>
             ) : (
               <p className="muted">No savings trend available.</p>
             )}
           </div>
         </article>
-
-        <article className="card" style={{ gridColumn: "1 / -1" }}>
-          <h4>Score Breakdown</h4>
-          {healthScoreQuery.isLoading ? (
-            <p className="muted">Loading score details...</p>
-          ) : filteredBreakdown.length ? (
-            isMobile ? (
-              <div className="dashboard-mobile-list">
-                {filteredBreakdown.map((factor) => (
-                  <article key={factor.name} className="dashboard-mobile-list-item">
-                    <div className="dashboard-mobile-list-head">
-                      <strong>{factor.name}</strong>
-                      <span className={`dashboard-mobile-list-value ${getHealthScoreToneClass(factor.score)}`}>
-                        {Math.round(factor.score)}
-                      </span>
-                    </div>
-                    <div className="dashboard-mobile-list-meta">
-                      <span>{factor.description}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="table-wrap">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Factor</th>
-                      <th>Score</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredBreakdown.map((factor) => (
-                      <tr key={factor.name}>
-                        <td data-label="Factor">{factor.name}</td>
-                        <td data-label="Score">
-                          <span className={getHealthScoreToneClass(factor.score)}>{Math.round(factor.score)}</span>
-                        </td>
-                        <td data-label="Description">{factor.description}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          ) : (
-            <p className="muted">No breakdown data available.</p>
-          )}
-        </article>
       </div>
+
+      <article className="card insights-breakdown-card">
+        <h4>Score Breakdown</h4>
+        {healthScoreQuery.isLoading ? (
+          <p className="muted">Loading score details...</p>
+        ) : filteredBreakdown.length ? (
+          isMobile ? (
+            <div className="dashboard-mobile-list">
+              {filteredBreakdown.map((factor) => (
+                <article key={factor.name} className="dashboard-mobile-list-item">
+                  <div className="dashboard-mobile-list-head">
+                    <strong>{factor.name}</strong>
+                    <span className={`dashboard-mobile-list-value ${getHealthScoreToneClass(factor.score)}`}>
+                      {Math.round(factor.score)}
+                    </span>
+                  </div>
+                  <div className="dashboard-mobile-list-meta">
+                    <span>{factor.description}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Factor</th>
+                    <th>Score</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredBreakdown.map((factor) => (
+                    <tr key={factor.name}>
+                      <td data-label="Factor">{factor.name}</td>
+                      <td data-label="Score">
+                        <span className={getHealthScoreToneClass(factor.score)}>{Math.round(factor.score)}</span>
+                      </td>
+                      <td data-label="Description">{factor.description}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        ) : (
+          <p className="muted">No breakdown data available.</p>
+        )}
+      </article>
     </section>
   );
 }
