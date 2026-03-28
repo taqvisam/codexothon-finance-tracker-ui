@@ -12,6 +12,7 @@ import { Button } from "../../components/Button";
 import { TextInput } from "../../components/TextInput";
 import { Dropdown } from "../../components/Dropdown";
 import { ActionIconButton } from "../../components/ActionIconButton";
+import { requiredLooseNumber } from "../../utils/numberInput";
 
 interface AccountItem {
   id: string;
@@ -509,7 +510,12 @@ export function TransactionsPage() {
                 label="Destination Account"
               />
             ) : null}
-            <TextInput label="Amount" type="number" step="0.01" {...register("amount", { valueAsNumber: true })} />
+            <TextInput
+              label="Amount"
+              type="number"
+              step="0.01"
+              {...register("amount", requiredLooseNumber("Enter a valid amount."))}
+            />
             <TextInput label="Date" type="date" {...register("date")} />
             <TextInput label="Merchant" {...register("merchant")} />
             <TextInput label="Payment Method" placeholder="Card / Cash / UPI" {...register("paymentMethod")} />

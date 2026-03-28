@@ -9,6 +9,7 @@ import { apiClient } from "../../services/apiClient";
 import type { BudgetItem } from "../../types";
 import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
+import { requiredLooseNumber } from "../../utils/numberInput";
 
 interface Input {
   accountId?: string;
@@ -204,10 +205,10 @@ export function BudgetsPage() {
               return;
             }
             createMutation.mutate(data);
-          })}
+          }, () => notify("Please enter valid budget values.", "error"))}
         >
           <input type="hidden" {...register("categoryId")} />
-          <input type="hidden" {...register("month", { valueAsNumber: true })} />
+          <input type="hidden" {...register("month", requiredLooseNumber("Enter a valid month."))} />
           <div className="form-grid">
             <Dropdown
               label="Account Scope"
@@ -235,8 +236,19 @@ export function BudgetsPage() {
               value={String(watch("month") ?? "")}
               onChange={(event) => setValue("month", Number(event.target.value), { shouldValidate: true })}
             />
-            <TextInput label="Budget Year" type="number" min={2000} {...register("year", { valueAsNumber: true })} />
-            <TextInput label="Budget Amount" type="number" min={0} step="0.01" {...register("amount", { valueAsNumber: true })} />
+            <TextInput
+              label="Budget Year"
+              type="number"
+              min={2000}
+              {...register("year", requiredLooseNumber("Enter a valid budget year."))}
+            />
+            <TextInput
+              label="Budget Amount"
+              type="number"
+              min={0}
+              step="0.01"
+              {...register("amount", requiredLooseNumber("Enter a valid budget amount."))}
+            />
           </div>
           <div className="form-actions budgets-form-actions">
             <button className="btn" type="submit">{editId ? "Update Budget" : "Create Budget"}</button>

@@ -6,6 +6,7 @@ import { useUiStore } from "../../store/uiStore";
 import { Dropdown } from "../../components/Dropdown";
 import { TextInput } from "../../components/TextInput";
 import { ActionIconButton } from "../../components/ActionIconButton";
+import { requiredLooseNumber } from "../../utils/numberInput";
 
 interface RecurringItem {
   id: string;
@@ -168,10 +169,15 @@ export function RecurringPage() {
   return (
     <section className="card">
       <h3>Recurring Transactions</h3>
-      <form onSubmit={handleSubmit((d) => createMutation.mutate(d))}>
+      <form onSubmit={handleSubmit((d) => createMutation.mutate(d), () => notify("Please enter valid recurring values.", "error"))}>
         <div className="form-grid">
           <TextInput label="Title" placeholder="Title" {...register("title")} />
-          <TextInput label="Amount" type="number" placeholder="Amount" {...register("amount", { valueAsNumber: true })} />
+          <TextInput
+            label="Amount"
+            type="number"
+            placeholder="Amount"
+            {...register("amount", requiredLooseNumber("Enter a valid recurring amount."))}
+          />
           <Dropdown
             label="Type"
             options={[

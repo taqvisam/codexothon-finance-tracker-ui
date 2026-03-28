@@ -9,6 +9,7 @@ import { useUiStore } from "../../store/uiStore";
 import { ActionIconButton } from "../../components/ActionIconButton";
 import { Dropdown } from "../../components/Dropdown";
 import { TextInput } from "../../components/TextInput";
+import { requiredLooseNumber } from "../../utils/numberInput";
 
 interface GoalInput {
   name: string;
@@ -274,10 +275,15 @@ export function GoalsPage() {
   return (
     <section className="card">
       <h3>Savings Goals</h3>
-      <form onSubmit={handleSubmit((d) => createMutation.mutate(d))}>
+      <form onSubmit={handleSubmit((d) => createMutation.mutate(d), () => notify("Please enter valid goal values.", "error"))}>
         <div className="form-grid">
           <TextInput label="Goal Name" placeholder="Goal Name" {...register("name")} />
-          <TextInput label="Target Amount" type="number" placeholder="Target Amount" {...register("targetAmount", { valueAsNumber: true })} />
+          <TextInput
+            label="Target Amount"
+            type="number"
+            placeholder="Target Amount"
+            {...register("targetAmount", requiredLooseNumber("Enter a valid target amount."))}
+          />
           <TextInput label="Target Date" type="date" {...register("targetDate")} />
           <Dropdown
             label="Linked Account"
@@ -420,7 +426,9 @@ export function GoalsPage() {
             </p>
             <input
               className="input"
-              type="number"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
               min={1}
               value={actionAmount}
               onChange={(e) => setActionAmount(e.target.value)}

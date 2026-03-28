@@ -13,6 +13,7 @@ import {
   INSTITUTION_OPTIONS,
   resolveInstitutionName
 } from "../../constants/institutions";
+import { optionalLooseNumber, requiredLooseNumber } from "../../utils/numberInput";
 
 interface AccountItem {
   id: string;
@@ -605,7 +606,10 @@ export function OnboardingPage() {
         </div>
 
         {setupMode === "manual" ? (
-          <form className="onboarding-manual-form" onSubmit={handleSubmit((data) => createMutation.mutate(data))}>
+          <form
+            className="onboarding-manual-form"
+            onSubmit={handleSubmit((data) => createMutation.mutate(data), () => notify("Please enter valid onboarding values.", "error"))}
+          >
             <div className="onboarding-manual-intro">
               <div>
                 <h4>Manual setup</h4>
@@ -628,15 +632,19 @@ export function OnboardingPage() {
                 value={watch("accountType")}
                 onChange={(e) => setValue("accountType", e.target.value as OnboardingInput["accountType"])}
               />
-              <TextInput label="Opening Balance" type="number" step="0.01" min="0" {...register("openingBalance", { valueAsNumber: true })} />
+              <TextInput
+                label="Opening Balance"
+                type="number"
+                step="0.01"
+                min="0"
+                {...register("openingBalance", requiredLooseNumber("Enter a valid opening balance."))}
+              />
               {watch("accountType") === "CreditCard" ? (
                 <TextInput
                   label="Credit Limit"
                   type="number"
                   step="0.01"
-                  {...register("creditLimit", {
-                    setValueAs: (value) => value === "" ? undefined : Number(value)
-                  })}
+                  {...register("creditLimit", optionalLooseNumber("Enter a valid credit limit."))}
                 />
               ) : null}
               <Dropdown
@@ -667,7 +675,12 @@ export function OnboardingPage() {
                 value={watch("budgetCategoryId") ?? ""}
                 onChange={(e) => setValue("budgetCategoryId", e.target.value)}
               />
-              <TextInput label="Budget Amount" type="number" step="0.01" {...register("budgetAmount", { valueAsNumber: true })} />
+              <TextInput
+                label="Budget Amount"
+                type="number"
+                step="0.01"
+                {...register("budgetAmount", optionalLooseNumber("Enter a valid budget amount."))}
+              />
             </div>
 
             <div className="form-actions onboarding-actions">

@@ -6,6 +6,7 @@ import { Button } from "../../components/Button";
 import { apiClient } from "../../services/apiClient";
 import { useUiStore } from "../../store/uiStore";
 import { ActionIconButton } from "../../components/ActionIconButton";
+import { parseLooseNumber } from "../../utils/numberInput";
 
 type RuleField = "Merchant" | "Amount" | "Category" | "Note" | "PaymentMethod" | "Type";
 type RuleOperator = "Equals" | "Contains" | "GreaterThan" | "LessThan" | "StartsWith" | "EndsWith";
@@ -51,7 +52,7 @@ const defaultRule = {
   conditionValue: "",
   actionType: "SetCategory" as RuleActionType,
   actionValue: "",
-  priority: 0,
+  priority: "0",
   isActive: true
 };
 
@@ -69,6 +70,11 @@ export function RulesPage() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const priority = parseLooseNumber(form.priority);
+      if (!Number.isFinite(priority)) {
+        throw new Error("Enter a valid priority.");
+      }
+
       const payload = {
         name: form.name,
         condition: {
@@ -80,7 +86,7 @@ export function RulesPage() {
           type: form.actionType,
           value: form.actionValue
         },
-        priority: Number(form.priority),
+        priority,
         isActive: form.isActive
       };
 
@@ -97,9 +103,10 @@ export function RulesPage() {
       await queryClient.invalidateQueries({ queryKey: ["rules"] });
     },
     onError: (error) => {
+      const localMessage = error instanceof Error ? error.message : undefined;
       const message = (
         error as { response?: { data?: { error?: string } } }
-      ).response?.data?.error ?? "Unable to save rule.";
+      ).response?.data?.error ?? localMessage ?? "Unable to save rule.";
       notify(message, "error");
     }
   });
@@ -197,8 +204,8 @@ export function RulesPage() {
           <TextInput
             label="Priority"
             type="number"
-            value={String(form.priority)}
-            onChange={(event) => setForm((prev) => ({ ...prev, priority: Number(event.target.value) }))}
+            value={form.priority}
+            onChange={(event) => setForm((prev) => ({ ...prev, priority: event.target.value }))}
           />
           <Dropdown
             label="Status"
@@ -257,7 +264,7 @@ export function RulesPage() {
                       conditionValue: rule.condition.value,
                       actionType: rule.action.type,
                       actionValue: rule.action.value,
-                      priority: rule.priority,
+                      priority: String(rule.priority),
                       isActive: rule.isActive
                     });
                   }}

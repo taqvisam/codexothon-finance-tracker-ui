@@ -9,6 +9,7 @@ import { useUiStore } from "../../store/uiStore";
 import { Dropdown } from "../../components/Dropdown";
 import { TextInput } from "../../components/TextInput";
 import { SharedAccountPanel } from "./SharedAccountPanel";
+import { optionalLooseNumber, requiredLooseNumber } from "../../utils/numberInput";
 import {
   CUSTOM_INSTITUTION_VALUE,
   INSTITUTION_OPTIONS,
@@ -250,7 +251,7 @@ export function AccountsPage() {
           })}
         </div>
       ) : null}
-      <form onSubmit={handleSubmit((d) => createMutation.mutate(d))}>
+      <form onSubmit={handleSubmit((d) => createMutation.mutate(d), () => notify("Please enter valid account values.", "error"))}>
         <div className="form-grid">
           <TextInput label="Account Name" placeholder="Account Name" {...register("name")} />
           <Dropdown
@@ -270,7 +271,7 @@ export function AccountsPage() {
             step="0.01"
             min="0"
             placeholder="Opening Balance"
-            {...register("openingBalance", { valueAsNumber: true })}
+            {...register("openingBalance", requiredLooseNumber("Enter a valid opening balance."))}
           />
           {selectedType === "CreditCard" ? (
             <TextInput
@@ -278,9 +279,7 @@ export function AccountsPage() {
               type="number"
               step="0.01"
               placeholder="Credit Limit"
-              {...register("creditLimit", {
-                setValueAs: (value) => value === "" ? undefined : Number(value)
-              })}
+              {...register("creditLimit", optionalLooseNumber("Enter a valid credit limit."))}
             />
           ) : null}
           <Dropdown
@@ -314,7 +313,7 @@ export function AccountsPage() {
         </div>
       </form>
       <h4 style={{ marginTop: 18 }}>Transfer Funds</h4>
-      <form onSubmit={transferForm.handleSubmit((d) => transferMutation.mutate(d))}>
+      <form onSubmit={transferForm.handleSubmit((d) => transferMutation.mutate(d), () => notify("Please enter a valid transfer amount.", "error"))}>
         <div className="form-grid">
           <Dropdown
             label="From Account"
@@ -337,7 +336,7 @@ export function AccountsPage() {
             label="Amount"
             type="number"
             placeholder="Amount"
-            {...transferForm.register("amount", { valueAsNumber: true })}
+            {...transferForm.register("amount", requiredLooseNumber("Enter a valid transfer amount."))}
           />
           <TextInput label="Date" type="date" {...transferForm.register("date")} />
         </div>
