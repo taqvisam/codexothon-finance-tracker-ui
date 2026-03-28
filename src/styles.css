@@ -1231,7 +1231,6 @@ a {
 .account-tile-strip::-webkit-scrollbar-thumb {
   background: linear-gradient(90deg, #5c93e4, #84b8ff);
   border-radius: 999px;
-  border: 2px solid rgba(230, 237, 247, 0.95);
 }
 
 .account-tile-strip::-webkit-scrollbar-thumb:hover {
@@ -2457,7 +2456,6 @@ body.dark-theme .account-tile-strip::-webkit-scrollbar-track {
 
 body.dark-theme .account-tile-strip::-webkit-scrollbar-thumb {
   background: linear-gradient(90deg, #6095f1, #8ab6ff);
-  border-color: rgba(28, 41, 60, 0.95);
 }
 
 body.dark-theme .account-tile-strip::-webkit-scrollbar-thumb:hover {
