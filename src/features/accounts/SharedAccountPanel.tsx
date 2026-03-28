@@ -36,6 +36,7 @@ export function SharedAccountPanel({ accounts }: Props) {
   const queryClient = useQueryClient();
   const { notify, topbarSearch } = useUiStore();
   const [selectedAccountId, setSelectedAccountId] = useState("");
+  const [queryReady, setQueryReady] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"Editor" | "Viewer">("Editor");
@@ -46,17 +47,28 @@ export function SharedAccountPanel({ accounts }: Props) {
     }
   }, [accounts, selectedAccountId]);
 
+  useEffect(() => {
+    if (!selectedAccountId) {
+      setQueryReady(false);
+      return;
+    }
+
+    setQueryReady(false);
+    const timer = window.setTimeout(() => setQueryReady(true), 900);
+    return () => window.clearTimeout(timer);
+  }, [selectedAccountId]);
+
   const membersQuery = useQuery({
     queryKey: ["shared-members", selectedAccountId],
     queryFn: async () => (await apiClient.get<AccountMember[]>(`/accounts/${selectedAccountId}/members`)).data,
-    enabled: Boolean(selectedAccountId),
+    enabled: Boolean(selectedAccountId && queryReady),
     initialData: []
   });
 
   const activityQuery = useQuery({
     queryKey: ["shared-activity", selectedAccountId],
     queryFn: async () => (await apiClient.get<AccountActivity[]>(`/accounts/${selectedAccountId}/activity`)).data,
-    enabled: Boolean(selectedAccountId),
+    enabled: Boolean(selectedAccountId && queryReady),
     initialData: []
   });
 

@@ -723,11 +723,23 @@ test.describe("V2 signoff", () => {
 
   test("permanent delete removes the user and prevents re-login", async ({ page, request }) => {
     const guards = attachRuntimeGuards(page);
-    const user = await signupFreshUser(page, { prefix: "signoff-permanent", displayName: "V2 Signoff Permanent" });
+    const user = await registerUserViaApi(request, {
+      prefix: "signoff-permanent",
+      displayName: "V2 Signoff Permanent",
+      password: defaultPassword
+    });
 
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    await page.getByPlaceholder("you@example.com").fill(user.email);
+    await page.getByPlaceholder("At least 8 characters").fill(user.password);
+    await page.getByRole("button", { name: "Login" }).click();
+    await waitForAnyMarker(page, ["Experience V2", "Manual setup", "Load workbook and continue"]);
     await dismissV2IntroIfPresent(page);
     if (page.url().includes("/onboarding")) {
-      await page.getByRole("button", { name: "Skip" }).click();
+      const skipButton = page.getByRole("button", { name: "Skip" });
+      if (await skipButton.isVisible().catch(() => false)) {
+        await skipButton.click();
+      }
       await page.waitForURL((url) => url.pathname === "/", { timeout: 60_000 });
     }
 
