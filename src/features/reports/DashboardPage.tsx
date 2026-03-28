@@ -23,6 +23,7 @@ import type { BudgetItem, GoalItem, SummaryMetrics, TransactionItem, Transaction
 import { useCurrency } from "../../hooks/useCurrency";
 import { useUiStore } from "../../store/uiStore";
 import { AlertBanner } from "../../components/AlertBanner";
+import { getHealthScoreToneClass } from "../../utils/healthScore";
 
 interface AccountItem {
   id: string;
@@ -553,6 +554,8 @@ export function DashboardPage() {
     );
   }, [accountsQuery.data, normalizedSearch]);
 
+  const healthScoreValue = Math.round(healthScoreQuery.data?.score ?? 0);
+
   return (
     <>
       <MobileSection title="Quick Actions & Alerts" isMobile={isMobile}>
@@ -610,7 +613,7 @@ export function DashboardPage() {
               </span>
             </span>
           </div>
-          <div className="big">{Math.round(healthScoreQuery.data?.score ?? 0)}</div>
+          <div className={`big ${getHealthScoreToneClass(healthScoreValue)}`}>{healthScoreValue}</div>
           <div className="summary-card-link-row">
             <button className="summary-card-link" type="button" onClick={() => navigate("/insights")}>
               View breakdown

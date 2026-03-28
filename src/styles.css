@@ -1389,6 +1389,18 @@ a {
   color: #4f6485;
 }
 
+.health-score-good {
+  color: #2ea05f;
+}
+
+.health-score-warn {
+  color: #d78a1f;
+}
+
+.health-score-danger {
+  color: #d74d57;
+}
+
 .dashboard-mobile-list-value.transaction-amount-income,
 .summary-card .transaction-amount-income {
   color: #2ea05f;
@@ -2570,6 +2582,18 @@ body.dark-theme .transaction-amount-expense {
 
 body.dark-theme .transaction-amount-transfer {
   color: #cad7eb;
+}
+
+body.dark-theme .health-score-good {
+  color: #6ad89c;
+}
+
+body.dark-theme .health-score-warn {
+  color: #ffbf63;
+}
+
+body.dark-theme .health-score-danger {
+  color: #ff8f9c;
 }
 
 body.dark-theme .dashboard-mobile-list-value.transaction-amount-income,

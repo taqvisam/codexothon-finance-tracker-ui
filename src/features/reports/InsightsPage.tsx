@@ -13,6 +13,7 @@ import {
 import { useUiStore } from "../../store/uiStore";
 import { apiClient } from "../../services/apiClient";
 import { Dropdown } from "../../components/Dropdown";
+import { getHealthScoreToneClass } from "../../utils/healthScore";
 
 interface HealthScoreFactor {
   name: string;
@@ -108,6 +109,7 @@ export function InsightsPage() {
   });
 
   const score = healthScoreQuery.data?.score ?? 0;
+  const roundedScore = Math.round(score);
   const normalizedSearch = topbarSearch.trim().toLowerCase();
   const filteredHighlights = useMemo(() => {
     if (!normalizedSearch) {
@@ -161,7 +163,7 @@ export function InsightsPage() {
       <div className="insights-grid">
         <article className="card">
           <h4>Financial Health Score</h4>
-          <div className="big">{Math.round(score)} / 100</div>
+          <div className={`big ${getHealthScoreToneClass(score)}`}>{roundedScore} / 100</div>
           <p className="muted" style={{ marginTop: 8 }}>
             Weighted from savings rate, expense stability, budget adherence, and cash buffer.
           </p>
@@ -247,7 +249,9 @@ export function InsightsPage() {
                   <article key={factor.name} className="dashboard-mobile-list-item">
                     <div className="dashboard-mobile-list-head">
                       <strong>{factor.name}</strong>
-                      <span className="dashboard-mobile-list-value">{Math.round(factor.score)}</span>
+                      <span className={`dashboard-mobile-list-value ${getHealthScoreToneClass(factor.score)}`}>
+                        {Math.round(factor.score)}
+                      </span>
                     </div>
                     <div className="dashboard-mobile-list-meta">
                       <span>{factor.description}</span>
@@ -269,7 +273,9 @@ export function InsightsPage() {
                     {filteredBreakdown.map((factor) => (
                       <tr key={factor.name}>
                         <td data-label="Factor">{factor.name}</td>
-                        <td data-label="Score">{Math.round(factor.score)}</td>
+                        <td data-label="Score">
+                          <span className={getHealthScoreToneClass(factor.score)}>{Math.round(factor.score)}</span>
+                        </td>
                         <td data-label="Description">{factor.description}</td>
                       </tr>
                     ))}
