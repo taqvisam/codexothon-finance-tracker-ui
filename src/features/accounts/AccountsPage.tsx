@@ -22,7 +22,7 @@ interface Account {
   name: string;
   type: string;
   openingBalance: number;
-  balanceAtPeriodStart: number;
+  balanceAtPeriodStart?: number | null;
   currentBalance: number;
   creditLimit?: number | null;
   availableCredit?: number | null;
@@ -67,6 +67,15 @@ function formatPeriodStartLabel(from: string): string {
   }
 
   return `Start ${parsed.toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
+}
+
+function getPeriodStartBalance(account: Account): number {
+  const balanceAtPeriodStart = Number(account.balanceAtPeriodStart);
+  if (Number.isFinite(balanceAtPeriodStart)) {
+    return balanceAtPeriodStart;
+  }
+
+  return Number.isFinite(account.openingBalance) ? account.openingBalance : 0;
 }
 
 function isLowBalanceAccount(account: Account): boolean {
@@ -259,7 +268,7 @@ export function AccountsPage() {
                   </div>
                 ) : (
                   <div className="account-balance-tile-meta">
-                    <span>{formatPeriodStartLabel(dateFrom)} {currency(account.balanceAtPeriodStart)}</span>
+                    <span>{formatPeriodStartLabel(dateFrom)} {currency(getPeriodStartBalance(account))}</span>
                   </div>
                 )}
               </article>
