@@ -989,14 +989,9 @@ a {
   z-index: 1;
 }
 
-.insights-card-headline h4,
-.insights-hero-copy h4 {
-  margin-bottom: 6px;
-}
-
 .insights-card-headline {
   display: grid;
-  gap: 4px;
+  gap: 0;
   margin-bottom: 12px;
 }
 
@@ -1004,14 +999,16 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 10px;
+  width: fit-content;
+  padding: 7px 12px;
   border-radius: 999px;
   background: rgba(47, 111, 190, 0.1);
   color: #2f6fbe;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .insights-hero-status-row {

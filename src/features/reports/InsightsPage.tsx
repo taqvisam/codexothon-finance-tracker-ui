@@ -233,8 +233,7 @@ export function InsightsPage() {
       <div className="insights-top-grid">
         <article className="card insights-score-card insights-hero-card">
           <div className="insights-hero-copy">
-            <span className="insights-section-kicker">Finance signal</span>
-            <h4>Financial Health Score</h4>
+            <span className="insights-section-kicker">Financial Health Score</span>
             <div className="insights-hero-status-row">
               <span className={`insights-hero-status ${getHealthScoreToneClass(score)}`}>{scoreLabel}</span>
               <span className="muted">Weighted from savings rate, expense stability, budget adherence, and cash buffer.</span>
@@ -259,8 +258,7 @@ export function InsightsPage() {
 
         <article className="card insights-suggestions-card insights-action-card">
           <div className="insights-card-headline">
-            <span className="insights-section-kicker">Action queue</span>
-            <h4>Suggestions</h4>
+            <span className="insights-section-kicker">Suggestions</span>
           </div>
           {filteredSuggestions.length ? (
             <div className="insights-action-shell">
@@ -281,8 +279,7 @@ export function InsightsPage() {
 
       <article className="card insights-highlights-card">
         <div className="insights-card-headline">
-          <span className="insights-section-kicker">Pattern watch</span>
-          <h4>Insight Highlights</h4>
+          <span className="insights-section-kicker">Insight Highlights</span>
         </div>
         {filteredHighlights.length === 0 ? (
           <p className="muted">No highlight cards available for this period.</p>
@@ -318,8 +315,7 @@ export function InsightsPage() {
         <article className="card insights-chart-card insights-chart-card-wide">
           <div className="insights-chart-head">
             <div>
-              <span className="insights-section-kicker">Cash movement</span>
-              <h4>Income vs Expense Flow</h4>
+              <span className="insights-section-kicker">Income vs Expense Flow</span>
               <p className="muted">Use the full period to compare earnings, outflow, and net momentum.</p>
             </div>
             {latestIncomeExpense ? (
@@ -379,8 +375,7 @@ export function InsightsPage() {
         <article className="card insights-chart-card insights-chart-card-compact">
           <div className="insights-chart-head compact">
             <div>
-              <span className="insights-section-kicker">Reserve strength</span>
-              <h4>Savings Rate Pulse</h4>
+              <span className="insights-section-kicker">Savings Rate Pulse</span>
               <p className="muted">Latest savings performance with recent-period context.</p>
             </div>
           </div>
@@ -446,8 +441,7 @@ export function InsightsPage() {
 
       <article className="card insights-breakdown-card">
         <div className="insights-card-headline">
-          <span className="insights-section-kicker">Signal decomposition</span>
-          <h4>Score Breakdown</h4>
+          <span className="insights-section-kicker">Score Breakdown</span>
         </div>
         {healthScoreQuery.isLoading ? (
           <p className="muted">Loading score details...</p>
