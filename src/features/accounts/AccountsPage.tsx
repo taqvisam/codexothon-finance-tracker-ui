@@ -178,6 +178,12 @@ export function AccountsPage() {
         reset(accountDefaults);
       }
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+    },
+    onError: (error) => {
+      const message = (
+        error as { response?: { data?: { error?: string } } }
+      ).response?.data?.error ?? "Account delete failed.";
+      notify(message, "error");
     }
   });
 
