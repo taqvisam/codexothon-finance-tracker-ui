@@ -3,6 +3,7 @@ import {
   apiDelete,
   apiExpectStatus,
   apiGet,
+  oauthLoginForTesting,
   apiPost,
   attachRuntimeGuards,
   createCsv,
@@ -16,6 +17,8 @@ import {
   provisionWorkspace,
   readAuthState,
   registerUserViaApi,
+  requestPasswordResetToken,
+  setAuthState,
   signupFreshUser,
   tinyPngFile,
   waitForAnyMarker,
@@ -218,6 +221,31 @@ test.describe("V2 signoff", () => {
 
     await page.goto("/insights", { waitUntil: "domcontentloaded" });
     expect(await waitForAnyMarker(page, ["Financial Health Score", "Insight Highlights"])).toBeTruthy();
+
+    await guards.assertClean();
+  });
+
+  test("reset-password token flow works when demo token exposure is enabled", async ({ page, request }) => {
+    const guards = attachRuntimeGuards(page);
+    const user = await registerUserViaApi(request, {
+      prefix: "signoff-reset",
+      displayName: "V2 Signoff Reset",
+      password: defaultPassword
+    });
+
+    const resetToken = await requestPasswordResetToken(request, user.email);
+    test.skip(!resetToken, "Enable Auth:ExposeResetTokenForDemo to cover the reset-token flow.");
+
+    const updatedPassword = "Reset@456";
+    await page.goto("/reset-password", { waitUntil: "domcontentloaded" });
+    await page.getByPlaceholder("you@example.com").fill(user.email);
+    await page.getByPlaceholder("Paste token from email").fill(resetToken!);
+    await page.getByPlaceholder("At least 8 characters").fill(updatedPassword);
+    await page.getByRole("button", { name: "Reset Password" }).click();
+    await page.waitForURL(/\/login$/, { timeout: 60_000 });
+
+    await loginUser(page, { ...user, password: updatedPassword });
+    expect(await waitForAnyMarker(page, ["Experience V2", "Cash Flow Forecast Engine"])).toBeTruthy();
 
     await guards.assertClean();
   });
@@ -667,6 +695,8 @@ test.describe("V2 signoff", () => {
     expect(activity.some((item) => item.description.toLowerCase().includes("role"))).toBe(true);
 
     await page.goto("/settings", { waitUntil: "domcontentloaded" });
+    await expect(page.getByLabel("Full Name")).toHaveValue(session.displayName);
+    await expect(page.getByLabel("Email Address")).toHaveValue(session.email);
     const updatedName = `V2 Signoff Shared ${Date.now()}`;
     const updatedPhone = `98${Date.now().toString().slice(-8)}`;
     await page.getByLabel("Full Name").fill(updatedName);
@@ -718,6 +748,34 @@ test.describe("V2 signoff", () => {
     const accountsAfterRestore = await apiGet<AccountItem[]>(request, "/accounts", (await readAuthState(page)).accessToken);
     expect(accountsAfterRestore.length).toBe(accountsBeforeDelete.length);
 
+    await guards.assertClean();
+  });
+
+  test("google oauth integration works when explicit oauth test mode is enabled", async ({ page, request }) => {
+    test.skip(
+      process.env.PLAYWRIGHT_ENABLE_OAUTH_TEST_MODE !== "true" && !process.env.PLAYWRIGHT_GOOGLE_ID_TOKEN,
+      "Set PLAYWRIGHT_ENABLE_OAUTH_TEST_MODE=true or PLAYWRIGHT_GOOGLE_ID_TOKEN to cover OAuth automation."
+    );
+
+    const guards = attachRuntimeGuards(page);
+    const email = `oauth.signoff.${Date.now()}@example.com`;
+    const auth = await oauthLoginForTesting(request, {
+      email,
+      displayName: "V2 Signoff OAuth",
+      idToken: process.env.PLAYWRIGHT_GOOGLE_ID_TOKEN ?? null
+    });
+
+    expect(auth, "OAuth sign-in did not return auth state.").not.toBeNull();
+
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    await setAuthState(page, auth!);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await dismissV2IntroIfPresent(page);
+    if (page.url().includes("/onboarding")) {
+      await importOnboardingWorkbook(page);
+    }
+
+    expect(await waitForAnyMarker(page, ["Cash Flow Forecast Engine", "Accounts at a Glance"])).toBeTruthy();
     await guards.assertClean();
   });
 

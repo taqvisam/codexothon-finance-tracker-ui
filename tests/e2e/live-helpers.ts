@@ -26,6 +26,11 @@ interface AuthState {
   showWelcomeBackMessage?: boolean;
 }
 
+interface ForgotPasswordResponse {
+  message: string;
+  resetToken?: string | null;
+}
+
 export function attachRuntimeGuards(page: Page): RuntimeGuards {
   const backendFailures: Array<{ url: string; status: number; bodyPreview: string }> = [];
   const pageErrors: string[] = [];
@@ -172,6 +177,18 @@ export async function readAuthState(page: Page): Promise<AuthState> {
   return auth!;
 }
 
+export async function setAuthState(page: Page, auth: AuthState) {
+  await page.evaluate((payload) => {
+    localStorage.setItem(
+      "pft-auth",
+      JSON.stringify({
+        state: payload,
+        version: 0
+      })
+    );
+  }, auth);
+}
+
 export async function apiGet<T>(request: APIRequestContext, route: string, token?: string): Promise<T> {
   const response = await request.get(`${backendBaseUrl}/api${route}`, {
     headers: authHeaders(token)
@@ -243,6 +260,41 @@ export async function apiExpectStatus(
   });
   expect(response.status(), `${method.toUpperCase()} ${route} returned unexpected status`).toBe(expectedStatus);
   return response;
+}
+
+export async function requestPasswordResetToken(request: APIRequestContext, email: string): Promise<string | null> {
+  const response = await request.post(`${backendBaseUrl}/api/auth/forgot-password`, {
+    data: { email },
+    headers: authHeaders()
+  });
+
+  expect(response.status(), "Forgot password request returned unexpected status").toBe(200);
+  const payload = (await response.json()) as ForgotPasswordResponse;
+  return payload.resetToken ?? null;
+}
+
+export async function oauthLoginForTesting(
+  request: APIRequestContext,
+  options: { email: string; displayName: string; idToken?: string | null }
+): Promise<AuthState | null> {
+  const payload = {
+    provider: "google",
+    idToken: options.idToken ?? null,
+    externalUserId: null,
+    email: options.idToken ? null : options.email,
+    displayName: options.displayName
+  };
+
+  const response = await request.post(`${backendBaseUrl}/api/auth/oauth`, {
+    data: payload,
+    headers: authHeaders()
+  });
+
+  if (response.status() !== 200) {
+    return null;
+  }
+
+  return (await response.json()) as AuthState;
 }
 
 export async function registerUserViaApi(
