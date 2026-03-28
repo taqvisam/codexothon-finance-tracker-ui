@@ -82,7 +82,15 @@ interface HealthScore {
   suggestions: string[];
 }
 
+interface DashboardAlert {
+  key: string;
+  type: "info" | "warning" | "danger";
+  message: string;
+  dismissible?: boolean;
+}
+
 const chartColors = ["#2f6fbe", "#ee9a2f", "#36a269", "#dd5757", "#697b96", "#2f97d8"];
+const LOW_BALANCE_THRESHOLD = 1000;
 
 function formatAccountTypeLabel(type: string): string {
   switch (type) {
@@ -116,6 +124,10 @@ function MobileSection({
       <div className="mobile-collapse-body">{children}</div>
     </details>
   );
+}
+
+function isLowBalanceAccount(account: AccountItem): boolean {
+  return account.type !== "CreditCard" && account.currentBalance < LOW_BALANCE_THRESHOLD;
 }
 
 export function DashboardPage() {
@@ -291,7 +303,7 @@ export function DashboardPage() {
     color: chartColors[idx % chartColors.length]
   }));
 
-  const alerts = useMemo(() => {
+  const alerts = useMemo<DashboardAlert[]>(() => {
     const nextThreeDays = new Date();
     nextThreeDays.setDate(nextThreeDays.getDate() + 3);
     const end = nextThreeDays.toISOString().slice(0, 10);
@@ -322,10 +334,33 @@ export function DashboardPage() {
       message: warning
     }));
 
-    return [...budgetAlerts, ...recurringAlerts, ...forecastWarnings].filter(
+    const lowCashAlerts: DashboardAlert[] = accountsQuery.data
+      .filter((account) =>
+        account.type === "CashWallet" &&
+        account.name.toLowerCase().includes("pocket cash") &&
+        account.currentBalance < LOW_BALANCE_THRESHOLD
+      )
+      .map((account) => ({
+        key: `low-cash:${account.id}`,
+        type: account.currentBalance < 500 ? "danger" : "warning",
+        message: `You are running low on ${account.name}. Only ${currency(account.currentBalance)} left.`,
+        dismissible: false
+      }));
+
+    const dismissibleAlerts = [...budgetAlerts, ...recurringAlerts, ...forecastWarnings].filter(
       (alert) => !dismissedAlerts.includes(alert.key)
     );
-  }, [budgetCards, currency, dateFrom, dismissedAlerts, forecastMonthQuery.data?.riskWarnings, recurringQuery.data]);
+
+    return [...lowCashAlerts, ...dismissibleAlerts];
+  }, [
+    accountsQuery.data,
+    budgetCards,
+    currency,
+    dateFrom,
+    dismissedAlerts,
+    forecastMonthQuery.data?.riskWarnings,
+    recurringQuery.data
+  ]);
 
   const dismissAlert = (key: string) => {
     setDismissedAlerts((prev) => {
@@ -472,7 +507,7 @@ export function DashboardPage() {
                   key={`${idx}-${alert.key}`}
                   type={alert.type}
                   message={alert.message}
-                  onDismiss={() => dismissAlert(alert.key)}
+                  onDismiss={alert.dismissible === false ? undefined : () => dismissAlert(alert.key)}
                 />
               ))}
             </div>
@@ -529,11 +564,13 @@ export function DashboardPage() {
                       <strong>{account.name}</strong>
                       <span>{typeLabel}</span>
                     </div>
-                    <span className={`account-balance-pill ${account.type === "CreditCard" ? "credit" : ""}`}>
+                  <span className={`account-balance-pill ${account.type === "CreditCard" ? "credit" : ""}`}>
                       {account.type === "CreditCard" ? "Card" : "Account"}
                     </span>
                   </div>
-                  <div className="account-balance-tile-amount">{currency(account.currentBalance)}</div>
+                  <div className={`account-balance-tile-amount ${isLowBalanceAccount(account) ? "low-balance" : ""}`}>
+                    {currency(account.currentBalance)}
+                  </div>
                   {account.type === "CreditCard" ? (
                     <div className="account-balance-tile-meta">
                       <span>Limit {currency(account.creditLimit ?? 0)}</span>

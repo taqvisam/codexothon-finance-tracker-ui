@@ -48,7 +48,7 @@ const accounts = [
   {
     name: "Pocket Cash",
     type: "CashWallet",
-    openingBalance: 2500,
+    openingBalance: 3600,
     institutionName: "Wallet",
     limit: ""
   }
@@ -221,7 +221,7 @@ const entertainmentTotals = [1198, 1198, 1497, 1497, 1198, 1198];
 const healthTotals = [0, 0, 1800, 0, 0, 1500];
 const travelTotals = [0, 0, 0, 0, 0, 21000];
 const savingsTransfers = [6000, 6500, 7000, 8000, 8500, 9500];
-const cashTopUps = [1500, 1500, 1800, 1800, 1800, 1700];
+const cashTopUps = [1700, 1800, 1900, 2000, 2100, 2250];
 const creditCardPayments = [6800, 7200, 8400, 7900, 7600, 10800];
 
 const transactions = [];

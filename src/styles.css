@@ -1295,6 +1295,10 @@ a {
   line-height: 1;
 }
 
+.account-balance-tile-amount.low-balance {
+  color: #d74d57;
+}
+
 .account-balance-tile-meta {
   display: flex;
   flex-wrap: wrap;
@@ -2425,6 +2429,10 @@ body.dark-theme .account-balance-tile {
 body.dark-theme .account-balance-tile-head strong,
 body.dark-theme .account-balance-tile-amount {
   color: #edf3ff;
+}
+
+body.dark-theme .account-balance-tile-amount.low-balance {
+  color: #ff8f9c;
 }
 
 body.dark-theme .account-balance-tile-head span {

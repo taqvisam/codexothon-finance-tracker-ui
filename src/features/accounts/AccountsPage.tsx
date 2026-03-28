@@ -44,6 +44,8 @@ interface TransferInput {
   note?: string;
 }
 
+const LOW_BALANCE_THRESHOLD = 1000;
+
 function formatAccountTypeLabel(type: string): string {
   switch (type) {
     case "CreditCard":
@@ -53,6 +55,10 @@ function formatAccountTypeLabel(type: string): string {
     default:
       return type;
   }
+}
+
+function isLowBalanceAccount(account: Account): boolean {
+  return account.type !== "CreditCard" && account.currentBalance < LOW_BALANCE_THRESHOLD;
 }
 
 export function AccountsPage() {
@@ -186,7 +192,9 @@ export function AccountsPage() {
                     {account.type === "CreditCard" ? "Card" : "Account"}
                   </span>
                 </div>
-                <div className="account-balance-tile-amount">{currency(account.currentBalance)}</div>
+                <div className={`account-balance-tile-amount ${isLowBalanceAccount(account) ? "low-balance" : ""}`}>
+                  {currency(account.currentBalance)}
+                </div>
                 {account.type === "CreditCard" ? (
                   <div className="account-balance-tile-meta">
                     <span>Limit {currency(account.creditLimit ?? 0)}</span>
