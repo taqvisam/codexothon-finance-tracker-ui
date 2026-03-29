@@ -717,12 +717,12 @@ export function OnboardingPage() {
 
               {showOnboardingWorkbookEmailMessage && onboardingMessageEmail ? (
                 <div className="onboarding-email-notice" role="status">
-                  <strong>Sample worksheet emailed</strong>
-                  <p>
-                    We have sent the onboarding sample worksheet on your mail <strong>{onboardingMessageEmail}</strong>. Please use it to onboard, or click the download button to get the file.
-                  </p>
-                </div>
-              ) : null}
+                    <strong>Sample worksheet emailed</strong>
+                    <p>
+                      We have sent the onboarding sample worksheet on your mail <strong>{onboardingMessageEmail}</strong>. Please use it to onboard. If the email is not in your inbox, check spam as well, or click the download button to get the file.
+                    </p>
+                  </div>
+                ) : null}
 
               <div className="onboarding-template-links">
                 <a className="btn onboarding-template-download" href="/sample-onboarding-import-v2.xlsx" download>
