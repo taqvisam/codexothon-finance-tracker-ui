@@ -47,6 +47,16 @@ interface TransferInput {
   note?: string;
 }
 
+interface DeleteAccountImpact {
+  accountId: string;
+  accountName: string;
+  transactionCount: number;
+  goalCount: number;
+  recurringCount: number;
+  budgetCount: number;
+  requiresCascadeDelete: boolean;
+}
+
 const LOW_BALANCE_THRESHOLD = 1000;
 
 function formatAccountTypeLabel(type: string): string {
@@ -114,6 +124,9 @@ export function AccountsPage() {
   const queryClient = useQueryClient();
   const { notify, topbarSearch, dateFrom } = useUiStore();
   const [editId, setEditId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
+  const [deleteImpact, setDeleteImpact] = useState<DeleteAccountImpact | null>(null);
+  const [deleteImpactLoading, setDeleteImpactLoading] = useState(false);
   const accountDefaults: Input = {
     name: "",
     type: "Bank",
@@ -189,13 +202,20 @@ export function AccountsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => apiClient.delete(`/accounts/${id}`),
+    mutationFn: async (payload: { id: string; deleteRelatedData: boolean }) =>
+      apiClient.delete(`/accounts/${payload.id}`, {
+        data: {
+          deleteRelatedData: payload.deleteRelatedData
+        }
+      }),
     onSuccess: () => {
       notify("Account deleted");
       if (editId) {
         setEditId(null);
         reset(accountDefaults);
       }
+      setDeleteTarget(null);
+      setDeleteImpact(null);
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
     },
     onError: (error) => {
@@ -226,6 +246,42 @@ export function AccountsPage() {
   }, [accountsQuery.data, normalizedSearch]);
 
   const selectedType = watch("type");
+
+  const openDeleteModal = async (account: Account) => {
+    setDeleteTarget(account);
+    setDeleteImpact(null);
+    setDeleteImpactLoading(true);
+
+    try {
+      const impact = (await apiClient.get<DeleteAccountImpact>(`/accounts/${account.id}/delete-impact`)).data;
+      setDeleteImpact(impact);
+    } catch (error) {
+      setDeleteTarget(null);
+      const message = (
+        error as { response?: { data?: { error?: string } } }
+      ).response?.data?.error ?? "Unable to inspect account delete impact.";
+      notify(message, "error");
+    } finally {
+      setDeleteImpactLoading(false);
+    }
+  };
+
+  const closeDeleteModal = () => {
+    if (deleteMutation.isPending) {
+      return;
+    }
+
+    setDeleteTarget(null);
+    setDeleteImpact(null);
+    setDeleteImpactLoading(false);
+  };
+
+  const impactItems = [
+    { label: "Transactions", count: deleteImpact?.transactionCount ?? 0 },
+    { label: "Goals", count: deleteImpact?.goalCount ?? 0 },
+    { label: "Recurring items", count: deleteImpact?.recurringCount ?? 0 },
+    { label: "Budgets", count: deleteImpact?.budgetCount ?? 0 }
+  ].filter((item) => item.count > 0);
 
   return (
     <section className="card">
@@ -425,12 +481,7 @@ export function AccountsPage() {
                     <ActionIconButton
                       icon="delete"
                       label="Delete account"
-                      onClick={() => {
-                        if (!window.confirm(`Delete account "${r.name}"?`)) {
-                          return;
-                        }
-                        deleteMutation.mutate(r.id);
-                      }}
+                      onClick={() => void openDeleteModal(r)}
                     />
                   </div>
                 )
@@ -443,6 +494,59 @@ export function AccountsPage() {
       <div style={{ marginTop: 16 }}>
         <SharedAccountPanel accounts={accountsQuery.data.map((account) => ({ id: account.id, name: account.name }))} />
       </div>
+
+      {deleteTarget ? (
+        <div className="goal-modal-backdrop" role="dialog" aria-modal="true" onClick={closeDeleteModal}>
+          <div className="goal-modal-card delete-account-modal" onClick={(event) => event.stopPropagation()}>
+            <h3>Delete account</h3>
+            {deleteImpactLoading ? (
+              <p className="muted">Checking account dependencies...</p>
+            ) : deleteImpact?.requiresCascadeDelete ? (
+              <>
+                <p className="muted">
+                  Deleting <strong>{deleteTarget.name}</strong> will also remove the linked records below. This action cannot be undone.
+                </p>
+                <div className="delete-account-impact-list">
+                  {impactItems.map((item) => (
+                    <div key={item.label} className="delete-account-impact-item">
+                      <span>{item.label}</span>
+                      <strong>{item.count}</strong>
+                    </div>
+                  ))}
+                </div>
+                <p className="muted delete-account-note">
+                  Related transactions will be deleted, linked goals and recurring items will be removed, and affected account balances will be recalculated automatically.
+                </p>
+              </>
+            ) : (
+              <p className="muted">
+                Delete <strong>{deleteTarget.name}</strong>? This account has no linked transactions, goals, recurring items, or budgets.
+              </p>
+            )}
+            <div className="form-actions">
+              <button type="button" className="btn ghost" onClick={closeDeleteModal}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn"
+                disabled={deleteImpactLoading || deleteMutation.isPending}
+                onClick={() =>
+                  deleteMutation.mutate({
+                    id: deleteTarget.id,
+                    deleteRelatedData: deleteImpact?.requiresCascadeDelete ?? false
+                  })}
+              >
+                {deleteMutation.isPending
+                  ? "Deleting..."
+                  : deleteImpact?.requiresCascadeDelete
+                    ? "Delete anyway"
+                    : "Delete account"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

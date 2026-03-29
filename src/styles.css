@@ -4113,6 +4113,33 @@ body::after {
   margin: 12px 0 0;
 }
 
+.delete-account-impact-list {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.delete-account-impact-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(207, 220, 240, 0.9);
+  background: rgba(248, 251, 255, 0.92);
+}
+
+.delete-account-impact-item span {
+  color: #5d6f8a;
+  font-weight: 600;
+}
+
+.delete-account-impact-item strong {
+  color: #22344f;
+  font-size: 14px;
+}
+
 .auth-shell-v2 {
   min-height: 100vh;
   padding: 42px 24px;
@@ -5366,6 +5393,19 @@ body.dark-theme .goal-hold-badge {
 
 body.dark-theme .delete-account-checkbox {
   color: #dbe6f8;
+}
+
+body.dark-theme .delete-account-impact-item {
+  background: rgba(20, 31, 48, 0.92);
+  border-color: #314661;
+}
+
+body.dark-theme .delete-account-impact-item span {
+  color: #b7c8e3;
+}
+
+body.dark-theme .delete-account-impact-item strong {
+  color: #edf3ff;
 }
 
 body.dark-theme .auth-shell-v2 {
