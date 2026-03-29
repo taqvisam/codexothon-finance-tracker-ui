@@ -4941,6 +4941,27 @@ body::after {
   margin: 16px 0 16px;
 }
 
+.onboarding-email-notice {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid #cfe2d7;
+  background: linear-gradient(180deg, #eefaf2, #e5f5eb);
+  color: #183153;
+}
+
+.onboarding-email-notice strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #166534;
+}
+
+.onboarding-email-notice p {
+  margin: 0;
+  color: #35546f;
+  line-height: 1.55;
+}
+
 .onboarding-template-download {
   background: linear-gradient(135deg, #2ea05f, #2bb673);
   border: 1px solid rgba(31, 132, 78, 0.84);
@@ -5162,6 +5183,20 @@ body.dark-theme .onboarding-import-card {
 
 body.dark-theme .onboarding-import-card.subtle {
   background: linear-gradient(180deg, #182437, #152032);
+}
+
+body.dark-theme .onboarding-email-notice {
+  background: linear-gradient(180deg, #152a24, #14231f);
+  border-color: #265441;
+  color: #dff5e7;
+}
+
+body.dark-theme .onboarding-email-notice strong {
+  color: #8ee0aa;
+}
+
+body.dark-theme .onboarding-email-notice p {
+  color: #c7ddd1;
 }
 
 body.dark-theme .onboarding-eyebrow {

@@ -32,6 +32,7 @@ export function LoginPage() {
         displayName: string;
         profileImageUrl?: string | null;
         showWelcomeBackMessage?: boolean;
+        showOnboardingWorkbookEmailMessage?: boolean;
       };
     },
     onSuccess: (data) => {

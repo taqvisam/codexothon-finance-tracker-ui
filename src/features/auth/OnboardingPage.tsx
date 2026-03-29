@@ -315,6 +315,7 @@ export function OnboardingPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const authEmail = useAuthStore((s) => s.email);
+  const showOnboardingWorkbookEmailMessage = useAuthStore((s) => s.showOnboardingWorkbookEmailMessage);
   const { notify, selectedPeriod } = useUiStore();
   const [year, month] = selectedPeriod.split("-").map(Number);
   const [setupMode, setSetupMode] = useState<"manual" | "import">("import");
@@ -349,6 +350,7 @@ export function OnboardingPage() {
     queryFn: async () => (await apiClient.get<UserProfile>("/profile")).data,
     enabled: !authEmail
   });
+  const onboardingMessageEmail = authEmail ?? profileQuery.data?.email ?? "";
 
   const invalidatePostOnboarding = async () => {
     localStorage.removeItem(ONBOARDING_SKIP_KEY);
@@ -712,6 +714,15 @@ export function OnboardingPage() {
               <p className="muted">
                 Upload a single Excel workbook and let the backend create the right records, balances, categories, and trends for you.
               </p>
+
+              {showOnboardingWorkbookEmailMessage && onboardingMessageEmail ? (
+                <div className="onboarding-email-notice" role="status">
+                  <strong>Sample worksheet emailed</strong>
+                  <p>
+                    We have sent the onboarding sample worksheet on your mail <strong>{onboardingMessageEmail}</strong>. Please use it to onboard, or click the download button to get the file.
+                  </p>
+                </div>
+              ) : null}
 
               <div className="onboarding-template-links">
                 <a className="btn onboarding-template-download" href="/sample-onboarding-import-v2.xlsx" download>

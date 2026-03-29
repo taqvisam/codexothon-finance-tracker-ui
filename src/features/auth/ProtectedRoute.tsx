@@ -44,6 +44,7 @@ export function ProtectedRoute() {
           displayName: string;
           profileImageUrl?: string | null;
           showWelcomeBackMessage?: boolean;
+          showOnboardingWorkbookEmailMessage?: boolean;
         }>("/auth/refresh", payload);
         setAuth(data);
         if (!cancelled) setStatus("allowed");

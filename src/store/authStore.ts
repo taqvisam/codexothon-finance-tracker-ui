@@ -8,6 +8,7 @@ interface AuthPayload {
   displayName: string;
   profileImageUrl?: string | null;
   showWelcomeBackMessage?: boolean;
+  showOnboardingWorkbookEmailMessage?: boolean;
 }
 
 interface AuthState {
@@ -17,6 +18,7 @@ interface AuthState {
   displayName: string | null;
   profileImageUrl: string | null;
   showWelcomeBackMessage: boolean;
+  showOnboardingWorkbookEmailMessage: boolean;
   setAuth: (payload: AuthPayload) => void;
   updateProfile: (profile: { displayName: string; email: string; profileImageUrl?: string | null }) => void;
   consumeWelcomeBackMessage: () => void;
@@ -32,6 +34,7 @@ export const useAuthStore = create<AuthState>()(
       displayName: null,
       profileImageUrl: null,
       showWelcomeBackMessage: false,
+      showOnboardingWorkbookEmailMessage: false,
       setAuth: (payload) =>
         set({
           accessToken: payload.accessToken,
@@ -39,7 +42,8 @@ export const useAuthStore = create<AuthState>()(
           email: payload.email,
           displayName: payload.displayName,
           profileImageUrl: payload.profileImageUrl ?? null,
-          showWelcomeBackMessage: payload.showWelcomeBackMessage ?? false
+          showWelcomeBackMessage: payload.showWelcomeBackMessage ?? false,
+          showOnboardingWorkbookEmailMessage: payload.showOnboardingWorkbookEmailMessage ?? false
         }),
       updateProfile: (profile) =>
         set((state) => ({
@@ -56,7 +60,8 @@ export const useAuthStore = create<AuthState>()(
           email: null,
           displayName: null,
           profileImageUrl: null,
-          showWelcomeBackMessage: false
+          showWelcomeBackMessage: false,
+          showOnboardingWorkbookEmailMessage: false
         })
     }),
     {

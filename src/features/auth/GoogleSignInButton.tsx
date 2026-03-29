@@ -9,6 +9,7 @@ interface AuthResponse {
   displayName: string;
   profileImageUrl?: string | null;
   showWelcomeBackMessage?: boolean;
+  showOnboardingWorkbookEmailMessage?: boolean;
 }
 
 interface GoogleSignInButtonProps {
